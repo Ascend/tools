@@ -45,20 +45,20 @@ img2bin能够生成模型推理所需的输入数据，以.bin格式保存。
 
 1. 下载压缩包方式获取。
 
-   将 https://gitee.com/atlasdevelop/c7x_samples 仓中的脚本下载至服务器的任意目录。
+   将 https://gitee.com/ascend/tools 仓中的脚本下载至服务器的任意目录。
 
-   例如存放路径为：$HOME/AscendProjects/img2bin。
+   例如存放路径为：$HOME/AscendProjects/tools。
 
 2. 命令行使用git命令方式获取。
 
    在命令行中：$HOME/AscendProjects目录下执行以下命令下载代码。
 
-   **git clone  https://gitee.com/atlasdevelop/c7x_samples.git**
+   **git clone  https://gitee.com/ascend/tools.git**
 
 ## 使用方法
 进入脚本所在目录。
 ```
-cd $HOME/AscendProjects/img2bin
+cd $HOME/AscendProjects/tools/img2bin
 ```
 
 ### 第一类图片：
