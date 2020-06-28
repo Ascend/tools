@@ -31,23 +31,28 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #   =======================================================================
-#
 import argparse
 import configparser
-import cv2 as cv
-import numpy as np
 import json
 import os
-import re
 import sys
-
+try:
+    import cv2 as cv 
+except:
+    os.system('pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org opencv-python')
+    import cv2 as cv
+try:
+    import numpy as np  
+except:
+    os.system('pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org numpy')
+    import numpy as np 
 
 def get_args():
     parser = argparse.ArgumentParser(
         conflict_handler='resolve',
         description='''eg1: python3 imgtobin.py
-         -i ./images -w 416 -h 416 -f BGR -a NCHW -m [104,117,123] -o ./out 
-         eg2: python3 imgtobin.py -i ./test.txt -t uint8''')
+         -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out 
+         eg2: python3 imgtobin.py -i ./test.txt -t uint8 -o ./out''')
     parser.add_argument('-i', '--input', required=True, type=str, \
         help='folder of input image or file of other input.')
     parser.add_argument('-w', '--width', type=int, \
@@ -82,30 +87,19 @@ def check_args(args):
     check_flag = True
     is_dir = True  
     if os.path.isdir(args.input):
-        #print(args)
         if not os.listdir(args.input):
-            eprint('[ERROR] input image path=%r is empty.' % path)
+            eprint('[ERROR] input image path=%r is empty.' % args.input)
             check_flag = False
     elif os.path.isfile(args.input):
         is_dir = False
     else:
-        eprint('[ERROR] input path=%r does not exist.' % path)
+        eprint('[ERROR] input path=%r does not exist.' % args.input)
         check_flag = False
-
     if args.output_image_format not in ('BGR','RGB', 'YUV', 'GRAY'):
         eprint("ERROR:Convert to %d is not support"%(args.output_image_format))
         check_flag = False
-    # if os.path.isfile(args.output_path):
-    #     eprint('[ERROR] argument output_path should be a folder.')
-    # elif not os.path.exists(args.output_path):
-    #     os.makedirs(args.output_path)
-    # if not 16 <= args.model_width <= 4096:
-    #     eprint('[ERROR] resized image width should between 16 and 4096.')
-    #     check_flag = False
-    # if not 16 <= args.model_height <= 4096:
-    #     eprint('[ERROR] resized image height should between 16 andd 4096.')
-    #     check_flag = False
     return check_flag, is_dir
+   
 
 
 def convert_img(args, input_img):
@@ -116,11 +110,11 @@ def convert_img(args, input_img):
     elif args.output_image_format == 'YUV':
         if input_img.shape[0] % 2 == 1:
             if input_img.shape[1] % 2 == 1:
-                input_img =  cv.resize(input_img, ((input_img.shape[0] + 1), (input_img.shape[1] + 1)))
+                input_img = cv.resize(input_img, ((input_img.shape[0] + 1), (input_img.shape[1] + 1)))
             else:
-                input_img =  cv.resize(input_img, ((input_img.shape[0] + 1), input_img.shape[1]))
+                input_img = cv.resize(input_img, ((input_img.shape[0] + 1), input_img.shape[1]))
         elif input_img.shape[1] % 2 == 1:
-            input_img =  cv.resize(input_img, (input_img.shape[0], input_img.shape[1] + 1))
+            input_img = cv.resize(input_img, (input_img.shape[0], input_img.shape[1] + 1))
         converted_input_img = cv.cvtColor(input_img, cv.COLOR_BGR2YUV_I420)
     elif args.output_image_format == 'GRAY':
         converted_input_img = cv.cvtColor(input_img, cv.COLOR_BGR2GRAY)
@@ -192,43 +186,50 @@ def mkdir_output(args):
     return
 
 
+def process(args, file_path):
+    if file_path.endswith(".txt"):
+        config = configparser.ConfigParser()
+        config.read(file_path)
+        input_node = json.loads(config['baseconf']['input_node'])
+        shape = json.loads(config['baseconf']['shape'])
+        input_node_np = np.array(input_node)
+        change_type_img_info = change_type(args, input_node_np)
+        img_info = np.reshape(change_type_img_info, shape)
+        out_path = os.path.join(args.output, os.path.splitext(os.path.split(file_path)[1])[0] + ".bin")
+        mkdir_output(args)
+        img_info.tofile(out_path) 
+    else:
+        input_img = cv.imread(file_path) 
+        if args.output_image_format == 'YUV':
+            resized_img1 = resize_img(args, input_img) 
+            converted_img = convert_img(args, resized_img1) 
+            mean_img = mean(args, converted_img)
+        else: 
+            converted_img = convert_img(args, input_img)    
+            resized_img = resize_img(args, converted_img)  
+            mean_img = mean(args, resized_img)
+        coefficient_img = coefficient(args, mean_img)
+        change_type_img = change_type(args, coefficient_img)
+        change_format_img = change_format(args, change_type_img)
+        out_path = os.path.join(args.output, os.path.splitext(os.path.split(file_path)[1])[0] + ".bin")
+        mkdir_output(args)
+        change_format_img.tofile(out_path)
+        
+
 def main():
     """main function to receive params them change data to bin.
     """
     args = get_args()
-    ret,is_dir = check_args(args)
+    ret, is_dir = check_args(args)
     if ret:
         if is_dir:
-            img_names = os.listdir(args.input)
-            for img_name in img_names:
-                img_path = os.path.join(args.input, img_name)
-                input_img = cv.imread(img_path) 
-                if args.output_image_format == 'YUV':
-                    resized_img1 = resize_img(args, input_img) 
-                    converted_img = convert_img(args, resized_img1) 
-                    mean_img = mean(args, converted_img)
-                else: 
-                    converted_img = convert_img(args, input_img)    
-                    resized_img = resize_img(args, converted_img)  
-                    mean_img = mean(args, resized_img)
-                coefficient_img = coefficient(args, mean_img)
-                change_type_img = change_type(args, coefficient_img)
-                change_format_img = change_format(args, change_type_img)
-                out_path = os.path.join(args.output, os.path.splitext(img_name)[0] + ".bin")
-                mkdir_output(args)
-                change_format_img.tofile(out_path)  
+            files_name = os.listdir(args.input)
+            for file_name in files_name:
+                file_path = os.path.join(args.input, file_name)
+                process(args, file_path)  
         else:
-            config = configparser.ConfigParser()
-            config.read(args.input)
-            input_node = json.loads(config['baseconf']['input_node'])
-            shape = json.loads(config['baseconf']['shape'])
-            input_node_np = np.array(input_node)
-            change_type_img_info = change_type(args, input_node_np)
-            img_info = np.reshape(change_type_img_info, shape)
-            out_path = os.path.join(args.output, os.path.splitext(args.input)[0] + ".bin")
-            mkdir_output(args)
-            img_info.tofile(out_path)  
-       
+            process(args, args.input)    
+
 
 if __name__ == '__main__':
     main()
