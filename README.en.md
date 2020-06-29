@@ -6,7 +6,7 @@ Ascend tools，Please go to the corresponding folder to get the tool according t
 
 #### explain
 
-1.  [AMEXEC](https://gitee.com/ascend/tools/tree/master/AMEXEC)
+1.  [amexec](https://gitee.com/ascend/tools/tree/master/amexec)
 
     **Model reasoning tool**:Input. Om model and model required input bin file, output model output data file.
 
