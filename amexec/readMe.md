@@ -12,25 +12,25 @@ Centos7.6或Ubuntu16.4
 ### 获取
 1. 下载压缩包方式获取。
 
-   将 https://gitee.com/atlasdevelop/c7x_samples 仓中的脚本下载至服务器的任意目录。
+   将 https://gitee.com/ascend/tools 仓中的脚本下载至服务器的任意目录。
 
-   例如存放路径为：$HOME/AscendProjects/amexec。
+   例如存放路径为：$HOME/AscendProjects/tools。
 
 2. 命令行使用git命令方式获取。
 
    在命令行中：$HOME/AscendProjects目录下执行以下命令下载代码。
 
-   **git clone  https://gitee.com/atlasdevelop/c7x_samples.git**
+   **git clone https://gitee.com/ascend/tools.git**
 
 
 ### 使用方法
-进入AMEXEC目录
+进入amexec目录
 ```
-cd $HOME/AscendProjects/c7x_samples/amexec/
+cd $HOME/AscendProjects/tools/amexec/
 ```
 进入out目录
 ```
-cd $HOME/AscendProjects/c7x_samples/amexec/out
+cd out
 ```
 工具就在out目录下
 
@@ -45,9 +45,9 @@ cd $HOME/AscendProjects/c7x_samples/amexec/out
 
 ### 编译
 工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译
-进入AMEXEC目录
+进入amexec目录
 ```
-cd $HOME/AscendProjects/c7x_samples/amexec/
+cd $HOME/AscendProjects/tools/amexec/
 ```
 运行编译脚本
 ```
