@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+# !/usr/bin/env python2
 # -*- coding: UTF-8 -*-
 #
 #   =======================================================================
@@ -31,28 +31,42 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #   =======================================================================
+from __future__ import print_function
 import argparse
-import configparser
+import ConfigParser as configparser
 import json
 import os
 import sys
+import commands
+
 try:
     import cv2 as cv 
 except:
-    os.system('pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org opencv-python')
+    ret, output = commands.getstatusoutput('whoami')
+    if output != 'root':
+        print('[ERROR] opencv-python not installed.')
+        print("[ERROR] Please use the root user to execute this script again")
+        exit(0)
+    print('begin to install opencv-python...') 
+    ret = os.system('yum install -y opencv-python')
+    if ret != 0:
+        ret = os.system('apt-get install -y python-opencv')
+        if ret != 0:
+            print('[ERROR] install opencv-python failed,please check env.')
+            exit(0)
     import cv2 as cv
 try:
     import numpy as np  
 except:
-    os.system('pip3 install --trusted-host pypi.org --trusted-host files.pythonhosted.org numpy')
+    os.system('pip2 install numpy')
     import numpy as np 
 
 def get_args():
     parser = argparse.ArgumentParser(
         conflict_handler='resolve',
-        description='''eg1: python3 imgtobin.py
+        description='''eg1: python2 imgtobin.py
          -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out 
-         eg2: python3 imgtobin.py -i ./test.txt -t uint8 -o ./out''')
+         eg2: python2 imgtobin.py -i ./test.txt -t uint8 -o ./out''')
     parser.add_argument('-i', '--input', required=True, type=str, \
         help='folder of input image or file of other input.')
     parser.add_argument('-w', '--width', type=int, \
@@ -220,7 +234,7 @@ def main():
     """main function to receive params them change data to bin.
     """
     args = get_args()
-    ret, is_dir = check_args(args)
+    ret,is_dir = check_args(args)
     if ret:
         if is_dir:
             files_name = os.listdir(args.input)
@@ -233,3 +247,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
