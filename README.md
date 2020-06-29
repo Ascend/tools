@@ -6,7 +6,7 @@ Ascend tools，请根据自己的需要进入对应文件夹获取工具，或�
 
 #### 使用说明
 
-1.  [AMEXEC](https://gitee.com/ascend/tools/tree/master/AMEXEC)
+1.  [amexec](https://gitee.com/ascend/tools/tree/master/amexec)
 
     **模型推理工具**:输入.om模型和模型所需要的输入bin文件，输出模型的输出数据文件。
 
