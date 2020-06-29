@@ -5,9 +5,9 @@ img2bin能够生成模型推理所需的输入数据，以.bin格式保存。
 
 ## 前提条件  
 
-脚本可在Centos和Ubuntu环境下使用，需提前安装python3和pip3。  
+脚本可在Centos和Ubuntu环境下使用。  
 
-如未安装opencv-python，脚本会自动安装。
+ **如未安装opencv-python，第一次使用，需用root用户执行脚本，脚本会自动安装。** 
 
 ## 获取脚本
 
@@ -33,7 +33,7 @@ cd $HOME/AscendProjects/img2bin
 - 脚本会将 -i 后指定的图片目录下的所有图片按参数设置做相应的预处理，并以"文件名.bin"命名保存在-o指定的输出目录下。
 
 ```
-python3 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
+python2 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
 ```
 
 ### 第二类：
@@ -43,7 +43,7 @@ python3 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117
 - 参数 -i 需要指定文件的目录或路径，-t 需要指定数据类型，-o指定输出目录。
 
 ```
-python3 img2bin.py -i ./test.txt -t uint8 -o ./out
+python2 img2bin.py -i ./test.txt -t uint8 -o ./out
 ```
 
 ## 参数说明
