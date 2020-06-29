@@ -16,6 +16,7 @@
 using namespace std;
 extern bool g_isDevice;
 extern bool f_isTXT;
+extern int loop;
  
 SampleProcess::SampleProcess() :deviceId_(0), context_(nullptr), stream_(nullptr)
 {
@@ -73,7 +74,7 @@ Result SampleProcess::InitResource()
     return SUCCESS;
 }
  
-Result SampleProcess::Process(vector<string>& params, vector<string>& input_files, size_t idx)
+Result SampleProcess::Process(vector<string>& params, vector<string>& input_files)
 {
     // model init
     ModelProcess processModel;
@@ -86,9 +87,12 @@ Result SampleProcess::Process(vector<string>& params, vector<string>& input_file
     const char* profConf = params[5].c_str();
     const char* dymBatch = params[6].c_str();
  
-	std::string modelPath = params[0].c_str();
-	std::string modelName = Utils::modelName(modelPath);
+    std::string modelPath = params[0].c_str();
+    std::string modelName = Utils::modelName(modelPath);
  
+    struct timeval begin;
+    struct timeval end;
+    double inference_time[loop];
     Result ret = processModel.LoadModelFromFileWithMem(omModelPath);
     if (ret != SUCCESS) {
         ERROR_LOG("load model from file failed");
@@ -122,33 +126,34 @@ Result SampleProcess::Process(vector<string>& params, vector<string>& input_file
         ret = processModel.CreateInput(picDevBuffer[index], devBufferSize);
         if (ret != SUCCESS) {
             ERROR_LOG("model create input failed");
-            for (size_t i = 0; i <= index; i++) {
+            for (size_t i = 0; i < index; i++) {
                 aclrtFree(picDevBuffer[i]);
             }
             return FAILED;
         }
-  
-    // loop end
- 
-	printf("Inference begin time: ");
-	Utils::printCurrentTime();
-    ret = processModel.Execute();
-	printf("Inference end time: ");
-	Utils::printCurrentTime();
-    if (ret != SUCCESS) {
-        ERROR_LOG("model execute failed");
-        for (size_t i = 0; i < index; i++) {
-            aclrtFree(picDevBuffer[i]);
-        }
-        return FAILED;
     }
- 
-    // print the top 5 confidence values with indexes.use function DumpModelOutputResult
-    // if want to dump output result to file in the current directory
-	//processModel.DumpModelOutputResult();
-    processModel.OutputModelResult(output_path,modelName,idx);
+    // loop end
+    for (size_t t = 0; t < loop; ++t){    
+            gettimeofday(&begin,NULL);
+            ret = processModel.Execute();
+            gettimeofday(&end,NULL);
+            inference_time[t] = 1000*(end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec)/1000.000;
+	    //std::cout << "usec: " << end.tv_usec - begin.tv_usec << endl;
+            std::cout << "Inference time: "<<inference_time[t] << "ms" << endl;
+            if (ret != SUCCESS) {
+                ERROR_LOG("model execute failed");
+                for (size_t i = 0; i < input_files.size(); i++) {
+                    aclrtFree(picDevBuffer[i]);
+                }
+                return FAILED;
+            }
+            processModel.OutputModelResult(output_path,modelName,t);
+    }
+    double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
+    printf("Inference average time: %f ms\n", infer_time_ave);
+
     processModel.DestroyInput();
-}
+
     // release model input buffer
    for (size_t i = 0; i < input_files.size(); i++) {
         aclrtFree(picDevBuffer[i]);

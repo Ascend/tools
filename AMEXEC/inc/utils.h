@@ -20,13 +20,14 @@
 #include <algorithm>
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
  
 #define INFO_LOG(fmt, args...) fprintf(stdout, "[INFO] " fmt "\n", ##args)
 #define WARN_LOG(fmt, args...) fprintf(stdout, "[WARN] " fmt "\n", ##args)
 #define ERROR_LOG(fmt, args...) fprintf(stdout, "[ERROR] " fmt "\n", ##args)
  
 using namespace std;
-static size_t loop = 1;
+//static size_t loop = 1;
 typedef enum Result {
     SUCCESS = 0,
     FAILED = 1
@@ -65,7 +66,10 @@ public:
 	static void printCurrentTime();
 	
 	static void printHelpLetter();	
+
+    static double printDiffTime(time_t begin, time_t end);
 	
+    static double InferenceTimeAverage(double *x, int len);
 };
  
 #pragma once

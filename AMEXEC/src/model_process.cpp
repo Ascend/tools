@@ -567,5 +567,5 @@ void ModelProcess::Unload()
 	}
 	
 	loadFlag_ = false;
-		INFO_LOG("unload model syccess, model Id is %u", modelId_);
+		INFO_LOG("unload model success, model Id is %u", modelId_);
 }

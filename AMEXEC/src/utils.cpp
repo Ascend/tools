@@ -175,3 +175,18 @@ void Utils::printHelpLetter()
 	cout<< "NOTECE: " << endl;
 	cout<< "	The order of parameter must follow in --model --input --output --outfmt --loop " << endl;
 }
+
+double Utils::printDiffTime(time_t begin, time_t end)
+{
+    double diffT = difftime(begin, end);
+    printf("The inference time is: %f millisecond\n", 1000*diffT);
+    return diffT*1000;
+}
+
+double Utils::InferenceTimeAverage(double *x, int len)
+{
+    double sum = 0;
+    for (int i = 0; i < len; i++)
+        sum += x[i];
+    return sum/len;
+}

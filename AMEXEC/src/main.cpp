@@ -16,6 +16,7 @@ using namespace std;
 
 bool f_isTXT = false;
 bool g_isDevice = false;
+int loop = 1;
 string input_Ftype = ".bin";
 string model_Ftype = ".om";
 string check = "";
@@ -78,6 +79,7 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
             break;
         case 'l':
             loop = Utils::str2num(optarg);
+	    cout << "loop:" << loop << endl;
 			if (loop > 100 || loop < 1)
 			{
 				printf("loop must in 1 to 100\n");
@@ -120,14 +122,13 @@ int main(int argc, char* argv[])
         ERROR_LOG("Sample init resource failed.");
         return FAILED;
     }
-    for (size_t i = 0;i < loop;i++){
-	std::cout << i << endl;
-        ret = processSample.Process(params, inputs, i);
-        if (ret != SUCCESS) {
-            ERROR_LOG("Sample process failed.");
-            return FAILED;
-        }
+
+    ret = processSample.Process(params, inputs);
+    if (ret != SUCCESS) {
+        ERROR_LOG("Sample process failed.");
+        return FAILED;
     }
+
     INFO_LOG("Execute sample success.");
     printf("Test Finish!\n");
     printf("******************************\n");
