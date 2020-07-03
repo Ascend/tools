@@ -39,7 +39,7 @@ cd out
 ```
 ./amexec --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
 ```
-需要注意的是这几个参数的顺序不能颠倒，outfmt与loop为可选参数，默认值分别有BIN、1。
+需要注意的是这几个参数的顺序不能颠倒，loop为可选参数，默认值1。
 如果有多个输入，需要用“，”隔开。
 其他参数详情可使用--help查询。
 
