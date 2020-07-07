@@ -7,7 +7,7 @@ img2bin能够生成模型推理所需的输入数据，以.bin格式保存。
 
 - 脚本可在Centos和Ubuntu环境下使用,只支持x86架构。  
 - 脚本支持python2和python3.7.5(MindStudio依赖python3.7.5)。
-- 如未安装opencv-python，第一次使用，脚本会自动安装。 
+- 如未安装opencv-python，第一次使用，脚本会自动安装，如普通用户运行脚本，请确保普通用户有/usr/bin/apt-get权限。
 
 ## 获取脚本
 
