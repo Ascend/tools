@@ -166,7 +166,7 @@ void Utils::printHelpLetter()
 	cout<< "  --model       Model file path" << endl;
 	cout<< "  --input	Input data path(only accept binary data file) 	If there are several file, please seprate by ','" << endl;
 	cout<< "  --output	Output path(User needs to have permission to create directories)" <<  endl;
-	cout<< "  --outfmt	Output file format (TXT or BIN, default BIN)" << endl;
+	cout<< "  --outfmt	Output file format (TXT or BIN)" << endl;
 	cout<< "  --loop 	loop time(must in 1 to 100)" << endl;
 	cout<< "  --dumpConf	dump configure file path (Do not support now)" << endl;
 	cout<< "  --profConf	profiling configure file path (Do not support now)" << endl;
