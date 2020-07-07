@@ -1,4 +1,3 @@
-# !/usr/bin/env python2
 # -*- coding: UTF-8 -*-
 #
 #   =======================================================================
@@ -33,32 +32,46 @@
 #   =======================================================================
 from __future__ import print_function
 import argparse
-import ConfigParser as configparser
+
 import json
 import os
 import sys
-import commands
+import getpass
 
 try:
     import cv2 as cv 
 except:
-    ret, output = commands.getstatusoutput('whoami')
+    '''
+    output = getpass.getuser()
     if output != 'root':
         print('[ERROR] opencv-python not installed.')
         print("[ERROR] Please use the root user to execute this script again")
         exit(0)
-    print('begin to install opencv-python...') 
-    ret = os.system('yum install -y opencv-python')
-    if ret != 0:
-        ret = os.system('apt-get install -y python-opencv')
+    '''
+    print('[info] begin to install opencv-python...') 
+    if sys.version_info.major == 2:
+        import ConfigParser as configparser
+        ret = os.system('sudo yum install -y opencv-python')
+        if ret != 0:
+            ret = os.system('sudo apt-get install -y python-opencv')
+            if ret != 0:
+                print('[ERROR] install opencv-python failed,please check env.')
+                exit(0)
+    else:
+        import configparser
+        ret = os.system('python3.7.5 -m pip install opencv-python  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com')
         if ret != 0:
             print('[ERROR] install opencv-python failed,please check env.')
             exit(0)
+        
     import cv2 as cv
 try:
     import numpy as np  
 except:
-    os.system('pip2 install numpy')
+    if sys.version_info.major == 2:
+        os.system('pip2 install numpy')
+    else:
+        os.system('python3.7.5 -m pip install numpy')
     import numpy as np 
 
 def get_args():
@@ -136,7 +149,17 @@ def convert_img(args, input_img):
         
 
 def resize_img(args, input_img):
-    resized_img = cv.resize(input_img, (args.width, args.height))
+    old_size = input_img.shape[0:2]
+    target_size = [args.height, args.width]
+    ratio = min(float(target_size[i])/(old_size[i]) for i in range(len(old_size)))
+    new_size = tuple([int(i*ratio) for i in old_size])
+    img_new = cv.resize(input_img,(new_size[1], new_size[0]))
+    pad_w = target_size[1] - new_size[1]
+    pad_h = target_size[0] - new_size[0]
+    top,bottom = pad_h//2, pad_h-(pad_h//2)
+    left,right = pad_w//2, pad_w -(pad_w//2)
+    resized_img = cv.copyMakeBorder(img_new, top, bottom, left, right, cv.BORDER_CONSTANT, None,(0, 0, 0))
+    #resized_img = cv.resize(input_img, (args.width, args.height))
     return resized_img
 
 
@@ -243,7 +266,7 @@ def main():
                 process(args, file_path)  
         else:
             process(args, args.input)    
-
+    print("[info] bin file generated successfully.")
 
 if __name__ == '__main__':
     main()
