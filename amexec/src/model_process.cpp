@@ -260,11 +260,21 @@ void ModelProcess::OutputModelResult(std::string& s,std::string& modelName,size_
         aclDataType datatype = aclmdlGetOutputDataType(modelDesc_, i);
         void *dims = nullptr;
         aclmdlIODims *dim = nullptr;
-        aclError ret = aclrtMallocHost(&dims, sizeof(aclmdlIODims));
-        if (ret != ACL_ERROR_NONE) {
-            ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
-            return;
-        }
+        aclError ret = ACL_ERROR_NONE;
+        if (!g_isDevice) { 
+            ret = aclrtMallocHost(&dims, sizeof(aclmdlIODims));
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
+                return;
+            }
+		}
+		else {
+			ret = aclrtMalloc(&dims, sizeof(aclmdlIODims), ACL_MEM_MALLOC_NORMAL_ONLY);
+			if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("malloc device buffer failed, ret[%d]", ret);
+                return;
+            }
+		}
         dim = reinterpret_cast<aclmdlIODims*>(dims);
         ret = aclmdlGetOutputDims(modelDesc_, i, dim);
         if (ret != ACL_ERROR_NONE) {

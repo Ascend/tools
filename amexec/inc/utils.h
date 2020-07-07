@@ -70,6 +70,8 @@ public:
     static double printDiffTime(time_t begin, time_t end);
 	
     static double InferenceTimeAverage(double *x, int len);
+	
+	static double InferenceTimeAverageWithoutFirst(double *x, int len);
 };
  
 #pragma once

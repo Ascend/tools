@@ -64,7 +64,7 @@ Result SampleProcess::InitResource()
  
     // get run mode
     aclrtRunMode runMode;
-   ret = aclrtGetRunMode(&runMode);
+    ret = aclrtGetRunMode(&runMode);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("acl get run mode failed");
         return FAILED;
@@ -151,7 +151,10 @@ Result SampleProcess::Process(vector<string>& params, vector<string>& input_file
     }
     double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
     printf("Inference average time: %f ms\n", infer_time_ave);
-
+	if (loop > 1){
+		double infer_time_ave_without_first = Utils::InferenceTimeAverageWithoutFirst(inference_time, loop);
+		printf("Inference average time without first time: %f ms\n", infer_time_ave_without_first);
+	} 
     processModel.DestroyInput();
 
     // release model input buffer

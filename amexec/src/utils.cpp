@@ -51,6 +51,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t &fileSize)
             return nullptr;
         }
     }
+		
     binFile.read(static_cast<char *>(binFileBufferData), binFileBufferLen);
     binFile.close();
     fileSize = binFileBufferLen;
@@ -180,7 +181,7 @@ double Utils::printDiffTime(time_t begin, time_t end)
 {
     double diffT = difftime(begin, end);
     printf("The inference time is: %f millisecond\n", 1000*diffT);
-    return diffT*1000;
+    return diffT * 1000;
 }
 
 double Utils::InferenceTimeAverage(double *x, int len)
@@ -188,5 +189,16 @@ double Utils::InferenceTimeAverage(double *x, int len)
     double sum = 0;
     for (int i = 0; i < len; i++)
         sum += x[i];
-    return sum/len;
+    return sum / len;
+}
+
+double Utils::InferenceTimeAverageWithoutFirst(double *x, int len)
+{
+    double sum = 0;
+    for (int i = 0; i < len; i++)
+		if (i !=0){
+		    sum += x[i];
+		}
+        
+    return sum / (len - 1);
 }
