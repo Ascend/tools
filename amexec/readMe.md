@@ -68,4 +68,4 @@ dump、profiling以及动态多batch功能暂不支持。
 | --output | 推理数据输出路径                |
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数默认1 |
-| --help   | 工具使用帮助信                  |
+| --help   | 工具使用帮助信息                  |
