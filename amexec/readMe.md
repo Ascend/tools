@@ -39,7 +39,7 @@ cd out
 ```
 ./amexec --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
 ```
-需要注意的是这几个参数的顺序不能颠倒，loop为可选参数，默认值1。
+loop为可选参数，默认值1。
 如果有多个输入，需要用“，”隔开。
 其他参数详情可使用--help查询。
 
@@ -51,9 +51,10 @@ cd $HOME/AscendProjects/tools/amexec/
 ```
 运行编译脚本
 ```
-./build.sh
+./build.sh g++ $HOME/AscendProjects/tools/amexec/out
 ```
-重新编译的工具在out目录下
+第一个参数指定编译器，由运行环境决定。  
+第二个参数指定工具生成的目录，填相对路径的话，是相对out目录。
 
 ## 注意事项
 运行工具的用户在当前目录需要有创建目录以及执行工具的权限，使用前请自行检查。
