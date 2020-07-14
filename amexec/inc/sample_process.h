@@ -39,7 +39,7 @@ public:
     * @brief sample process
     * @return result
     */
-    Result Process(vector<string>& params, vector<string>& inputs);
+    Result Process(map<char,string>& params, vector<string>& inputs);
  
 private:
     void DestroyResource();

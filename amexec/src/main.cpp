@@ -20,11 +20,10 @@ int loop = 1;
 string input_Ftype = ".bin";
 string model_Ftype = ".om";
 string check = "";
- 
- 
-void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<string>& inputs)
+
+void InitAndCheckParams(int argc, char* argv[], map<char,string>& params, vector<string>& inputs)
+//void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<string>& inputs)
 {
-    
     const char *optstring="m::i::o::f::hd::p::l::y::";
     int c,deb,index;
     struct option opts[]={{"model",required_argument,NULL,'m'},
@@ -39,13 +38,13 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
                           {0,0,0,0}};
     while((c=getopt_long(argc,argv,optstring,opts,&index))!=-1)
     {
-       
         switch(c)
         {
         case 'm':
 			check = optarg;
 			if (check.find(model_Ftype) != string::npos){
-				params.push_back(optarg);
+//				params.push_back(optarg);
+                params['m'] = optarg;
 				break;
 			}
 			else {
@@ -58,24 +57,30 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
 				printf("input data file type is not .bin , please check your input file type!\n");
 				exit(0);
 			}
-            params.push_back(optarg);
-            Utils::SplitString(params[1], inputs, ',');
+//            params.push_back(optarg);
+            params['i'] = optarg;
+            Utils::SplitString(params['i'], inputs, ',');
             break;
         case 'o':
-            params.push_back(optarg);
+//            params.push_back(optarg);
+            params['o'] = optarg;
             break;
         case 'f':
-            params.push_back(optarg);
+//            params.push_back(optarg);
+            params['f'] = optarg;
             break;
         case '?':
             printf("unknown paramenter\n");
             printf("Execute sample failed.\n");
+            Utils::printHelpLetter();
             exit(0);
         case 'd':
-			params.push_back(optarg);
+//			params.push_back(optarg);
+            params['d'] = optarg;
             break;
         case 'p':
-            params.push_back(optarg);
+//            params.push_back(optarg);
+            params['p'] = optarg;
             break;
         case 'l':
             loop = Utils::str2num(optarg);
@@ -87,7 +92,8 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
 			} 
             break;
         case 'y':
-            params.push_back(optarg);
+//            params.push_back(optarg);
+            params['y'] = optarg;
             break;
         case 1:
             Utils::printHelpLetter();
@@ -95,6 +101,7 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
         default:
             printf("unknown paramenter\n");
             printf("Execute sample failed.\n");
+            Utils::printHelpLetter();
             exit(0);
         }
     }
@@ -102,7 +109,8 @@ void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<s
 
 int main(int argc, char* argv[])
 {
-    vector<string> params;
+    map<char,string>params;
+//    vector<string> params;
     vector<string> inputs;
     InitAndCheckParams(argc, argv, params, inputs);
     printf("******************************\n");
@@ -112,6 +120,7 @@ int main(int argc, char* argv[])
     if (params.empty() || inputs.empty()) {
         printf("Invalid params.\n");
         printf("Execute sample failed.\n");
+        Utils::printHelpLetter();
         return FAILED;
     }
     

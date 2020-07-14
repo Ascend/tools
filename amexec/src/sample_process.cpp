@@ -31,7 +31,7 @@ Result SampleProcess::InitResource()
 {
     // ACL init
     const char *aclConfigPath = "";
-    aclError ret = aclInit(aclConfigPath);
+    aclError ret = aclInit(nullptr);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("acl init failed");
         return FAILED;
@@ -74,20 +74,20 @@ Result SampleProcess::InitResource()
     return SUCCESS;
 }
  
-Result SampleProcess::Process(vector<string>& params, vector<string>& input_files)
+Result SampleProcess::Process(map<char,string>& params, vector<string>& input_files)
 {
     // model init
     ModelProcess processModel;
-    const char* omModelPath = params[0].c_str();
-    std::string output_path = params[2].c_str();
-    const char* outfmt = params[3].c_str();
+    const char* omModelPath = params['m'].c_str();
+    std::string output_path = params['o'].c_str();
+    const char* outfmt = params['f'].c_str();
     const char* fmt_TXT = "TXT";
     f_isTXT = (strcmp(outfmt,fmt_TXT)==0);
-    const char* dumpConf = params[4].c_str();
-    const char* profConf = params[5].c_str();
-    const char* dymBatch = params[6].c_str();
+    const char* dumpConf = params['d'].c_str();
+    const char* profConf = params['p'].c_str();
+    const char* dymBatch = params['y'].c_str();
  
-    std::string modelPath = params[0].c_str();
+    std::string modelPath = params['m'].c_str();
     std::string modelName = Utils::modelName(modelPath);
  
     struct timeval begin;
@@ -111,8 +111,7 @@ Result SampleProcess::Process(vector<string>& params, vector<string>& input_file
         return FAILED;
     }
  
-    vector<void*> picDevBuffer(input_files.size(),nullptr);
- 
+    vector<void*> picDevBuffer(input_files.size(), nullptr);
     for (size_t index = 0; index < input_files.size(); ++index) {
         INFO_LOG("start to process file:%s", input_files[index].c_str());
         // model process
@@ -138,7 +137,6 @@ Result SampleProcess::Process(vector<string>& params, vector<string>& input_file
             ret = processModel.Execute();
             gettimeofday(&end,NULL);
             inference_time[t] = 1000*(end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec)/1000.000;
-	    //std::cout << "usec: " << end.tv_usec - begin.tv_usec << endl;
             std::cout << "Inference time: "<<inference_time[t] << "ms" << endl;
             if (ret != SUCCESS) {
                 ERROR_LOG("model execute failed");

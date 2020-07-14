@@ -159,6 +159,8 @@ void Utils::printCurrentTime()
 }
 void Utils::printHelpLetter()
 {
+    cout<< endl;
+    cout<< "Usage:" << endl;
 	cout<< "generate offline model inference output file example:" << endl;
 	cout<< "./amexec --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl << endl;
 
@@ -173,9 +175,10 @@ void Utils::printHelpLetter()
 	cout<< "  --dymBatch 	dynamic batch (Do not support now)" << endl << endl << endl;
 	  
 	  
-	cout<< "NOTECE: " << endl;
-	cout<< "	The order of parameter must follow in --model --input --output --outfmt --loop " << endl;
+//	cout<< "NOTECE: " << endl;
+//	cout<< "	The order of parameter must follow in --model --input --output --outfmt --loop " << endl;
 }
+
 
 double Utils::printDiffTime(time_t begin, time_t end)
 {
