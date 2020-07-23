@@ -66,7 +66,7 @@ except:
                     exit(0)
         else:
             import configparser
-            ret = os.system('python3.7.5 -m pip install opencv-python  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com')
+            ret = os.system('sudo python3.7.5 -m pip install opencv-python')
             if ret != 0:
                 print('[ERROR] install opencv-python failed,please check env.')
                 exit(0)
