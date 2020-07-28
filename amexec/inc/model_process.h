@@ -46,6 +46,11 @@ public:
     * @return result
     */
     Result CreateDesc();
+
+    /**
+    * @brief PrintDesc
+    */
+    Result PrintDesc();
  
     /**
     * @brief destroy desc
@@ -59,7 +64,13 @@ public:
     * @return result
     */
     Result CreateInput(void *inputDataBuffer, size_t bufferSize);
- 
+
+     /**
+    * @brief create model input
+    * @return result
+    */
+    Result CreateZeroInput();
+    
     /**
     * @brief destroy input resource
     */
@@ -103,4 +114,6 @@ private:
     aclmdlDesc *modelDesc_;
     aclmdlDataset *input_;
     aclmdlDataset *output_;
+    size_t numInputs_;
+    size_t numOutputs_;
 };

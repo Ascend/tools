@@ -21,7 +21,8 @@ extern bool g_isDevice;
 extern bool f_isTXT;
  
 ModelProcess::ModelProcess() :modelId_(0), modelMemSize_(0), modelWeightSize_(0), modelMemPtr_(nullptr),
-modelWeightPtr_(nullptr), loadFlag_(false), modelDesc_(nullptr), input_(nullptr), output_(nullptr)
+modelWeightPtr_(nullptr), loadFlag_(false), modelDesc_(nullptr), input_(nullptr), output_(nullptr), numInputs_(0),
+numOutputs_(0)
 {
 }
  
@@ -88,7 +89,84 @@ Result ModelProcess::CreateDesc()
  
     return SUCCESS;
 }
- 
+
+Result ModelProcess::PrintDesc()
+{   aclError ret;
+    DEBUG_LOG("start print model description");
+    size_t numInputs = aclmdlGetNumInputs(modelDesc_);
+    size_t numOutputs = aclmdlGetNumOutputs(modelDesc_);
+    DEBUG_LOG("NumInputs: %zu", numInputs);
+    DEBUG_LOG("NumOutputs: %zu", numOutputs);
+
+    aclmdlIODims dimsInput;
+    aclmdlIODims dimsOutput;
+    aclmdlIODims dimsCurrentOutput;
+    for (size_t i = 0; i < numInputs; i++){
+        DEBUG_LOG("the size of %zu input: %zu", i, aclmdlGetInputSizeByIndex(modelDesc_, i));
+        ret = aclmdlGetInputDims(modelDesc_, i, &dimsInput);
+        DEBUG_LOG("the dims of %zu input:", i);
+        for (size_t j = 0; j < dimsInput.dimCount; j++){
+             cout << dimsInput.dims[j] << " ";
+        }
+        cout << endl;
+        DEBUG_LOG("the name of %zu input: %s", i, aclmdlGetInputNameByIndex(modelDesc_, i));
+        DEBUG_LOG("the Format of %zu input: %u", i, aclmdlGetInputFormat(modelDesc_, i));
+        DEBUG_LOG("the DataType of %zu input: %u", i, aclmdlGetInputFormat(modelDesc_, i));
+    }
+    for (size_t i = 0; i < numOutputs; i++){
+        DEBUG_LOG("the size of %zu output: %zu", i, aclmdlGetOutputSizeByIndex(modelDesc_, i));
+        ret = aclmdlGetOutputDims(modelDesc_, i, &dimsOutput);
+        DEBUG_LOG("the dims of %zu output:", i);
+        for (size_t j = 0; j < dimsOutput.dimCount; j++){
+             cout <<dimsOutput.dims[j] << " ";
+        }
+        cout << endl;
+        ret = aclmdlGetCurOutputDims(modelDesc_, i, &dimsCurrentOutput);
+        DEBUG_LOG("the dims of %zu current output:", i);
+        for (size_t j = 0; j < dimsCurrentOutput.dimCount; j++){
+            cout <<dimsCurrentOutput.dims[j] << " ";
+        }
+        cout << endl;
+        DEBUG_LOG("the name of %zu output: %s", i, aclmdlGetOutputNameByIndex(modelDesc_, i));
+        DEBUG_LOG("the Format of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
+        DEBUG_LOG("the DataType of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
+    }
+    aclmdlBatch batch_info;
+    ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get DynamicBatch failed");
+        (void)aclmdlDestroyDesc(modelDesc_);
+        modelDesc_ = nullptr;
+        return FAILED;
+    }
+    if (batch_info.batchCount != 0) {
+        DEBUG_LOG("DynamicBatch:");
+        for (size_t i = 0; i < batch_info.batchCount; i++){
+            cout << batch_info.batch[i] << " ";
+        }
+        cout << endl;
+    }
+    aclmdlHW dynamicHW;
+    ret = aclmdlGetDynamicHW(modelDesc_, -1, &dynamicHW);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get DynamicHW failed");
+        (void)aclmdlDestroyDesc(modelDesc_);
+        modelDesc_ = nullptr;
+        return FAILED;
+    }
+    if (dynamicHW.hwCount != 0) {
+        DEBUG_LOG("DynamicHW:");
+        for (size_t i = 0; i < dynamicHW.hwCount; i++) {
+            cout << dynamicHW.hw[i][0] << dynamicHW.hw[i][1] << " ";
+        }
+        cout << endl;
+    }
+    DEBUG_LOG("end print model description");
+    return SUCCESS;
+}
+
+
+
 void ModelProcess::DestroyDesc()
 {
     if (modelDesc_ != nullptr) {
@@ -120,12 +198,73 @@ Result ModelProcess::CreateInput(void *inputDataBuffer, size_t bufferSize)
         inputData = nullptr;
         return FAILED;
     }
-    size_t aa = aclmdlGetDatasetNumBuffers(input_);
-
-
     return SUCCESS;
 }
  
+ Result ModelProcess::CreateZeroInput(){
+    if (input_ == nullptr) {
+        input_ = aclmdlCreateDataset();
+        if (input_ == nullptr) {
+            ERROR_LOG("can't create dataset, create input failed");
+            return FAILED;
+        }
+    }
+    numInputs_ = aclmdlGetNumInputs(modelDesc_);
+    for (size_t i = 0; i < numInputs_; i++){
+        size_t buffer_size_zero = aclmdlGetInputSizeByIndex(modelDesc_, i);
+        void *inBufferDev = nullptr;
+        if (!g_isDevice) {
+            void* binFileBufferData = nullptr;
+            aclError ret = aclrtMallocHost(&binFileBufferData, buffer_size_zero);
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("malloc host buffer failed. size is %zu", buffer_size_zero);
+                return FAILED;
+            }
+            memset(binFileBufferData,0,buffer_size_zero);
+            ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
+                return FAILED;
+            }
+            ret = aclrtMemcpy(inBufferDev, buffer_size_zero, binFileBufferData, buffer_size_zero, ACL_MEMCPY_HOST_TO_DEVICE);
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("memcpy failed. device buffer size is %zu, input host buffer size is %zu", buffer_size_zero, buffer_size_zero);
+                aclrtFree(inBufferDev);
+                aclrtFreeHost(binFileBufferData);
+                return FAILED;
+            }
+        }else{
+            aclError ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
+                return FAILED;
+            }
+            memset(inBufferDev,0,buffer_size_zero);
+        }
+
+
+        aclDataBuffer* inputData = aclCreateDataBuffer(inBufferDev, buffer_size_zero);
+        if (inputData == nullptr) {
+            ERROR_LOG("can't create data buffer, create input failed");
+            aclrtFree(inBufferDev);
+            inBufferDev = nullptr;
+            return FAILED;
+        }
+        aclError ret = aclmdlAddDatasetBuffer(input_, inputData);
+        if (ret != ACL_ERROR_NONE) {
+            ERROR_LOG("add input dataset buffer failed");
+            aclrtFree(inBufferDev);
+            inBufferDev = nullptr;
+            aclDestroyDataBuffer(inputData);
+            inputData = nullptr;
+            return FAILED;
+        }
+        aclrtFree(inBufferDev);
+        inBufferDev = nullptr;
+        return SUCCESS;
+    }
+}
+
 void ModelProcess::DestroyInput()
 {
     if (input_ == nullptr) {
@@ -352,15 +491,15 @@ void ModelProcess::OutputModelResult(std::string& s,std::string& modelName,size_
             {
                 case 0:
                     for (int i = 0; i < len/sizeof(float); i++)
-					{
-						float out = *((float*)outData+i);
-						outstr << out << " ";
-						for (int j = 0; j < dim->dimCount; j++)
-						{
-							if (i !=0 && i%dim->dims[j] == 0 && dim->dims[j] > 10)
-								{outstr << "\n" ;}
-						}
-					}
+			{
+			    float out = *((float*)outData+i);
+			    outstr << out << " ";
+			    for (int j = 0; j < dim->dimCount; j++)
+			    {
+				if (i !=0 && i%dim->dims[j] == 0 && dim->dims[j] > 10)
+				    {outstr << "\n" ;}
+				}
+			    }
                     break;
                 case 1:
                     for (int i = 0; i < len/sizeof(aclFloat16); i++)
@@ -579,5 +718,5 @@ void ModelProcess::Unload()
 	}
 	
 	loadFlag_ = false;
-		INFO_LOG("unload model success, model Id is %u", modelId_);
+	INFO_LOG("unload model success, model Id is %u", modelId_);
 }

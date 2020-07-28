@@ -17,6 +17,10 @@ using namespace std;
 bool f_isTXT = false;
 bool g_isDevice = false;
 int loop = 1;
+int32_t device = 0;
+bool is_profi = false;
+bool is_dump = false;
+bool is_debug = false;
 string input_Ftype = ".bin";
 string model_Ftype = ".om";
 string check = "";
@@ -24,17 +28,19 @@ string check = "";
 void InitAndCheckParams(int argc, char* argv[], map<char,string>& params, vector<string>& inputs)
 //void InitAndCheckParams(int argc, char* argv[], vector<string>& params, vector<string>& inputs)
 {
-    const char *optstring="m::i::o::f::hd::p::l::y::";
+    const char *optstring="m::i::o::f::hd::p::l::y::e::g::";
     int c,deb,index;
     struct option opts[]={{"model",required_argument,NULL,'m'},
                           {"input",required_argument,NULL,'i'},
                           {"output",required_argument,NULL,'o'},
                           {"outfmt",required_argument,NULL,'f'},
                           {"help",no_argument,NULL,1},
-                          {"dumpConf",required_argument,NULL,'d'},
-                          {"profConf",required_argument,NULL,'p'},        
+                          {"dump",required_argument,NULL,'d'},
+                          {"profiler",required_argument,NULL,'p'},        
                           {"loop",required_argument,NULL,'l'},
-                          {"dymBatch",required_argument,NULL,'y'},                                                      
+                          {"dymBatch",required_argument,NULL,'y'},
+                          {"device",required_argument,NULL,'e'}, 
+                          {"debug",required_argument,NULL,'g'},                                                     
                           {0,0,0,0}};
     while((c=getopt_long(argc,argv,optstring,opts,&index))!=-1)
     {
@@ -84,7 +90,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char,string>& params, vector
             break;
         case 'l':
             loop = Utils::str2num(optarg);
-	    cout << "loop:" << loop << endl;
+	        cout << "loop:" << loop << endl;
 			if (loop > 100 || loop < 1)
 			{
 				printf("loop must in 1 to 100\n");
@@ -94,6 +100,18 @@ void InitAndCheckParams(int argc, char* argv[], map<char,string>& params, vector
         case 'y':
 //            params.push_back(optarg);
             params['y'] = optarg;
+            break;
+        case 'e':
+            device = Utils::str2num(optarg);
+            cout << "device:" << device << endl;
+			if (device > 255 || device < 0)
+			{
+				printf("device id must in 0 to 255\n");
+				exit(0);	
+			} 
+            break;
+        case 'g':
+            params['g'] = optarg;
             break;
         case 1:
             Utils::printHelpLetter();
@@ -117,12 +135,29 @@ int main(int argc, char* argv[])
     printf("Test Start!\n");
  
 
-    if (params.empty() || inputs.empty()) {
+    if (params.empty()) {
         printf("Invalid params.\n");
         printf("Execute sample failed.\n");
         Utils::printHelpLetter();
         return FAILED;
     }
+
+    if (params['d'].compare("true") == 0) {
+        is_dump = true;
+    }
+    if (params['p'].compare("true") == 0) {
+        is_profi = true;
+    } 
+    if (params['g'].compare("true") == 0) {
+        is_debug = true;
+    }
+    if (is_profi && is_dump){
+        ERROR_LOG("dump and profiler can not both be true");
+        return FAILED;
+    }
+
+    Utils::ProfilerJson(is_profi, params);
+    Utils::DumpJson(is_dump, params);
     
     SampleProcess processSample;
    
