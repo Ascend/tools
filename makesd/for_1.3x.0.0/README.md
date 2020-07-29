@@ -1,6 +1,6 @@
 # for_1.3x.0.0
 
-#### 文件列表
+## 文件列表
 
 - 制卡入口脚本：make_sd_card.py
 
@@ -10,7 +10,10 @@
 
 - 开发者板系统运行包：mini_developerkit-xxx.rar，[点击跳转](https://www.huaweicloud.com/ascend/resources/ResourceDownload/DE51187AC4F0F5DBAB3A468952C95CADAC6308BFFFB5D064B9A30DBD2B73B4ABCEC6BAF7F594AE3C3FA89621AFFF3E3CFB4ED973618F8857D07706003D546332/DDK%20&%20Runtime/be3564c84a0546959b6439ebc4e8ae30/2/1/1)
 
-#### 制卡步骤
+## 制卡步骤
+
+**制卡之前需要先将环境准备好**
+
 1. 如下图下载制卡需要的软件包  
 	下载地址参见文件列表。 
 	![download_deverlopkit](https://images.gitee.com/uploads/images/2020/0729/141200_ebfaba44_5395865.png "屏幕截图.png")
