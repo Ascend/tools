@@ -11,6 +11,9 @@
 - 制卡软件包：Ascend310-firmware-xxx-minirc.run、Ascend310-aicpu_kernels-xxx-minirc.tar.gz、Ascend-acllib-xxx-ubuntu18.04.aarch64-minirc.run，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
 #### 制卡步骤
+
+**制卡之前需要先将环境准备好**
+
 1. 如下图下载制卡需要的软件包  
 	下载地址：**https://www.huaweicloud.com/ascend/resource/Software。**  
 	![下载制卡包](https://images.gitee.com/uploads/images/2020/0729/140246_96db39de_5395865.png)
