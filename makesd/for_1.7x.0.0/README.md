@@ -1,6 +1,6 @@
 # for_1.7x.0.0
 
-#### 文件列表
+## 文件列表
 
 - 制卡入口脚本：make_sd_card.py
 
@@ -10,7 +10,7 @@
 
 - 制卡软件包：Ascend310-firmware-xxx-minirc.run、Ascend310-aicpu_kernels-xxx-minirc.tar.gz、Ascend-acllib-xxx-ubuntu18.04.aarch64-minirc.run，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
-#### 制卡步骤
+## 制卡步骤
 
 **制卡之前需要先将环境准备好**
 
