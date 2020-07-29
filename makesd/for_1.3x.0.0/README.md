@@ -15,7 +15,7 @@
 	下载地址参见文件列表。 
 	![download_deverlopkit](https://images.gitee.com/uploads/images/2020/0729/141200_ebfaba44_5395865.png "屏幕截图.png")
 
-2. 下载制卡脚本和ubuntu18.04-arm.iso。  
+2. 下载制卡脚本和ubuntu16.04.3-arm.iso。  
 	在本地环境普通用户（以ascend用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
@@ -39,16 +39,16 @@
 	ascend@ubuntu:~/tools/makesd/for_1.3x.0.0$ ^C
 	ascend@ubuntu:~/tools/makesd/for_1.3x.0.0$ 
 	```  
-	执行以下命令下载ubuntu18.04-arm.iso镜像。  
+	执行以下命令下载ubuntu16.04.3-arm.iso镜像。  
 	**wget http://old-releases.ubuntu.com/releases/16.04.3/ubuntu-16.04.3-server-arm64.iso**  
 	（文件大小为744M，下载约要8min）  
 	
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-16.04.3-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_1.7x.0.0）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_1.3x.0.0）下。  
 	```powershell  
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ll
+	ascend@ubuntu:~/tools/makesd/for_1.3x.0.0$ ll
 	total 80920
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
@@ -57,7 +57,7 @@
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 ascend ascend 82800726 Jul 28 04:27 ubuntu-16.04.3-server-arm64.iso*
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_1.3x.0.0$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
