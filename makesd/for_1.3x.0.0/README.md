@@ -8,7 +8,7 @@
 
 - 开发者板操作系统镜像包：ubuntu-16.04.xx-server-arm64.iso，[点击跳转](http://cdimage.ubuntu.com/ubuntu/releases/16.04/release/)
 
-- 开发者板系统运行包：mini_developerkit-xxx.rar，[点击跳转]（https://www.huaweicloud.com/ascend/resources/ResourceDownload/DE51187AC4F0F5DBAB3A468952C95CADAC6308BFFFB5D064B9A30DBD2B73B4ABCEC6BAF7F594AE3C3FA89621AFFF3E3CFB4ED973618F8857D07706003D546332/DDK%20&%20Runtime/be3564c84a0546959b6439ebc4e8ae30/2/1/1）
+- 开发者板系统运行包：mini_developerkit-xxx.rar，[点击跳转](https://www.huaweicloud.com/ascend/resources/ResourceDownload/DE51187AC4F0F5DBAB3A468952C95CADAC6308BFFFB5D064B9A30DBD2B73B4ABCEC6BAF7F594AE3C3FA89621AFFF3E3CFB4ED973618F8857D07706003D546332/DDK%20&%20Runtime/be3564c84a0546959b6439ebc4e8ae30/2/1/1)
 
 #### 制卡步骤
 1. 如下图下载制卡需要的软件包  
