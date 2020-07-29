@@ -74,6 +74,6 @@ dump、动态多batch功能暂不支持。
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
 | --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认fasle |
-| --profiler   | profiling开关，可选参数，默认false |
+| --profiler   | profiler开关，可选参数，默认false |
 | --device   | 指定运行设备 [0,255]，可选参数，默认0 |
 | --help   | 工具使用帮助信息                  |
