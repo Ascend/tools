@@ -52,7 +52,7 @@
 	total 80920
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
-	-rw-r--r-- 1 ascend ascend        0 Jul 28 04:32 mini_developerkit_1.32.0.B080.rar
+	-rw-r--r-- 1 ascend ascend 74438310 Jul 28 04:32 mini_developerkit_1.32.0.B080.rar
 	-rwxr-xr-x 1 ascend ascend    17633 Jul 28 04:23 make_sd_card.py*
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
