@@ -18,6 +18,6 @@ faster install，开发环境快速安装脚本。建议新建虚拟机运行该
     
     完成后会自动下载软件包并安装相关依赖，由网络决定耗时，正常网络下约耗时40分钟。
 
-    安装完成后会自动打开Mindstudio。
+    安装完成后会自动打开Mindstudio。    
     ![Mindstudio](https://images.gitee.com/uploads/images/2020/0810/174052_91495667_5395865.png "屏幕截图.png")
     
