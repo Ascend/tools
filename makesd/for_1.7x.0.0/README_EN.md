@@ -67,12 +67,12 @@ EN|[CH](README.md)
 	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
 	```  
 
-4. Save the downloaded card making package to the $HOME/tools/makesd/for_1.7x.0.0 directory of the common user.  
+4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
 
 	Switch to the root user and prepare for card making:  
 	**su root**
 
-	Switch to the root user and prepare for card making:  
+	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
 	(Note: /dev/sdb is the device name of the SD card. You can run the fdisk -l command as the root user to query the device name.)  
 	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
