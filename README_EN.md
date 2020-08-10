@@ -1,8 +1,11 @@
+EN|[CH](README.md)
+
 # tools
 
 #### introduce
 
-Ascend tools，Please go to the corresponding folder to get the tool according to your needs, or click the link below to select the tool you need to use.
+Ascend tools   
+**Please go to the corresponding folder to get the tool according to your needs, or click the link below to select the tool you need to use.**
 
 #### explain
 
@@ -12,4 +15,8 @@ Ascend tools，Please go to the corresponding folder to get the tool according t
 
 2.  [img2bin](https://gitee.com/ascend/tools/tree/master/img2bin)
 
-    **Bin file generation tool ** : Generates input data required for model reasoning, saved in.bin format。
+    **Bin file generation tool** : Generates input data required for model reasoning, saved in.bin format.
+
+3.  [makesd](https://gitee.com/ascend/tools/tree/master/makesd)
+    
+    **makesd tool**：makesd tools package，Provide card making function under ubuntu.
