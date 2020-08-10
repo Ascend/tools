@@ -1,3 +1,5 @@
+中文|[英文](README_EN.md)
+
 # tools
 
 #### 介绍
