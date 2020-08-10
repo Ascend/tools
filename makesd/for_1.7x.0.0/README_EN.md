@@ -16,14 +16,14 @@
 
 1. Download the software packages required for SD card making from  
 	**https://www.huaweicloud.com/intl/en-us/ascend/resource/Software**  
-	![下载制卡包](https://images.gitee.com/uploads/images/2020/0729/140246_96db39de_5395865.png)
+        ![下载制卡包](https://images.gitee.com/uploads/images/2020/0810/100322_a78ef230_5395865.png "屏幕截图.png")
 
-2. 下载制卡脚本和ubuntu18.04-arm.iso。  
-	在本地环境普通用户（以ascend用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
+2. Download the SD card making script and ubuntu18.04-arm.iso。  
+	Run the following command in the $HOME directory of a common user (for example, the ascend user) in the local environment to download code from the tools repository:  
 	**git clone https://gitee.com/ascend/tools.git**  
-	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
+	(If Git is not installed, run the sudo apt-get install git command to install it.)  
 
-	执行以下命令，进入C73制卡目录。  
+	Go to the C73 card making directory:  
 	**cd $HOME/tools/makesd/for_1.7x.0.0/**  
 	```powershell  
 	ascend@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
@@ -42,14 +42,14 @@
 	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ^C
 	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
 	```  
-	执行以下命令下载ubuntu18.04-arm.iso镜像。  
+	Download the ubuntu18.04-arm.iso image:  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
-	（文件大小为953M，下载约要10min）  
+	(The file size is 953 MB. It takes about 10 minutes to download the file.)  
 	
-	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
+	After the download is complete, grant 755 permission to the script and image:  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_1.7x.0.0）下。  
+3. Save the downloaded card making package to the $HOME/tools/makesd/for_1.7x.0.0 directory of the common user.  
 	```powershell  
 	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ll
 	total 80920
@@ -65,18 +65,18 @@
 	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
 	```  
 
-4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
+4. Save the downloaded card making package to the $HOME/tools/makesd/for_1.7x.0.0 directory of the common user.  
 
-	执行以下命令，切换root用户，准备制卡。  
+	Switch to the root user and prepare for card making:  
 	**su root**
 
-	执行以下命令，执行脚本准备制卡  
+	Switch to the root user and prepare for card making:  
 	**python3 make_sd_card.py local /dev/sdb**  
-	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
+	(Note: /dev/sdb is the device name of the SD card. You can run the fdisk -l command as the root user to query the device name.)  
 	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
-	如图，制卡过程中，提示是否继续安装，输入**Y**。  
-	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
+	When a message is displayed, asking you whether to continue the installation, enter **Y**.  
+	Wait for about 7 minutes. The message "Make SD Card successfully!" is displayed, indicating that the SD card has been made successfully.  
 	
-5. 上电Atlas 200DK开发板。  
-	将制好的卡放入Atlas 200DK开发板，上电后连接Ubuntu服务器。  
-	**注：开发板升级过程中会有两个灯闪烁，当四个灯常亮时即为升级成功，升级过程约5-10min**  
+5. Power on the Atlas 200 DK.  
+	Insert the SD card into the Atlas 200 DK, power on the Atlas 200 DK, and connect it to the Ubuntu server.  
+	Note: During the upgrade of the Atlas 200 DK, two LED indicators blink. When the four LED indicators are on, the upgrade is successful. The upgrade takes about 5–10 minutes.  
