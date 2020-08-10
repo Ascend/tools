@@ -11,12 +11,13 @@ faster install，开发环境快速安装脚本。建议新建虚拟机运行该
     **bash faster_install.bash**
 
     出现以下提示，请分别填写**Y**，下载相应软件包。
-    '''
-    [INFO] can not find mindstudio.tar.gz in /home/test,Do you want download[Y/N]: Y
-    [INFO] can not find Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y
-    [INFO] can not find Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y
-    '''
+    
+    [INFO] can not find mindstudio.tar.gz in /home/test,Do you want download[Y/N]: Y    
+    [INFO] can not find Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y    
+    [INFO] can not find Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y    
+    
     完成后会自动下载软件包并安装相关依赖，由网络决定耗时，正常网络下约耗时40分钟。
 
     安装完成后会自动打开Mindstudio。
+    ![Mindstudio](https://images.gitee.com/uploads/images/2020/0810/174052_91495667_5395865.png "屏幕截图.png")
     
