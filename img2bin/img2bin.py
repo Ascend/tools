@@ -55,7 +55,6 @@ except:
         print('[info] Starting to install opencv-python...') 
         if sys.version_info.major == 2:
             import commands
-            import ConfigParser as configparser
             ret, output = commands.getstatusoutput("sudo yum install -y opencv-python")
             # ret =  os.popen('sudo yum install -y opencv-python')
             if ret != 0:
@@ -65,7 +64,6 @@ except:
                     print('[ERROR] install opencv-python failed,please check env.')
                     exit(0)
         else:
-            import configparser
             ret = os.system('sudo python3.7.5 -m pip install opencv-python')
             if ret != 0:
                 print('[ERROR] install opencv-python failed,please check env.')
@@ -236,10 +234,19 @@ def mkdir_output(args):
 
 def process(args, file_path):
     if file_path.endswith(".txt"):
+        if sys.version_info.major == 2:
+            import ConfigParser as configparser
+        else:
+            import configparser
+
         config = configparser.ConfigParser()
         config.read(file_path)
-        input_node = json.loads(config['baseconf']['input_node'])
-        shape = json.loads(config['baseconf']['shape'])
+        if sys.version_info.major == 2:
+            input_node = json.loads(config.get('baseconf', 'input_node'))
+            shape = json.loads(config.get('baseconf', 'shape'))
+        else:
+            input_node = json.loads(config['baseconf']['input_node'])
+            shape = json.loads(config['baseconf']['shape'])
         input_node_np = np.array(input_node)
         change_type_img_info = change_type(args, input_node_np)
         img_info = np.reshape(change_type_img_info, shape)
@@ -281,5 +288,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
