@@ -193,7 +193,7 @@ void Utils::printHelpLetter()
 	cout<< "  --output	Output path(User needs to have permission to create directories)" <<  endl;
 	cout<< "  --outfmt	Output file format (TXT or BIN)" << endl;
 	cout<< "  --loop 	loop time(must in 1 to 100)" << endl;
-	cout<< "  --dump	Enable dump (true or false)" << endl;
+	cout<< "  --dump	Enable dump (true or false)(Do not support now)" << endl;
 	cout<< "  --profiler	Enable profiler (true or false)" << endl;
         cout<< "  --device      Designated the device ID(must in 0 to 255)" << endl;
         cout<< "  --debug       Debug switch,print model information (true or false)" << endl;
