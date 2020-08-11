@@ -177,9 +177,6 @@ Result SampleProcess::Process(map<char,string>& params, vector<string>& input_fi
             }
 
             ret = processModel.CreateInput(picDevBuffer[index], devBufferSize);
-            for (size_t i = 0; i < index; i++) {
-                aclrtFree (picDevBuffer[i]);
-            }
             if (ret != SUCCESS) {
                 ERROR_LOG("model create input failed");
                 return FAILED;

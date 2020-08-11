@@ -259,8 +259,8 @@ Result ModelProcess::CreateInput(void *inputDataBuffer, size_t bufferSize)
             inputData = nullptr;
             return FAILED;
         }
-        return SUCCESS;
     }
+     return SUCCESS;
 }
 
 void ModelProcess::DestroyInput()
