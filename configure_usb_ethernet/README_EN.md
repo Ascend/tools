@@ -1,0 +1,17 @@
+English|[中文](README.md)
+
+# makesd
+
+#### Introduction
+
+Please select the corresponding USB virtual network card connection script according to the version you are using, or click the description link below to select the required USB virtual network card connection script.
+
+#### explain
+
+1. [for_1.7x.0.0](https://gitee.com/ascend/tools/tree/master/makesd/for_1.7x.0.0)
+
+   **1.7x.0.0**: USB virtual network card connection script.
+
+2. [for_1.3x.0.0](https://gitee.com/ascend/tools/tree/master/makesd/for_1.3x.0.0)
+
+   **1.3x.0.0**: USB virtual network card connection script.
