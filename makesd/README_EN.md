@@ -1,4 +1,4 @@
-EN|[CH](README.md)
+English|[中文](README.md)
 
 # makesd
 
