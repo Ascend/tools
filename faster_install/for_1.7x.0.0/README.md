@@ -1,23 +1,49 @@
-# faster install
+# Ubuntu18.04开发环境快速安装脚本
 
-## 说明
-faster install，开发环境快速安装脚本。建议新建虚拟机运行该脚本。
+#### 介绍
+	该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python环境与MindStudio。
+#### 使用前准备
+1、Ubuntu18.04版本的虚拟机。
 
-## 使用步骤
-1. 下载仓内的faster_install脚本到普通用户的家目录中，保持文件名为faster_install.sh。
+2、到网站（https://www.huaweicloud.com/ascend/resource/Software ）下载用于安装MindStudio的Toolkit包，名字为Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run、Ascend-Toolkit-[version]-arm-linux_gcc7.3.0.run，将两个包放于$HOME目录下。
 
-2. 运行以下命令，执行脚本安装开发环境。
+3、自行配置下载源。（以下给出一种配置源的方法）
 
-    **bash faster_install.bash**
+（1）点击左边如下图“步骤1”中的图标。
+![](img/pic1.png "步骤1")
 
-    出现以下提示，请分别填写**Y**，下载相应软件包。
-    
-    [INFO] can not find mindstudio.tar.gz in /home/test,Do you want download[Y/N]: Y    
-    [INFO] can not find Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y    
-    [INFO] can not find Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run in /home/test, Do you want download[Y/N]: Y    
-    
-    完成后会自动下载软件包并安装相关依赖，由网络决定耗时，正常网络下约耗时40分钟。
+（2）点击图“步骤2”中上方红色框图标。
+![](img/pic2.png "步骤1")
 
-    安装完成后会自动打开Mindstudio。    
-    ![Mindstudio](https://images.gitee.com/uploads/images/2020/0810/174052_91495667_5395865.png "屏幕截图.png")
-    
+（3）勾选图“步骤3”中的第5个选项，并选择other选项。
+![](img/pic3.png "步骤1")
+
+（4）如图选择你所需要的源。
+![](img/pic4.png "步骤1")
+
+#### 使用方法
+1、下载快速安装脚本。Ubuntu服务器的命令行中执行以下命令进入$HOME目录。
+
+cd $HOME
+
+命令行中使用以下命令下载faster-install脚本。
+
+git clone 
+
+将faster-install目录下的faster-install.sh脚本拷贝到$HOME目录下。
+
+cp ~/faster-install/faster-install.sh .
+
+执行脚本。
+
+bash faster-install.sh
+
+2、安装完成之后会显示以下界面。点击界面中的红色框内的选项。
+
+![](img/pic5.png "界面1")
+
+3、选择下图中的选项，点OK即可。
+
+![](img/pic6.png "界面2")
+
+4、此时会自动关闭MindStudio，重新启动MindStudio即可。到此C7x开发环境安装完成。
