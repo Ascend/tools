@@ -1,7 +1,7 @@
 # Ubuntu18.04开发环境快速安装脚本
 
 #### 介绍
-	该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python环境与MindStudio。
+该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python3.7.5环境与MindStudio。
 #### 使用前准备
 1、Ubuntu18.04版本的虚拟机。
 
@@ -24,19 +24,19 @@
 #### 使用方法
 1、下载快速安装脚本。Ubuntu服务器的命令行中执行以下命令进入$HOME目录。
 
-cd $HOME
+ **cd $HOME** 
 
 命令行中使用以下命令下载faster-install脚本。
 
-git clone 
+ **git clone https://gitee.com/ascend/tools.git**  
 
 将faster-install目录下的faster-install.sh脚本拷贝到$HOME目录下。
 
-cp ~/faster-install/faster-install.sh .
+ **cp ~/tools/faster_install/for_1.7x.0.0/faster_install.sh  .** 
 
 执行脚本。
 
-bash faster-install.sh
+ **bash faster-install.sh** 
 
 2、安装完成之后会显示以下界面。点击界面中的红色框内的选项。
 
