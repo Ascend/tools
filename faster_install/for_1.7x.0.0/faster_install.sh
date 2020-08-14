@@ -71,22 +71,23 @@ main()
         	fi
     	fi
 
+	find ~/Ascend/ascend-toolkit/ -name "20.0.*" -exec rm -rf {} \;
 	TOOLKIT_flag=`find ~/Ascend/ascend-toolkit/ -name "20.0.*" 2> /dev/null`
 	if [[ ! $TOOLKIT_flag ]];then
-		TOOLKIT_flag_arm64=`find $HOME -maxdepth 1 -name "Ascend-Toolkit-*-arm64-linux_gcc7.3.0.run" 2> /dev/null`
+		TOOLKIT_flag_arm64=`find $HOME -maxdepth 1 -name "Ascend-*-arm64-*.run" 2> /dev/null`
     	if [[ ! $TOOLKIT_flag_arm64 ]];then
 				echo "[Error]:Can not find the Ascend-Toolkit-[version]-arm64-linux_gcc7.3.0.run package, please go to the official website to download the Toolkit installation package you need."
 				echo "Exit installation."
-		return 1
+				return 1
 		else
 				TOOLKIT_arm64="YES"
     	fi
 
-		TOOLKIT_flag_x86_64=`find $HOME -maxdepth 1 -name "Ascend-Toolkit-*-x86_64-linux_gcc7.3.0.run" 2> /dev/null`
+		TOOLKIT_flag_x86_64=`find $HOME -maxdepth 1 -name "Ascend-*-x86_64-*.run" 2> /dev/null`
         if [[ ! $TOOLKIT_flag_x86_64 ]];then
 				echo "[Error]:Can not find the Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package, please go to the official website to download the Toolkit installation package you need."
 				echo "Exit installation."
-		return 1
+				return 1
 		else
 				TOOLKIT_x86_64="YES"
 		fi
@@ -105,30 +106,10 @@ main()
             		echo "ERROR: download failed, please check Network."
             		rm -rf $HOME/mindstudio.tar.gz
             		return 1
-        	fi
-    	fi
-
-	if [[ $TOOLKIT_arm64 ]];then
-		find Ascend-Toolkit-*-arm64-linux_gcc7.3.0.run -exec chmod 777 {} \;
-		find Ascend-Toolkit-*-arm64-linux_gcc7.3.0.run -exec ./{} --install \;
-        	if [ $? -ne 0 ];then
-            		echo "ERROR: install failed, please verify that the toolkit-arm64 package is installed."
-            		rm -rf $HOME/Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run
-            		return 1
-        	fi
-    	fi
-
-	if [[ $TOOLKIT_x86_64 ]];then
-		find Ascend-Toolkit-*-x86_64-linux_gcc7.3.0.run -exec chmod 777 {} \;
-		find Ascend-Toolkit-*-x86_64-linux_gcc7.3.0.run -exec ./{} --install \;
-        	if [ $? -ne 0 ];then
-            		echo "ERROR: install failed, please verify that the toolkit-x86_64 package is installed."
-            		rm -rf $HOME/Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run
-            		return 1
 			else
-					Toolkit_bashrc_flag="YES"
+					Min_bashrc_flag="YES"
 			fi
-    fi
+    	fi
 	
 	sudo apt-get install -y gcc g++ make cmake unzip zlib1g zlib1g-dev libsqlite3-dev openssl libssl-dev libffi-dev pciutils net-tools
 	if [ $? -ne 0 ];then
@@ -208,7 +189,30 @@ main()
 		Pip_bashrc_flag="YES"
 	fi
 
-	cd ~
+	cd $HOME
+	if [[ $TOOLKIT_arm64 ]];then
+			find Ascend-*-arm64-*.run -exec chmod 777 {} \;
+			find Ascend-*-arm64-*.run -exec ./{} --install \;
+        	if [ $? -ne 0 ];then
+            		echo "ERROR: install failed, please verify that the toolkit-arm64 package is installed."
+            		return 1
+			else
+					Toolkit_bashrc_flag1="YES"
+        	fi
+    	fi
+
+	if [[ $TOOLKIT_x86_64 ]];then
+			find Ascend-*-x86_64-*.run -exec chmod 777 {} \;
+			find Ascend-*-x86_64-*.run -exec ./{} --install \;
+        	if [ $? -ne 0 ];then
+            		echo "ERROR: install failed, please verify that the toolkit-x86_64 package is installed."
+            		return 1
+			else
+					Toolkit_bashrc_flag2="YES"
+			fi
+    fi
+
+	cd $HOME
 	tar zxvf mindstudio.tar.gz
 	
 	if [[ $Min_bashrc_flag ]];then
@@ -216,7 +220,7 @@ main()
 			echo "export ASCEND_OPP_PATH=${install_path}/opp" >> ~/.bashrc
 	fi
 	
-	if [[ $Toolkit_bashrc_flag ]];then
+	if [[ $Toolkit_bashrc_flag1 ]] && [[ $Toolkit_bashrc_flag2 ]];then
 			find ~/Ascend/ascend-toolkit/ -name "20.0.*" -exec echo "export install_path={}" >> ~/.bashrc \;
 	fi
 	
