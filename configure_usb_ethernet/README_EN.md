@@ -1,6 +1,6 @@
 English|[中文](README.md)
 
-# makesd
+# configure_usb_ethernet
 
 #### Introduction
 
