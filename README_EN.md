@@ -19,4 +19,8 @@ Ascend tools
 
 3.  [makesd](https://gitee.com/ascend/tools/tree/master/makesd)
     
-    **makesd tool**：makesd tools package，Provide card making function under ubuntu.
+    **makesd tool**：makesd tools package，Provide card making function under ubuntu.  
+
+4.  [faster_install](https://gitee.com/ascend/tools/tree/master/faster_install)
+    
+    **faster_install**：environment fast install script.
