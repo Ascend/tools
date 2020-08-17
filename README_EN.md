@@ -23,4 +23,7 @@ Ascend tools
 
 4.  [faster_install](https://gitee.com/ascend/tools/tree/master/faster_install)
     
-    **faster_install**：environment fast install script.
+    **faster_install**：environment fast install script.  
+
+5.  [configure_usb_ethernet](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet)  
+     **configure_usb_ethernet**：configuring the IP address of the USB NIC 。
