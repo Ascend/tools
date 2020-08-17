@@ -12,7 +12,7 @@ Ascend tools，昇腾工具仓库。
 
 1.  [amexec](https://gitee.com/ascend/tools/tree/master/amexec)
 
-    **模型推理工具**:输入.om模型和模型所需要的输入bin文件，输出模型的输出数据文件。
+    **模型推理工具**：输入.om模型和模型所需要的输入bin文件，输出模型的输出数据文件。
 
 2.  [img2bin](https://gitee.com/ascend/tools/tree/master/img2bin)
 
@@ -21,3 +21,7 @@ Ascend tools，昇腾工具仓库。
 3.  [makesd](https://gitee.com/ascend/tools/tree/master/makesd)
     
     **制卡工具**：制卡工具包，提供ubuntu下制卡功能。
+
+4.  [faster_install](https://gitee.com/ascend/tools/tree/master/faster_install)
+    
+    **快速安装脚本**：环境快速安装脚本。
