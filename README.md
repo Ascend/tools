@@ -25,3 +25,6 @@ Ascend tools，昇腾工具仓库。
 4.  [faster_install](https://gitee.com/ascend/tools/tree/master/faster_install)
     
     **快速安装脚本**：环境快速安装脚本。
+
+5.  [configure_usb_ethernet](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet)  
+     **USB虚拟网卡连接脚本**：配置USB网卡对应的IP地址。
