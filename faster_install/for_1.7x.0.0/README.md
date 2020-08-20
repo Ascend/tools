@@ -7,7 +7,7 @@
 
 2、到网站（https://www.huaweicloud.com/ascend/resource/Software ）下载用于安装MindStudio的Toolkit包，名字为Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run、Ascend-Toolkit-[version]-arm-linux_gcc7.3.0.run，将两个包放于$HOME目录下。
 
-由于有些样例需要用到以下包（看个人需求）：Ascend310-driver-[version]-ubuntu18.04.aarch64-minirc.tar.gz，故也可以下载下来并自行解压即可（在上面的网站链接中即可下载）。
+由于有些样例（指一些需要用到摄像头的样例）需要用到以下包：Ascend310-driver-[version]-ubuntu18.04.aarch64-minirc.tar.gz，故也可以下载下来并自行解压即可（在上面的网站链接中即可下载）。
 
 3、自行配置下载源。（以下给出一种配置源的方法）
 
