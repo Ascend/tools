@@ -1,4 +1,4 @@
-# amexec工具为模型推理工具
+# msame工具为模型推理工具
 
 ### 功能
 输入.om模型和模型所需要的输入bin文件，输出模型的输出数据文件，支持多次推理（指对同一输入数据进行推理）。
@@ -27,9 +27,9 @@
 
  **环境要求：架构为arm、已安装c7x的运行环境。如环境不符，请使用方法b，进行源码编译。** 
   
-进入amexec目录
+进入msame目录
 ```
-cd $HOME/AscendProjects/tools/amexec/
+cd $HOME/AscendProjects/tools/msame/
 ```
 进入out目录
 ```
@@ -40,7 +40,7 @@ cd out
 
 工具为命令行的运行方式，例如
 ```
-./amexec --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
 ```
 如果有多个输入，需要用**英文逗号**隔开，注意逗号两边不能有空格。  
 其他参数详情可使用--help查询。
@@ -49,13 +49,13 @@ cd out
 #### b. 源码编译运行。
  **环境要求：已安装c7x的开发运行环境，分设合设都可以。**   
 工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译
-进入amexec目录
+进入msame目录
 ```
-cd $HOME/AscendProjects/tools/amexec/
+cd $HOME/AscendProjects/tools/msame/
 ```
 运行编译脚本
 ```
-./build.sh g++ $HOME/AscendProjects/tools/amexec/out
+./build.sh g++ $HOME/AscendProjects/tools/msame/out
 ```
 第一个参数指定编译器，由运行环境决定。  
 第二个参数指定工具生成的目录，填相对路径的话，是相对out目录。
