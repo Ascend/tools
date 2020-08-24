@@ -185,7 +185,7 @@ void Utils::printHelpLetter()
     cout<< endl;
     cout<< "Usage:" << endl;
 	cout<< "generate offline model inference output file example:" << endl;
-	cout<< "./amexec --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl << endl;
+	cout<< "./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl << endl;
 
 	cout<< "arguments explain:" << endl;
 	cout<< "  --model       Model file path" << endl;
