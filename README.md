@@ -10,7 +10,7 @@ Ascend tools，昇腾工具仓库。
 
 #### 使用说明
 
-1.  [amexec](https://gitee.com/ascend/tools/tree/master/amexec)
+1.  [msame](https://gitee.com/ascend/tools/tree/master/msame)
 
     **模型推理工具**：输入.om模型和模型所需要的输入bin文件，输出模型的输出数据文件。
 
