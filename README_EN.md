@@ -9,7 +9,7 @@ Ascend tools
 
 #### explain
 
-1.  [amexec](https://gitee.com/ascend/tools/tree/master/amexec)
+1.  [msame](https://gitee.com/ascend/tools/tree/master/msame)
 
     **Model reasoning tool**:Input. Om model and model required input bin file, output model output data file.
 
