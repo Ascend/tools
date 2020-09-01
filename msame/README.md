@@ -1,3 +1,5 @@
+中文|[EN](README_EN.md)
+
 # msame工具为模型推理工具
 
 ### 功能
