@@ -1,3 +1,5 @@
+EN|[中文](README.md)
+
 # Model Inference Tool: amexec
 
 ### Function
