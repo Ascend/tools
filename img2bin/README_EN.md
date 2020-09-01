@@ -1,3 +1,5 @@
+EN|[中文](README.md)
+
 # img2bin
 
 The img2bin tool generates input data required for model inference in .bin format. Currently, only preprocessing of neural network whose inputs are images is supported.   
