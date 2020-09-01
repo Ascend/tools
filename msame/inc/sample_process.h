@@ -1,5 +1,3 @@
-//Sample_process.h
- 
 /**
 * @file sample_process.h
 *
@@ -9,12 +7,12 @@
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
-#pragma once
-#include "utils.h"
+#ifndef _SAMPLE_PROCESS_H_
+#define _SAMPLE_PROCESS_H_
 #include "acl/acl.h"
+#include "utils.h"
 #include <stdio.h>
- 
-using namespace std;
+
 /**
 * SampleProcess
 */
@@ -24,28 +22,29 @@ public:
     * @brief Constructor
     */
     SampleProcess();
- 
+
     /**
     * @brief Destructor
     */
     ~SampleProcess();
- 
+
     /**
     * @brief init reousce
     * @return result
     */
     Result InitResource();
- 
+
     /**
     * @brief sample process
     * @return result
     */
-    Result Process(map<char,string>& params, vector<string>& inputs);
- 
+    Result Process(std::map<char, std::string>& params, std::vector<std::string>& inputs);
+
 private:
     void DestroyResource();
- 
+
     int32_t deviceId_;
     aclrtContext context_;
     aclrtStream stream_;
 };
+#endif
