@@ -1,10 +1,11 @@
-//Sample_process.cpp
-
-/**
+/*
 * @file sample_process.cpp
 *
-* Copyright (C) 2020. Huawei Technologies Co., Ltd. All rights reserved.
-*
+* Copyright (C) Huawei Technologies Co., Ltd. 2020-2020. All rights reserved.
+* Description: model_process
+* Author: fuyangchenghu
+* Create: 2020/6/22
+* Notes:
 * This program is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
