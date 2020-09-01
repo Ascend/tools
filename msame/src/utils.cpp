@@ -195,9 +195,6 @@ void Utils::printHelpLetter()
     cout << "  --dymBatch 	dynamic batch (Do not support now)" << endl
          << endl
          << endl;
-
-    //	cout<< "NOTECE: " << endl;
-    //	cout<< "	The order of parameter must follow in --model --input --output --outfmt --loop " << endl;
 }
 
 double Utils::printDiffTime(time_t begin, time_t end)
@@ -235,8 +232,6 @@ void Utils::ProfilerJson(bool isprof, map<char, string>& params)
         outstr << "{\n\"profiler\": {\n    \"switch\": \"on\",\n    \"device_id\": \"";
         outstr << device << "\",\n    \"result_path\": \"" << out_profiler_path << "\",\n    ";
         outstr << "\"ai_core_metrics\": \"\"}\n}";
-        //outstr << "\"ai_core_metrics\": \"aicorePipelineStall\"}\n}";
-        //outstr <<"}]n}";
         outstr.close();
 
         //mkdir profiler output dir
@@ -248,15 +243,6 @@ void Utils::ProfilerJson(bool isprof, map<char, string>& params)
         if (NULL == opendir(temp_s1)) {
             mkdir(temp_s1, 0775);
         }
-        /*{  
-        "profiler": {
-            "switch": "on",
-            "device_id": "all",
-            "result_path": "/home/HwHiAiUser",
-            "ai_core_metrics": "aicorePipelineStall"
-            }
-        }
-        */
     }
 }
 
@@ -284,14 +270,5 @@ void Utils::DumpJson(bool isdump, map<char, string>& params)
         if (NULL == opendir(temp_s1)) {
             mkdir(temp_s1, 0775);
         }
-        // {
-        //  "dump": {
-        // 	"dump_path": "output_path",
-        //     "dump_mode": "output",
-        // 	"dump_list": [{
-        // 			"model_name": "model_name",
-        // 		}]
-        //     }
-        // }
     }
 }
