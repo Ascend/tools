@@ -1,3 +1,5 @@
+EN|[中文](README.md)
+
 # fast-install for the Ubuntu 18.04 Development Environment
 
 #### Introduction
