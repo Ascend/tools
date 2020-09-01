@@ -9,9 +9,9 @@
  */
 #ifndef _MODEL_PROCESS_H_
 #define _MODEL_PROCESS_H_
-#include <string>
 #include "acl/acl.h"
 #include "utils.h"
+#include <string>
 
 /**
  * ModelProcess
@@ -19,87 +19,87 @@
 class ModelProcess {
 public:
     /**
-   * @brief Constructor
-   */
+    * @brief Constructor
+    */
     ModelProcess();
 
     /**
-   * @brief Destructor
-   */
+    * @brief Destructor
+    */
     ~ModelProcess();
 
     /**
-   * @brief load model from file with mem
-   * @param [in] modelPath: model path
-   * @return result
-   */
+    * @brief load model from file with mem
+    * @param [in] modelPath: model path
+    * @return result
+    */
     Result LoadModelFromFileWithMem(const std::string& modelPath);
 
     /**
-   * @brief unload model
-   */
+    * @brief unload model
+    */
     void Unload();
 
     /**
-   * @brief create model desc
-   * @return result
-   */
+    * @brief create model desc
+    * @return result
+    */
     Result CreateDesc();
 
     /**
-   * @brief PrintDesc
-   */
+    * @brief PrintDesc
+    */
     Result PrintDesc();
 
     /**
-   * @brief destroy desc
-   */
+    * @brief destroy desc
+    */
     void DestroyDesc();
 
     /**
-   * @brief create model input
-   * @param [in] inputDataBuffer: input buffer
-   * @param [in] bufferSize: input buffer size
-   * @return result
-   */
+    * @brief create model input
+    * @param [in] inputDataBuffer: input buffer
+    * @param [in] bufferSize: input buffer size
+    * @return result
+    */
     Result CreateInput(void* inputDataBuffer, size_t bufferSize);
 
     /**
-   * @brief create model input
-   * @return result
-   */
+    * @brief create model input
+    * @return result
+    */
     Result CreateZeroInput();
 
     /**
-   * @brief destroy input resource
-   */
+    * @brief destroy input resource
+    */
     void DestroyInput();
 
     /**
-   * @brief create output buffer
-   * @return result
-   */
+    * @brief create output buffer
+    * @return result
+    */
     Result CreateOutput();
 
     /**
-   * @brief destroy output resource
-   */
+    * @brief destroy output resource
+    */
     void DestroyOutput();
 
     /**
-   * @brief model execute
-   * @return result
-   */
+    * @brief model execute
+    * @return result
+    */
     Result Execute();
 
     /**
-   * @brief dump model output result to file
-   */
+    * @brief dump model output result to file
+    */
     void DumpModelOutputResult();
 
     /**
-   * @brief get model output result
-   */
+    * @brief get model output result
+    */
     void OutputModelResult(std::string& s, std::string& modelName, size_t index);
 
 private:
