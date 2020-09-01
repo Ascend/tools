@@ -9,6 +9,7 @@
  */
 #ifndef _MODEL_PROCESS_H_
 #define _MODEL_PROCESS_H_
+#include <string>
 #include "acl/acl.h"
 #include "utils.h"
 
@@ -32,7 +33,7 @@ public:
    * @param [in] modelPath: model path
    * @return result
    */
-    Result LoadModelFromFileWithMem(const string& modelPath);
+    Result LoadModelFromFileWithMem(const std::string& modelPath);
 
     /**
    * @brief unload model

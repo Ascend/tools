@@ -1,1 +1,0 @@
-/usr/bin/g++     CMakeFiles/main.dir/utils.cpp.o CMakeFiles/main.dir/model_process.cpp.o CMakeFiles/main.dir/sample_process.cpp.o CMakeFiles/main.dir/main.cpp.o  -o /home/liucj/git/gitee/tools/msame/out/main  -L/home/liucj/.mindstudio/huawei/adk/1.72.T5.0.B050/Ascend-acllib-1.72.t5.0.b050-centos7.6.x86_64/acllib/lib64/stub -lascendcl -lacl_cblas -lacl_dvpp -lstdc++ 

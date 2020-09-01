@@ -1,7 +1,0 @@
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/install/strip.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/edit_cache.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/main.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/rebuild_cache.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/list_install_components.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/install/local.dir
-/home/liucj/git/gitee/tools/msame/build/intermediates/host/CMakeFiles/install.dir
