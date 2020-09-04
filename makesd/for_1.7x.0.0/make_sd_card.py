@@ -30,7 +30,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #   =======================================================================
 #
-'''common installation'''
 import os
 import platform
 import signal
@@ -161,10 +160,51 @@ def execute_wget(cmd, timeout=86400, cwd=None):
     print_process(process_str, True)
     return True
 
+def C_trans_to_E(string):
+    E_PUN = u',.!?:[]()<>"\''
+    C_PUN = u'，。！？：【】（）《》“‘'
+
+    table= {ord(f):ord(t) for f,t in zip(C_PUN,E_PUN)}
+
+    return string.translate(table)
+
+
+def remove_chn_and_charactor(str1):
+    C_PUN = u'，。！？：【】（）《》“‘'
+    stren = ''
+
+    if not isinstance(str1,str):
+        print("The input is not string")
+        return stren
+
+    for i in range(len(str1)):
+        if str1[i] >= u'\u4e00' and str1[i] <= u'\u9fa5' \
+                or str1[i] >= u'\u3300' and str1[i] <= u'\u33FF' \
+                or str1[i] >= u'\u3200' and str1[i] <= u'\u32FF' \
+                or str1[i] >= u'\u2700' and str1[i] <= u'\u27BF' \
+                or str1[i] >= u'\u2600' and str1[i] <= u'\u26FF' \
+                or str1[i] >= u'\uFE10' and str1[i] <= u'\uFE1F' \
+                or str1[i] >= u'\u2E80' and str1[i] <= u'\u2EFF' \
+                or str1[i] >= u'\u3000' and str1[i] <= u'\u303F' \
+                or str1[i] >= u'\u31C0' and str1[i] <= u'\u31EF' \
+                or str1[i] >= u'\u2FF0' and str1[i] <= u'\u2FFF' \
+                or str1[i] >= u'\u3100' and str1[i] <= u'\u312F' \
+                or str1[i] >= u'\u21A0' and str1[i] <= u'\u31BF' \
+                :
+            pass
+        else:
+            if str1[i] in C_PUN:
+                st = C_trans_to_E(str1[i])
+            else:
+                st = str1[i]
+            stren += st
+
+    return stren
+
 def check_sd(dev_name):
     ret, disk = execute(
-        "fdisk -l 2>/dev/null | grep \"Disk {dev_name}:\"".format(dev_name=dev_name))
-
+        "fdisk -l 2>/dev/null | grep \"Disk {dev_name}[:：]\"".format(dev_name=dev_name))
+    disk[0] = remove_chn_and_charactor(disk[0])    
     if not ret or len(disk) > 1:
         print(
             "[ERROR] Can not get disk, please use fdisk -l to check available disk name!")
@@ -184,10 +224,10 @@ def check_sd(dev_name):
             unchanged_disk_list.append(disk_name)
     unchanged_disk = " ".join(unchanged_disk_list)
 
-    disk_size_str = disk[0].split(", ")[1]
+    disk_size_str = disk[0].split(",")[1]
     disk_size_str = disk_size_str.split()[0]
     disk_size = int(disk_size_str)
-
+    print("disk %s size %d"%(dev_name, disk_size))
     if dev_name not in unchanged_disk and disk_size >= MIN_DISK_SIZE:
         return True
 

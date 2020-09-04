@@ -338,17 +338,17 @@ apt-get install net-tools -y
 echo \"make_sd_process: 25%\"
 
 mv /etc/apt/sources.list.bak /etc/apt/sources.list
-
+echo \"recover source.list end\"
 # 2. set username
 useradd -m \${username} -d /home/\${username} -s /bin/bash
 sed -i \"/^\${username}:/c\\\\\${password}\" /etc/shadow
 sed -i \"/^root:/c\\\\\${root_pwd}\" /etc/shadow
-
+echo \"set username end\"
 # 3. config host
 echo 'davinci-mini' > /etc/hostname
 echo '127.0.0.1        localhost' > /etc/hosts
 echo '127.0.1.1        davinci-mini' >> /etc/hosts
-
+echo \"config host end\"
 # 4. config ip
 echo \"
 network:
@@ -368,7 +368,7 @@ network:
       addresses: [${USB_CARD_DEFAULT_IP}/24] 
       gateway4: ${NETWORK_CARD_GATEWAY}
 \" > /etc/netplan/01-netcfg.yaml
-
+echo \"config network ok\"
 # 5. auto-run minirc_cp.sh and minirc_sys_init.sh when start ubuntu
 echo \"#!/bin/sh -e
 #
@@ -395,13 +395,14 @@ cd /var/
 exit 0
 \" > /etc/rc.local
 
+echo \"config rc.local ok\"
 
 chmod 755 /etc/rc.local
 echo \"RuntimeMaxUse=50M\" >> /etc/systemd/journald.conf
 echo \"SystemMaxUse=50M\" >> /etc/systemd/journald.conf
-
+echo \"config journald ok\"
 echo \"export LD_LIBRARY_PATH=/home/HwHiAiUser/Ascend/acllib/lib64\" >> /home/HwHiAiUser/.bashrc
-
+echo \"config bashrc ok\"
 exit
 # end" > ${LogPath}squashfs-root/chroot_install.sh
 
