@@ -1,7 +1,7 @@
 中文|[EN](README_EN.md)
 
 # 昇腾开发环境，适用于Atlas200DK，Atlas300
-
+# 版本：20.0.0.RC1 （1.73）
 #### 介绍
 该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python环境与MindStudio。
 
