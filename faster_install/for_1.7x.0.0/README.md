@@ -1,17 +1,18 @@
 中文|[EN](README_EN.md)
 
-# Ubuntu18.04开发环境快速安装脚本
+# 昇腾开发环境，适用于Atlas200DK，Atlas300
 
 #### 介绍
 该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python环境与MindStudio。
+
 #### 使用前准备
-1、Ubuntu18.04版本的虚拟机。
+1、Ubuntu18.04 （x86）
 
 2、到网站（https://www.huaweicloud.com/ascend/resource/Software ）下载用于安装MindStudio的Toolkit包，名字为Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run、Ascend-Toolkit-[version]-arm-linux_gcc7.3.0.run，将两个包放于$HOME目录下。
 
 由于有些样例（指一些需要用到摄像头的样例）需要用到以下包：Ascend310-driver-[version]-ubuntu18.04.aarch64-minirc.tar.gz，故也可以下载下来并自行解压即可（在上面的网站链接中即可下载）。
 
-3、自行配置下载源。（以下给出一种配置源的方法）
+3、自行配置下载源。（可选，如果已经配置过源，请跳过，以下给出一种配置源的方法）
 
 （1）点击左边如下图“步骤1”中的图标。
 ![](img/pic1.png "步骤1")
