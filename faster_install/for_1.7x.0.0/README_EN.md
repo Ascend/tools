@@ -1,10 +1,11 @@
 EN|[中文](README.md)
 
 # Ascend Development Environment, for Atlas 200 DK, Atlas 300
+# version: 20.0.0.RC (1.73)
 
 #### Introduction
 
-This script is applicable to the Ubuntu 18.04 OS and can be used to quickly install the C7x development environment, including the Python environment and MindStudio.
+This script is applicable to the Ubuntu 18.04 OS and can be used to quickly install development environment, including the Python environment and MindStudio.
 #### Preparations
 1. Ubuntu 18.04 (x86).
 
