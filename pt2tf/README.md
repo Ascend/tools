@@ -1,128 +1,136 @@
-## 工具使用说明与扩展性介绍
+中文|[EN](README_EN.md)
 
-### 1.Pytorch有两种模型保存方法
+# pytorch模型转onnx工具
 
-##### 1.1 保存整个神经网络的结构信息
+## 功能
+当前ATC工具只支持pb和caffe模型转om模型。如果需要使用pytorch模型转om模型，可以将pytorch模型转为onnx格式，再转为pb。本工具提供pytorch模型转onnx，以及onnx转pb功能。
 
-- 该方法保存的模型通过torch.load('.pth')，直接初始化新的神经网络对象;
+## 使用环境
+1. 安装Ubuntu18.04的服务器或者虚拟机；
 
-   ``*#保存模型*` 
+2. 服务器或者虚拟机内存大于等于4G；
 
-  `torch.save(model_object,'resnet.pth')` 
+3. 已经安装pip3。如未安装，可以执行如下命令安装：
 
-  `*#加载模型*` 
+   ```
+   sudo apt-get install python3-pip
+   sudo pip3 install --upgrade pip -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
+   ```
 
-  `model=torch.load('resnet.pth')`
+## 预置条件
 
-##### 1.1 保存整个神经网络的结构信息
+pytorch模型pth文件。pytorch的模型文件有两种：
 
-- 该方法保存的方式：首先是导入对应的网络，再通过net.load_state_dict(torch.load(’.pth’))完成模型参数的加载；
+1. 模型保存有网络结构和权重参数。需要在训练时使用如下接口保存模型：
 
-   `*#将my_resnet模型存储为my_resnet.pth*` 
+   ```
+   torch.save(model_object,'resnet.pth')
+   ```
 
-  `torch.save(my_resnet.state_dict(),"my_resnet.pth")` 
+2. 只保存模型权重参数。在训练时使用如下接口保存模型：
 
-  `*#加载resnet，模型存放在my_resnet.pth* my_resnet.load_state_dict(torch.load("my_resnet.pth"))`
+   ```
+   torch.save(my_resnet.state_dict(),"my_resnet.pth")
+   ```
 
-   `*#其中my_resnet是my_resnet.pth对应的网络结构；*` 
+本工具两种模型的转换都支持，但是如果模型只有权重参数，则在转换时还需要完整的模型实现代码
 
-### 2.Pytorch载入只含模型参数pth文件
+## 工具获取
+**方法1. 下载压缩包方式获取**
 
-pth文件只保存网络中的参数，具有速度快，占空间少的优点，网上Pytorch实现的可供下载的预训练模型一般也是这种吗，加载并导出为onnx格式时还需要在继承 nn.Module 实现网络各Layer层，例如，下面的示例中使用Pytorch实现了一个Net。
+将 https://gitee.com/ascend/tools 仓中的脚本下载至服务器的任意目录。
 
-```
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+例如存放路径为：$HOME/AscendProjects/tools。
 
-class CivilNet(nn.Module):
-    def __init__(self):
-        super(CivilNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-        self.gemfield = "gemfield.org"
-        self.syszux = torch.zeros([1,1])
+**方法2. 命令行使用git命令方式获取**
 
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-```
+在命令行中：$HOME/AscendProjects目录下执行以下命令下载代码。
 
-##### 2.1 CivilNet模型的保存
+    git clone https://gitee.com/ascend/tools.git
 
- 如果我们要保存一个训练好的PyTorch模型的话，会使用下面的API： 
 
-```
-cn = CivilNet()
-......
-torch.save(cn.state_dict(), "your_model_path.pth")
-```
 
-##### 2.1 CivilNet模型的加载
+## 使用方法
 
-而如果我们要load一个pth模型来进行前向的时候，会使用下面的API： 
+### 1. 安装工具依赖包   
 
-```
-cn = CivilNet()
+    cd $HOME/AscendProjects/tools/pt2tf/
+    sudo pip3 install -r requirements.txt
 
-#参数反序列化为python dict
-state_dict = torch.load("your_model_path.pth")
-#加载训练好的参数
-cn.load_state_dict(state_dict)
+### 2. pth模型文件转onnx
+pt2tf工具对pytorch的两种模型转onnx都支持。如果是包含完备信息（网络结构和权重参数）的模型，仅仅需要模型文件即可；如果是仅包含权重参数的模型，则还需要模型的实现代码。
 
-#变成测试模式，dropout和BN在训练和测试时不一样
-#eval()会把模型中的每个module的self.training设置为False 
-cn = cn.cuda().eval()
-```
+#### 2.1 包含网络结构和权重参数的模型转onnx
 
-### 3.pt2tf工具的使用简介
+在pt2tf工具目录下执行pt2onnx.py脚本，例如:
 
-#1 建立虚拟环境 $ virtualenv .venv
+    ```
+    python3 pt2onnx.py --model_path="./resnet50_model.pth" --input_shape=1 3 224 224
+    ```
+参数说明：
 
-\#2 激活虚拟环境 $ source .venv/bin/activate
+--model_path：pytorch模型路径
 
-\#3 安装依赖包 pipinstall−rrequirements.txtpipinstall−rrequirements.txt pip install -e onnx-tensorflow
+--input_shape: 模型输入 shape
 
-\#4 生成onnx模型 $ python pt2onnx.py
+执行脚本后，会在pytorch模型同一目录下生成onnx文件，文件名和pytorch模型名一致, 后缀为onnx
 
-\#5 生成pb模型 $ onnx-tf convert -i efficientnet-b3.onnx -o efficientnet-b3.pb
+#### 2.2 权重参数模型文件转onnx
 
-pth转pb文件的工具源码如下，开发者可以根据自己需要转换的模型进行改造，并将Pytorch中未内置而需自己实现的模型脚本上传到工程目录的models文件夹下
+1. 将pytorch模型和实现源码拷贝到pt2tf目录下
 
-```
-import torch
-from efficientnet_pytorch import EfficientNet
+2. 使用vim或者文本工具打开pt2onnx.py，修改load_weight_model函数。以resnet50模型为例，修改点如下：
 
-# Specify which model to use
-model_name = 'efficientnet-b3'
-image_size = EfficientNet.get_image_size(model_name)
-print('Image size: ', image_size)
+   （1）导入模型实现文件：
 
-# Load model
-model = EfficientNet.from_pretrained(model_name)
-model.set_swish(memory_efficient=False)
-model.eval()
-print('Model image size: ', model._global_params.image_size)
+   ```
+   #修改点1:导入模型代码.
+   #例如:模型实现代码目录为./resnet50,网络实现在resnet.py的class ResNet50类
+   from resnet50.resnet import ResNet50
+   ```
 
-# Dummy input for ONNX
-dummy_input = torch.randn(1, 3, 300, 300)
+   （2） 使用pytorch实例化模型对象
 
-# Export with ONNX
-torch.onnx.export(model, dummy_input, f"{model_name}.onnx", verbose=True)
-```
+   ```
+   #修改点2:创建模型对象
+   model = ResNet50()
+   ```
 
-- 第二行导入Pytorch中内置的网络模型EfficientNet(Pytorch内置模型中)
-- 若内置模型未实现，我们在models文件夹中继承nn.Module类实现我们的网络模型，可以参考第二章中的CivilNet网络样例
-- 通过模型脚本对象的from_pretrained接口来导入pth参数文件，加载模型与参数
-- 调用Pytorch的onnx模块将网络模型导出为onnx模型
-- 使用onnx-tensorflow模块将onnx模型转换为pb模型
+   （3）加载训练好的模型
+
+   ```
+   #修改点3:训练好的模型路径
+   model.load_state_dict(torch.load(model_file))
+   ```
+
+   综上，完整的load_weight_model代码：  
+   
+	    def load_weight_model(model_file):
+	        from resnet50.resnet import ResNet50
+	    
+	        model = ResNet50()
+	    
+	        model.load_state_dict(torch.load(model_file))
+	    
+	        return model
+
+3. 执行转换脚本
+
+   ```
+   python3 pt2onnx.py --model_type=1 --model_path="./resnet50_model.pth" --input_shape=1 3 224 224
+   ```
+
+​       参数说明：
+
+​       --model_type: 模型类别，默认值为0，表示完备信息模型；1: 仅包含权重参数的模型
+
+​       --model_path: pytorch模型存放路径
+
+​       --input_shape: 模型输入 shape
+
+### 3.使用 onnx-tf工具将onnx转为 pb
+
+执行命令
+
+    onnx-tf convert -i ./resnet50/model_resnet.onnx -o ./resnet50/model_resnet.pb
 
