@@ -28,3 +28,7 @@ Ascend tools，昇腾工具仓库。
 
 5.  [configure_usb_ethernet](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet)  
      **USB虚拟网卡连接脚本**：配置USB网卡对应的IP地址。
+    
+6. [pt2pb](https://gitee.com/ascend/tools/tree/master/pt2pb)  
+
+   pytorch模型转tensorflow pb模型工具：输入pytorch权重参数模型，转为onnx，再转为pb模型

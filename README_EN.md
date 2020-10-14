@@ -27,3 +27,10 @@ Ascend tools
 
 5.  [configure_usb_ethernet](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet)  
      **configure_usb_ethernet**：configuring the IP address of the USB NIC 。
+    
+6. [pt2pb](https://gitee.com/ascend/tools/tree/master/pt2pb)  
+
+   pytorch model transform to tensorflow pb model：input pytorch weights parameters model，transform to onnx file，then transform to pb model
+
+   
+
