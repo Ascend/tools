@@ -12,15 +12,15 @@ Keras-Preprocessing==1.1.2
 Markdown==3.2.2
 numpy==1.19.2
 onnx==1.7.0
--e git+https://github.com/onnx/onnx-tensorflow.git@6b9e76d6fca74d5ddbf47049b9670120abaaf70f#egg=onnx_tf
+-e onnx-tensorflow
 opt-einsum==3.3.0
 Pillow==7.2.0
 protobuf==3.13.0
 PyYAML==5.3.1
 six==1.15.0
-tensorboard==1.15.0
-tensorflow==1.15.0
-tensorflow-estimator==1.15.1
+tensorboard==1.14.0
+tensorflow==1.14.0
+tensorflow-estimator==1.14.0
 termcolor==1.1.0
 torch==1.6.0
 torchvision==0.7.0
