@@ -30,7 +30,7 @@ Ascend tools
     
 6. [pt2pb](https://gitee.com/ascend/tools/tree/master/pt2pb)  
 
-   pytorch model transform to tensorflow pb model：input pytorch weights parameters model，transform to onnx file，then transform to pb model
+   **pytorch model transform to tensorflow pb model tool：**input pytorch weights parameters model，transform to onnx file，then transform to pb model
 
    
 
