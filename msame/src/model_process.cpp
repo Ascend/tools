@@ -440,137 +440,165 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
         }
         if (f_isTXT) {
             ofstream outstr(times + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
+			int amount_onebatch = 1;
+	        for (int j = 1; j < dim->dimCount; j++) {
+                amount_onebatch *= dim->dims[j];
+			}
             switch (datatype) {
             case 0:
                 for (int i = 0; i < len / sizeof(float); i++) {
                     float out = *((float*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 1:
                 for (int i = 0; i < len / sizeof(aclFloat16); i++) {
                     aclFloat16 out = *((aclFloat16*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 2:
                 for (int i = 0; i < len / sizeof(int8_t); i++) {
                     int8_t out = *((int8_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 3:
                 for (int i = 0; i < len / sizeof(int); i++) {
                     int out = *((int*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 4:
                 for (int i = 0; i < len / sizeof(uint8_t); i++) {
                     uint8_t out = *((uint8_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 6:
                 for (int i = 0; i < len / sizeof(int16_t); i++) {
                     int16_t out = *((int16_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 7:
                 for (int i = 0; i < len / sizeof(uint16_t); i++) {
                     uint16_t out = *((uint16_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 8:
                 for (int i = 0; i < len / sizeof(uint32_t); i++) {
                     uint32_t out = *((uint32_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 9:
                 for (int i = 0; i < len / sizeof(int64_t); i++) {
                     int64_t out = *((int64_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 10:
                 for (int i = 0; i < len / sizeof(uint64_t); i++) {
                     uint64_t out = *((uint64_t*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 11:
                 for (int i = 0; i < len / sizeof(double); i++) {
                     double out = *((double*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             case 12:
                 for (int i = 0; i < len / sizeof(bool); i++) {
                     int out = *((bool*)outData + i);
                     outstr << out << " ";
-                    for (int j = 0; j < dim->dimCount; j++) {
-                        if (i != 0 && i % dim->dims[j] == 0 && dim->dims[j] > 10) {
+                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
+                        outstr << "\n\n";
+                    }else{
+					    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-                    }
+					}
                 }
                 break;
             default:
