@@ -443,7 +443,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
 	        int amount_onebatch = 1;
 	        for (int j = 1; j < dim->dimCount; j++) {
                     amount_onebatch *= dim->dims[j];
-		}
+		    }
             switch (datatype) {
             case 0:
                 for (int i = 0; i < len / sizeof(float); i++) {
@@ -452,10 +452,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 1:
@@ -470,7 +470,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                         }
                     }
 
-		}
+		        }
                 break;
             case 2:
                 for (int i = 0; i < len / sizeof(int8_t); i++) {
@@ -483,7 +483,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                             outstr << "\n";
                         }
                     }
-		}
+		        }
                 break;
             case 3:
                 for (int i = 0; i < len / sizeof(int); i++) {
@@ -492,10 +492,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+			            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-   		    }
+   		            }
                 }
                 break;
             case 4:
@@ -505,10 +505,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 6:
@@ -518,10 +518,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-	            }
+	                }
                 }
                 break;
             case 7:
@@ -531,10 +531,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			 if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+			            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 8:
@@ -544,10 +544,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 9:
@@ -557,10 +557,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+			        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 10:
@@ -570,10 +570,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 11:
@@ -583,10 +583,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             case 12:
@@ -596,10 +596,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, siz
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-	                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+	                    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		    }
+		            }
                 }
                 break;
             default:
