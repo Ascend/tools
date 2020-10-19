@@ -77,7 +77,7 @@ elif [ x"${rank_size}" == x"1" ];then
 	--arch=efficientnet-b0 \
 	--batch-size=${batch_size} \
     --lr=0.2 \
-    --momentum=0 \
+    --momentum=0.9 \
 	--epochs=${epoches} \
     --autoaug \
 	--amp \
@@ -94,7 +94,7 @@ elif [ ${rank_size} -le 8 ];then
     --arch=efficientnet-b0 \
     --batch-size=${batch_size} \
     --lr=${lr} \
-    --momentum=0 \
+    --momentum=0.9 \
     --epochs=${epoches} \
     --autoaug \
 	--amp \
