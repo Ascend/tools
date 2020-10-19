@@ -1,0 +1,36 @@
+tensorflow_config:
+   
+    #mode支持single或者 multi
+    mode: single
+
+    data_url: /opt/npu/dataset
+
+    # train 或者 evaluate
+    runmode: train
+
+    #仅在evaluate时用到
+    ckpt_path: /train/benchmark-master720/train/atlas_benchmark-master/object_detection/yolov3/tensorflow/result/TrainingJob-20200724115042
+
+    total_epoches: 1
+
+    save_epoch: 3
+    
+    #single 默认32 multi默认16
+    batch_size: 32
+
+    # 指定 device id, 多个 id 使用空格分隔, 数量需与 rank_size 相同
+    device_group_1p: 0
+    device_group_2p: 0 1
+    device_group_4p: 0 1 2 3
+
+    # 仅多机执行需要配置: ip1:卡数量1,ip2:卡数量2
+    mpirun_ip: 90.90.176.152:8,90.90.176.154:8
+
+    # docker 镜像名称:版本号
+    docker_image: mpirun3:latest
+
+    profiling_mode: false
+    profiling_options: training_trace:task_trace
+    fp_point: yolov3/darknet53_body/Conv/Conv2D
+    bp_point: cond_1/Momentum/update_yolov3/yolov3_head/Conv_9/weights/ApplyMomentum
+    aicpu_profiling_mode: false

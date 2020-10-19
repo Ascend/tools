@@ -1,0 +1,18 @@
+pytorch_config:
+    # 基本参数
+    data_url: /home/imagenet/
+    #跑1p时batch_size为1536, 2p为2048，4p为4096，8p时为8196
+    batch_size: 1536
+    epoches: 10
+    warm_up_epochs: 5
+    epochs_between_evals: 5
+    # 默认参数1p 0.75 2p 1 4p 2 8p 4
+    lr: 0.75
+
+    # docker 镜像名称:版本号
+    docker_image: c73:b02
+
+    # 指定 device id, 数量需与 rank_size 相同
+    device_group_1p: 0
+    device_group_multi: 0,1,2,3,4,5,6,7
+
