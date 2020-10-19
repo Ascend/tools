@@ -1,0 +1,17 @@
+tensorflow_config:
+    # 基本参数
+    imagenet_data: /home/imagenet_TF/
+    # yolo数据集
+    yolo_data: /opt/npu/dataset/
+    # bert数据集
+    bert_data: /home/BertData/
+    # ssd数据集
+    ssd_data: /home/data/raw_data
+    # 镜像名称
+    docker_images: ubuntu:b020
+    
+    # 指定容器ip
+    ip: 90.90.176.110
+    
+    # 掩码个数 255.255.255.0 选24   255.255.254.0 选23：wq
+    epcount: 24

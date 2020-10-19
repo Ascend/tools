@@ -1,0 +1,18 @@
+{
+  "startCfg":
+  [
+    {
+      "jobID": "123456789",
+      "deviceID": ["0"],
+      "features":
+      [
+        {
+          "name": "task_trace"
+        },
+        {
+          "name": "training_trace"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+pytorch_config:
+    # 基本参数
+    data_url: /home/zhusiyi/dataset/peta/
+    
+    epoches: 150
+    # 1p 参数为256 2p 512 4p 1024  8p为2048
+    batch_size: 256
+    
+    seed: 49
+    
+    # 默认参数1p 0.01 2p 0.016 4p 0.016 8p 0.016
+    lr: 0.016
+   
+    #单P指定 卡 默认7卡
+    device: 7
+   
+    # docker 镜像名称:版本号
+    docker_image: c73:b021
