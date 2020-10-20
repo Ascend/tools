@@ -31,4 +31,4 @@ Ascend tools，昇腾工具仓库。
     
 6. [pt2pb](https://gitee.com/ascend/tools/tree/master/pt2pb)  
 
-   **pytorch模型转tensorflow pb模型工具：**输入pytorch权重参数模型，转为onnx，再转为pb模型
+   **pytorch模型转tensorflow pb模型工具**：输入pytorch权重参数模型，转为onnx，再转为pb模型
