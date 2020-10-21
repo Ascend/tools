@@ -41,7 +41,7 @@
 
 执行脚本。
 
- **bash faster-install.sh** 
+ **bash faster_install.sh** 
 
 2、安装完成之后会显示以下界面。选择下图中红框选项（第三行）并点击OK。
 
