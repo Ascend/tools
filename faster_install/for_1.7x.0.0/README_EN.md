@@ -42,7 +42,7 @@ Copy the **faster_install.sh** script from the **faster-install** directory to t
 
 Run the script.
 
-**bash faster-install.sh**
+**bash faster_install.sh**
 
 2. After the installation is complete, the following page is displayed. Select the option (the third line) in the red box in the following figure and click **OK**.
 
