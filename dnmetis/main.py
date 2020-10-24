@@ -34,7 +34,7 @@ def get_args():
 
     # below will override DNMetis rules compliant settings - don't use for official submission
     parser.add_argument("--count", default=1000, type=int, help="dataset items to infer")
-    parser.add_argument("--precision", default="fp32", choices=["fp32", "fp16", "int8", "uint8"],
+    parser.add_argument("--precision", default="fp16", choices=["fp32", "fp16", "int8", "uint8"],
                          help="precision mode, one of " + str(["fp32", "fp16", "int8", "uint8"]))
     parser.add_argument("--feed", default=[], help="feed")
     parser.add_argument("--image_list", default=[], help="image_list")
