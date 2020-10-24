@@ -4,6 +4,7 @@ pip3.7.5 install python-opencv
 cd backend_C++/dnmetis_backend
 pip3.7.5 setup.py install
 ```
+Details of dnmetis_backend installation can be found in backend_C++/dnmetis_backend/README.md
 ## 2.Download dataset and model(.om)
 
 1.download  Imagenet-val dataset URL: http://www.image-net.org/download-imageurls
