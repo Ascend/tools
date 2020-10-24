@@ -1,7 +1,8 @@
-## 1.Install dnmetis_backend
+## 1.Install requirements：
 
-As README.md:
-backend_C++/dnmetis_backend/README.md
+```pip3.7.5 install python-opencv
+   cd backend_C++/dnmetis_backend
+   pip3.7.5 setup.py install
 
 ## 2.Download dataset and model(.om)
 
