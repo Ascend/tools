@@ -77,7 +77,7 @@ Processing dependencies for dnmetis-backend==1.0.2
 Finished processing dependencies for dnmetis-backend==1.0.2
 
 
-3、Check result of installation:
+3、Check result of installation:\
 "dnmetis-backend" will be seen
 ````pip3.7.5 list                                                                                             
 Packag      Version
