@@ -12,7 +12,7 @@
 
 
 
-2.Install:
+2.Install log:
 
 /usr/local/python3.7.5/lib/python3.7/site-packages/setuptools/dist.py:474: UserWarning: Normalizing 'V1.0.2' to '1.0.2'
   normalized_version,
@@ -75,6 +75,19 @@ dnmetis-backend 1.0.2 is already the active version in easy-install.pth
 Installed /usr/local/python3.7.5/lib/python3.7/site-packages/dnmetis_backend-1.0.2-py3.7-linux-x86_64.egg
 Processing dependencies for dnmetis-backend==1.0.2
 Finished processing dependencies for dnmetis-backend==1.0.2
+
+
+3、Check result of installation:
+''''pip3.7.5 list                                                                                             
+Packag      Version
+--------------- ---------
+attrs           20.2.0
+certifi         2020.6.20
+cffi            1.14.2
+chardet         3.0.4
+decorator       4.4.2
+dnmetis-backend 1.0.2
+grpcio          1.31.0''''
 
 
 
