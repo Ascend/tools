@@ -1,9 +1,9 @@
 ## 1.Install requirements：
-
-   `pip3.7.5 install python-opencv
+```
+   pip3.7.5 install python-opencv
    cd backend_C++/dnmetis_backend
-   pip3.7.5 setup.py install`
-
+   pip3.7.5 setup.py install
+```
 ## 2.Download dataset and model(.om)
 
 1.download  Imagenet-val dataset URL: http://www.image-net.org/download-imageurls
