@@ -6,7 +6,7 @@
 
 1.install dnmetis_backend
 
-    1.python setup.py  install
+    1.python3.7.5 setup.py  install
 
 
 
