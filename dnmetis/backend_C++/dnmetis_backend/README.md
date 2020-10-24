@@ -87,10 +87,4 @@ cffi            1.14.2
 chardet         3.0.4
 decorator       4.4.2
 dnmetis-backend 1.0.2
-grpcio          1.31.0````
-
-
-
-
-
-
+grpcio          1.31.0
