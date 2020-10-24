@@ -6,13 +6,19 @@ pip3.7.5 setup.py install
 ```
 Details of dnmetis_backend installation can be found in backend_C++/dnmetis_backend/README.md. Notice that, you just need to install requirements once for a brand new Ai1-Inference environment。
 
-## 2.Download dataset and model(.om)
+## 2.Download model(.om)
 
-1.download  Imagenet-val dataset URL: http://www.image-net.org/download-imageurls
-
-2.download  efficientnet-b8 model(.om) URL: obs://hwwheel23/efficientnet-b8.om 
-
-3.process the original Imagenet-val dataset as list:
+1.download  efficientnet-b8 model(.om) URL: 
+```
+链接：https://pan.baidu.com/s/1N-kpQoDe3NRxvjFKjAT9AA 
+提取码：tvg0  
+```
+Original efficientnet-b8 pb model URL:
+```
+链接：https://pan.baidu.com/s/1CajdSlNTh6k35RoyOn-3Ug 
+提取码：slqm 
+```
+2.Imagenet-val dataset and labels in val_map.txt:
 
 ![输入图片说明](https://images.gitee.com/uploads/images/2020/0918/234302_a572d632_5418572.jpeg "无标题.jpg")
 
@@ -24,7 +30,7 @@ sh run_efficientnet-b8.sh
 
 or 
 
-python3.7 main.py --model=/data/hwwheel123/model/efficientnet-b8.om --image_size='672,672,3' --inputs='images:0' --outputs='Softmax:0' --precision=fp16
+python3.7 main.py --model=./model/efficientnet-b8.om --image_size='672,672,3' --inputs='images:0' --outputs='Softmax:0' --precision=fp16
 
 
 ## 4.ATC offline model generate (optional):
