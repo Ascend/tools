@@ -6,7 +6,7 @@
 
 1.install dnmetis_backend
 
-    ```python3.7.5 setup.py  install
+    `python3.7.5 setup.py  install`
 
 2.Install log:
 
