@@ -8,12 +8,12 @@ Details of dnmetis_backend installation can be found in backend_C++/dnmetis_back
 
 ## 2.Download model(.om)
 
-1.download  efficientnet-b8 model(.om): 
-URL：[baidu pan](https://pan.baidu.com/s/1N-kpQoDe3NRxvjFKjAT9AA) 
+1.download  efficientnet-b8 model(.om): \
+URL：[baidu pan](https://pan.baidu.com/s/1N-kpQoDe3NRxvjFKjAT9AA) \
 Extracted code：tvg0  
 
-Original tensorflow model of efficientnet-b8(.pb):
-URL：[baidu pan](https://pan.baidu.com/s/1CajdSlNTh6k35RoyOn-3Ug)
+Original tensorflow model of efficientnet-b8(.pb):\
+URL：[baidu pan](https://pan.baidu.com/s/1CajdSlNTh6k35RoyOn-3Ug)\
 Extracted code：slqm 
 
 2.Imagenet-val dataset and labels in val_map.txt:
