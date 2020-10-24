@@ -78,7 +78,7 @@ Finished processing dependencies for dnmetis-backend==1.0.2
 
 
 3、Check result of installation:
-'''pip3.7.5 list                                                                                             
+````pip3.7.5 list                                                                                             
 Packag      Version
 --------------- ---------
 attrs           20.2.0
@@ -87,7 +87,7 @@ cffi            1.14.2
 chardet         3.0.4
 decorator       4.4.2
 dnmetis-backend 1.0.2
-grpcio          1.31.0'''
+grpcio          1.31.0````
 
 
 
