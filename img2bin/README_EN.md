@@ -9,7 +9,7 @@ Proportional resizing and zero-padding are performed on the images.
 ## Prerequisites
 
 - The script can be used in the CentOS and Ubuntu environments and supports only the x86 architecture.
-- The script supports Python 2 and Python 3.7.5 (MindStudio depends on python3.7.5).
+- The script supports Python 2 and Python 3.
 - If OpenCV-Python is not installed, the script will automatically install it in the initial use.
 
 ## Obtaining the Script
@@ -43,7 +43,7 @@ python2 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117
 ```
 
 ```
-python3.7.5 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
+python3 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
 ```
 
 ### Second type of data: text
@@ -58,7 +58,7 @@ python2 img2bin.py -i ./test.txt -t uint8 -o ./out
 ```
 
 ```
-python3.7.5 img2bin.py -i ./test.txt -t uint8 -o ./out
+python3 img2bin.py -i ./test.txt -t uint8 -o ./out
 ```
 
 ## Parameter Description
