@@ -64,7 +64,7 @@ except:
                     print('[ERROR] install opencv-python failed,please check env.')
                     exit(0)
         else:
-            ret = os.system('sudo python3.7.5 -m pip install opencv-python')
+            ret = os.system('sudo python3 -m pip install opencv-python')
             if ret != 0:
                 print('[ERROR] install opencv-python failed,please check env.')
                 exit(0)
@@ -80,7 +80,7 @@ except:
     if sys.version_info.major == 2:
         os.system('pip2 install numpy')
     else:
-        os.system('python3.7.5 -m pip install numpy')
+        os.system('python3 -m pip install numpy')
     import numpy as np 
 
 def get_args():
