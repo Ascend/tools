@@ -9,7 +9,7 @@ img2bin能够生成模型推理所需的输入数据，以.bin格式保存。当
 ## 前提条件  
 
 - 脚本可在Centos和Ubuntu环境下使用,只支持x86架构。  
-- 脚本支持python2和python3.7.5(MindStudio依赖python3.7.5)。
+- 脚本支持python2和python3。
 - 如未安装opencv-python，第一次使用，脚本会自动安装。
 
 ## 获取脚本
@@ -39,7 +39,7 @@ cd $HOME/AscendProjects/img2bin
 python2 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
 ```
 ```
-python3.7.5 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
+python3 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104,117,123] -c [1,1,1] -o ./out
 ```
 ### 第二类：
 - 第二类数据，需要新建一个文件，文件模板为test.txt，"input_node"为数据，"shape"为数据的shape信息。  
@@ -51,7 +51,7 @@ python3.7.5 img2bin.py -i ./images -w 416 -h 416 -f BGR -a NHWC -t uint8 -m [104
 python2 img2bin.py -i ./test.txt -t uint8 -o ./out
 ```
 ```
-python3.7.5 img2bin.py -i ./test.txt -t uint8 -o ./out
+python3 img2bin.py -i ./test.txt -t uint8 -o ./out
 ```
 
 ## 参数说明
