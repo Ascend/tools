@@ -32,5 +32,9 @@ Ascend tools
 
    **pytorch model transform to tensorflow pb model tool**：input pytorch weights parameters model，transform to onnx file，then transform to pb model
 
+7. [dnmetis](https://gitee.com/ascend/tools/tree/master/dnmetis)  
+
+   **Test tool for NPU inference precision and performance**：Using Python to encapsulate the C++ interface of ACL, inputting om model and original dataset images and tags, we can execute model inference and give out precision and performance of the om model
+
    
 
