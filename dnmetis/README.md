@@ -25,7 +25,7 @@ pip3.7.5 setup.py install
 
 2.Imagenet-val数据集和标签:
 
-这里的示例仅仅展示了从Imagenet-val数据集挑选的10张图片：/
+这里的示例仅仅展示了从Imagenet-val数据集挑选的10张图片：
 ![输入图片说明](https://images.gitee.com/uploads/images/2020/0918/234302_a572d632_5418572.jpeg "无标题.jpg")
 
 
