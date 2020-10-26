@@ -1,3 +1,5 @@
+EN|[CH](README.md)
+
 ## 1.Install requirements：
 ```
 pip3.7.5 install python-opencv
