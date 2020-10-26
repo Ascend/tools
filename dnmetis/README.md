@@ -31,7 +31,7 @@ pip3.7.5 setup.py install
 
 
 ## 3.执行推理:
-建议提交的PR代码统一使用run_inference.sh作为入口：
+建议提交的PR代码统一使用run_inference.sh作为入口：\
 bash run_inference.sh
 
 执行日志:
