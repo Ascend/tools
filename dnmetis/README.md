@@ -6,9 +6,9 @@ pip3.7.5 setup.py install
 ```
 Details of dnmetis_backend installation can be found in backend_C++/dnmetis_backend/README.md. Notice that, you just need to install requirements once for a brand new Ai1-Inference environment。
 
-Here is an example of how to run npu inference of efficientnet-b8:
 ## 2.Download model(.om)
 
+Here is an example of how to run npu inference of efficientnet-b8:\
 1.download  efficientnet-b8 model(.om): \
 URL：[baidu pan](https://pan.baidu.com/s/1N-kpQoDe3NRxvjFKjAT9AA) \
 Extracted code：tvg0  
