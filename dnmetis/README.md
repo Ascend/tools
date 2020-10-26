@@ -102,7 +102,7 @@ def pre_process_noisy(img, dims=None, precision="fp32"):
     return img
 ```
 
-### inference and post-process
+### inference and post-process:
 ```
         predictions = backend.predict(args.feed[i])
         #print(args.feed[i].shape)
