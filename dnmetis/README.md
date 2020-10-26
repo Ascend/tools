@@ -58,7 +58,7 @@ As you seen, "139.47 ms" is the npu inference time，"0.8" is the top1 Accuracy 
 
 Only need to concern about the dataset，pre-process，post-process：
 
-###pre-process:
+### pre-process:
 ```
 def resize_with_aspectratio(img, out_height, out_width, scale=87.5, inter_pol=cv2.INTER_LINEAR):
     height, width = img.shape[:2]
@@ -102,7 +102,7 @@ def pre_process_noisy(img, dims=None, precision="fp32"):
     return img
 ```
 
-###inference and post-process
+### inference and post-process
 ```
         predictions = backend.predict(args.feed[i])
         #print(args.feed[i].shape)
