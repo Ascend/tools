@@ -31,7 +31,7 @@ Here is an example of 10 pictures of Imagenet-val dataset：/
 
 bash run_inference.sh
 
-Log:/
+Log:
 ```
 [INFO]  start backend_predict is -1518493925
 [INFO]  start Execute is -1518490258
