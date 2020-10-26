@@ -30,6 +30,8 @@ Here is an example of 10 pictures of Imagenet-val dataset：/
 ## 3.Start execute the inference:
 
 bash run_inference.sh
+
+Log:/
 ```
 [INFO]  start backend_predict is -1518493925
 [INFO]  start Execute is -1518490258
@@ -45,6 +47,7 @@ img_orig: ILSVRC2012_val_00000010.JPEG label: 332 predictions: 332
 
 Predict total jpeg: 10  Accuracy:  0.8
 ```
+As you seen, "139.47 ms" is the npu inference time，"0.8" is the top1 Accuracy of 10 pictures。
 
 ## 4.Top1 Accuracy of entire Imagenet2012-val Datasets(5w pictures):
 
