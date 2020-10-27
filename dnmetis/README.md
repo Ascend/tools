@@ -10,7 +10,7 @@ pip3.7.5 setup.py install
 
 ## 2.下载om模型(.om)
 
-如下示例展示如果在NPU上运行efficientnet-b8模型:\
+如下示例展示如何在NPU上运行efficientnet-b8模型:\
 1.下载efficientnet-b8 model(.om): \
 链接：[百度网盘](https://pan.baidu.com/s/1N-kpQoDe3NRxvjFKjAT9AA) \
 提取码：tvg0  
