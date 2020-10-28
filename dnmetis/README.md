@@ -2,7 +2,7 @@
 
 ## 1.安装依赖：
 ```
-pip3.7.5 install python-opencv
+pip3.7.5 install opencv-python
 cd backend_C++/dnmetis_backend
 pip3.7.5 setup.py install
 ```
