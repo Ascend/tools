@@ -7,6 +7,12 @@
 1.install dnmetis_backend
 
     python3.7.5 setup.py  install
+Notice that in the setup.py (line 49~51), If you install toolkit in a different path，please modify the paths of libs and includes :
+```
+            '/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023//acllib/include/',
+        ],
+        library_dirs=['/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023//acllib/lib64/',],
+```
 
 2.Install log:
 
