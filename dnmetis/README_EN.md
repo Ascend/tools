@@ -20,7 +20,7 @@ URL：[baidu pan](https://pan.baidu.com/s/1CajdSlNTh6k35RoyOn-3Ug)\
 Extracted code：slqm 
 
 If you want to acknowledge how to generate om from pb，pls download efficientnet-b8.pb and execute ATC cmd：\
-.atc --model=MODELDIR/efficientnet−b8.pb −−framework=3 −−inputshape=′images:1,672,672,3′−−output=MODELDIR/efficientnet-b8 --mode=0 --out_nodes='Softmax:0' --soc_version=Ascend310 --input_fp16_nodes=images --output_type=FP16
+atc --model=efficientnet-b8.pb --framework=3 --input_shape="images:1,672,672,3" --output=efficientnet --mode=0 --out_nodes="Softmax:0" --soc_version=Ascend310 --input_fp16_nodes=images --output_type=FP16
 
 2.Imagenet-val dataset and labels in val_map.txt:
 
