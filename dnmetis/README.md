@@ -4,7 +4,7 @@
 ```
 pip3.7.5 install opencv-python
 cd backend_C++/dnmetis_backend
-pip3.7.5 setup.py install
+python3.7.5 setup.py install
 ```
 安装dnmetis_backend的细节可以在backend_C++/dnmetis_backend/README.md看到，默认的toolkit安装路径为：/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023/，如果不是，请修改setup.py中49~51行的路径。\
 对于一个全新的Ai1推理环境，只需要安装一次依赖，不需要重复安装。
