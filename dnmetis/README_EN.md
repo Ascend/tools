@@ -4,7 +4,7 @@ EN|[CH](README.md)
 ```
 pip3.7.5 install opencv-python
 cd backend_C++/dnmetis_backend
-pip3.7.5 setup.py install
+python3.7.5 setup.py install
 ```
 Details of dnmetis_backend installation can be found in backend_C++/dnmetis_backend/README.md. Notice that, you just need to install requirements once for a brand new Ai1-Inference environment。
 
