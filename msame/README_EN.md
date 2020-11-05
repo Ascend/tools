@@ -10,7 +10,8 @@ The model must be an offline model converted with  ATC. The input .bin file must
 
 ### Environment
 
-Install the C7x environments by referring to *Driver and Development Environment Setup Guide*.
+The development and running environment has been installed on ascend AI reasoning equipment.  
+Installation reference documents: https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 
 ### Acquisition
 
@@ -39,15 +40,13 @@ Go to the **msame** directory.
 cd $HOME/AscendProjects/tools/msame/
 ```
 
-Go to the **out** directory.
+The msame tool is in the **out** directory. Go to the **out** directory.
 ```
 cd out
 ```
 
-The msame tool is in the **out** directory.
 
-
-Run the tool in the command line.
+Run the tool in the command line like this
 ```
 ./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/MSAME/out/output1 --outfmt TXT --loop 2
 ```
@@ -58,7 +57,9 @@ For details about other parameters, run the **--help** command.
 #### b. Build and run the source code.
 
 **Environment requirements: The  operating development has been installed (both co-deployment and separate deployment are available).**   
-Source code build is supported. If you need to modify the code, the code needs to be rebuilt. Run the following command to go to the **msame** directory:
+Source code build is supported. If you need to modify the code, the code needs to be rebuilt.   
+
+Run the following command to go to the **msame** directory:
 ```
 cd $HOME/AscendProjects/tools/msame/
 ```
