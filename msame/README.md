@@ -28,20 +28,18 @@
 ### 使用方法
 #### a. 使用已编译好的工具直接运行。   
 
- **环境要求：架构为arm、已安装运行环境。如环境不符，请使用方法b，进行源码编译。** 
-  
+ **环境要求：架构为arm、已安装运行环境。如环境不符，请使用方法b，进行源码编译。**  
+
 进入msame目录
 ```
 cd $HOME/AscendProjects/tools/msame/
 ```
-进入out目录
+工具在out目录下,进入out目录
 ```
 cd out
 ```
-工具就在out目录下
 
-
-工具为命令行的运行方式，例如
+运行方式例如
 ```
 ./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
 ```
@@ -51,7 +49,8 @@ cd out
 
 #### b. 源码编译运行。
  **环境要求：已安装开发运行环境，分设合设都可以。**   
-工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译
+工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译  
+
 进入msame目录
 ```
 cd $HOME/AscendProjects/tools/msame/
