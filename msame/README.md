@@ -51,6 +51,12 @@ cd out
  **环境要求：已安装开发运行环境，分设合设都可以。**   
 工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译  
 
+设置环境变量  
+(如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。) 
+ 
+**export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest**  
+**export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub**
+
 进入msame目录
 ```
 cd $HOME/AscendProjects/tools/msame/
