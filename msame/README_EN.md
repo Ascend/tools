@@ -59,6 +59,11 @@ For details about other parameters, run the **--help** command.
 **Environment requirements: The  operating development has been installed (both co-deployment and separate deployment are available).**   
 Source code build is supported. If you need to modify the code, the code needs to be rebuilt.   
 
+Set environment variables  
+(The following example shows how to set environment variables. Replace /home/HwHiAiUser/Ascend/ascend-toolkit/latest/xxx-linux_gccx.x.x with the actual installation path of the ACLlib installation package in /home/HwHiAiUser/Ascend/ascend-toolkit/latest/xxx-linux_gccx.x.x form.)  
+**export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest**  
+**export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub** 
+
 Run the following command to go to the **msame** directory:
 ```
 cd $HOME/AscendProjects/tools/msame/
