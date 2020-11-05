@@ -6,7 +6,7 @@ EN|[中文](README.md)
 
 The msame tool takes the offline model (.om) and the .bin file required by the model as the inputs, and outputs the model output data. Inferring on the same input data for multiple times is supported.
 
-The model must be an offline model converted with the C7x version of ATC. The input .bin file must meet the input requirements of the model (multiple inputs are supported).
+The model must be an offline model converted with  ATC. The input .bin file must meet the input requirements of the model (multiple inputs are supported).
 
 ### Environment
 
@@ -30,7 +30,9 @@ Install the C7x environments by referring to *Driver and Development Environment
 
 #### a. Run the built tool.
 
-**Environment requirements: The architecture is Arm and the C7x operating environment has been installed. If the preceding requirements are not meet, use method b to build the source code.**
+**Environment requirements:**  
+The development and running environment has been installed on shengteng AI reasoning equipment.  
+Installation reference documents：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 
 Go to the **msame** directory.
 ```
@@ -55,7 +57,7 @@ For details about other parameters, run the **--help** command.
 
 #### b. Build and run the source code.
 
-**Environment requirements: The C7x operating development has been installed (both co-deployment and separate deployment are available).**   
+**Environment requirements: The  operating development has been installed (both co-deployment and separate deployment are available).**   
 Source code build is supported. If you need to modify the code, the code needs to be rebuilt. Run the following command to go to the **msame** directory:
 ```
 cd $HOME/AscendProjects/tools/msame/
