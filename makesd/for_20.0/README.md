@@ -1,6 +1,6 @@
 中文|[英文](README_EN.md)
 
-# for_1.7x.0.0
+# for_20.0
 
 ## 文件列表
 
@@ -25,8 +25,8 @@
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
 
-	执行以下命令，进入C73制卡目录。  
-	**cd $HOME/tools/makesd/for_1.7x.0.0/**  
+	执行以下命令，进入20.0制卡目录。  
+	**cd $HOME/tools/makesd/for_20.0/**  
 	```powershell  
 	ascend@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
 	Cloning into 'tools'...
@@ -38,11 +38,11 @@
 	Resolving deltas: 100% (128/128), done.
 	ascend@ubuntu:~$ cd tools/
 	amexec/  .git/    img2bin/ makesd/  
-	ascend@ubuntu:~$ cd tools/makesd/for_1.7x.0.0/
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ls
+	ascend@ubuntu:~$ cd tools/makesd/for_20.0/
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ^C
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ^C
+	ascend@ubuntu:~/tools/makesd/for_20.0$ 
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
@@ -51,9 +51,9 @@
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_1.7x.0.0）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_20.0）下。  
 	```powershell  
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ll
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ll
 	total 80920
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
@@ -64,7 +64,7 @@
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 ascend ascend 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_20.0$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
