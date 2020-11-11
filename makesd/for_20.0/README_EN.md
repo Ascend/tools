@@ -25,8 +25,8 @@ EN|[CH](README.md)
 	**git clone https://gitee.com/ascend/tools.git**  
 	(If Git is not installed, run the sudo apt-get install git command to install it.)  
 
-	Go to the C73 card making directory:  
-	**cd $HOME/tools/makesd/for_1.7x.0.0/**  
+	Go to the 20.0 card making directory:  
+	**cd $HOME/tools/makesd/for_20.0/**  
 	```powershell  
 	ascend@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
 	Cloning into 'tools'...
@@ -38,11 +38,11 @@ EN|[CH](README.md)
 	Resolving deltas: 100% (128/128), done.
 	ascend@ubuntu:~$ cd tools/
 	amexec/  .git/    img2bin/ makesd/  
-	ascend@ubuntu:~$ cd tools/makesd/for_1.7x.0.0/
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ls
+	ascend@ubuntu:~$ cd tools/makesd/for_20.0/
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ^C
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ^C
+	ascend@ubuntu:~/tools/makesd/for_20.0$ 
 	```  
 	Download the ubuntu18.04-arm.iso image:  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
@@ -51,9 +51,9 @@ EN|[CH](README.md)
 	After the download is complete, grant 755 permission to the script and image:  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. Save the downloaded card making package to the $HOME/tools/makesd/for_1.7x.0.0 directory of the common user.  
+3. Save the downloaded card making package to the $HOME/tools/makesd/for_20.0 directory of the common user.  
 	```powershell  
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ ll
+	ascend@ubuntu:~/tools/makesd/for_20.0$ ll
 	total 80920
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
@@ -64,7 +64,7 @@ EN|[CH](README.md)
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 ascend ascend 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	ascend@ubuntu:~/tools/makesd/for_1.7x.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_20.0$ 
 	```  
 
 4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
