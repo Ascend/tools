@@ -2,6 +2,8 @@
 
 # for_20.0
 
+**本文档只提供读卡器制卡方式指导，更多详细指导可以参考[官方制卡文档](https://support.huaweicloud.com/usermanual-A200dk_3000/atlas200dk_02_0010.html)**
+
 ## 文件列表
 
 - 制卡入口脚本：make_sd_card.py
