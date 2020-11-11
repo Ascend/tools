@@ -20,7 +20,7 @@
 
 1. 如下图下载制卡需要的软件包  
 	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**  
-	![下载制卡包](https://images.gitee.com/uploads/images/2020/1026/114359_c5d3e9d6_5395865.png "屏幕截图.png")
+	![](https://images.gitee.com/uploads/images/2020/1111/162912_683d5546_5395865.png "00.png")
 
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
 	在本地环境普通用户（以ascend用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
