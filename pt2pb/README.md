@@ -110,7 +110,7 @@ torch.save(my_resnet.state_dict(),"my_resnet.pth")
 3. 执行转换脚本
 
    ```
-   python3 pt2onnx.py --model_path="./resnet50/models/resnet50_best.pth" --input_shape=1 3 224 224
+   python3 pt2onnx.py --model_path="./resnet50/models/resnet50_best.pth" --input_shape 1 3 224 224
    ```
 
 ​       参数说明：
