@@ -8,6 +8,10 @@ Please select the corresponding USB virtual network card connection script accor
 
 #### explain
 
+1. [for_20.1](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet/for_20.1)
+
+   **20.1**: USB virtual network card connection script.
+
 1. [for_1.7x.0.0](https://gitee.com/ascend/tools/tree/master/configure_usb_ethernet/for_1.7x.0.0)
 
    **1.7x.0.0**: USB virtual network card connection script.
