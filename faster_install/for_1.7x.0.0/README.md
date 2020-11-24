@@ -14,49 +14,55 @@
 
 3、自行配置下载源。（可选，如果已经配置过源，请跳过，以下给出一种配置源的方法）
 
-我们是在普通用户下安装的，首先确保当前环境中有一个普通用户和一个root用户，如果是新建的虚拟机需要先给root用户配置密码后才可以正常登录root用户（sudo passwd root）。以下安装普通用户以ascend举例
+我们是在普通用户下安装的，首先确保当前环境中有一个普通用户和一个root用户，如果是新建的虚拟机需要先给root用户配置密码后才可以正常登录root用户（sudo passwd root）。以下安装普通用户以ascend举例  
 
-（1）用户权限配置。
-    普通用户安装开发套件，需要有sudo权限，所以首先需要给普通用户配置权限。
-    切换为root用户。
-    su root
-    给sudoer文件配置写权限，并打开该文件。
-    chmod u+w /etc/sudoers
-    vi /etc/sudoers
-    
-    在该文件“ # User privilege specification”下面增加如下内容：
-    ![输入图片说明](https://images.gitee.com/uploads/images/2020/1121/171509_8e9cf604_5408865.png "屏幕截图.png")    
-    
-    其中，ascend为开发环境种普通用户用户名，需要根据自己的环境修改。
+&emsp;&emsp;（a）用户权限配置。
+  
+&emsp;&emsp;普通用户安装开发套件，需要有sudo权限，所以首先需要给普通用户配置权限。  
+&emsp;&emsp;切换为root用户。  
+&emsp;&emsp;**su root**   
+&emsp;&emsp;给sudoer文件配置写权限，并打开该文件。  
+&emsp;&emsp;**chmod u+w /etc/sudoers**   
+&emsp;&emsp;**vi /etc/sudoers**   
 
-    完成后，执行以下命令取消“ /etc/sudoers”文件的写权限。
-    chmod u-w /etc/sudoers
+&emsp;&emsp;在该文件“ # User privilege specification”下面增加如下内容：
+
+&emsp;&emsp;![输入图片说明](https://images.gitee.com/uploads/images/2020/1121/171509_8e9cf604_5408865.png "屏幕截图.png")    
+
+&emsp;&emsp;其中，ascend为开发环境种普通用户用户名，需要根据自己的环境修改。
+
+&emsp;&emsp;完成后，执行以下命令取消“ /etc/sudoers”文件的写权限。
+
+&emsp;&emsp;**chmod u-w /etc/sudoers** 
 
     
-（2）源配置。
-    由于安装过程中涉及很多apt依赖的安装，所以配置一个国内源是一个加快进度的好办法。
-    配置ubuntu18.04-x86的apt清华源。
-    root用户下打开apt源文件。
-    vi /etc/apt/sources.list
-    
-    将源文件内容替换为以下ubuntu18.04-x86的apt清华源。
+&emsp;&emsp;（b）源配置。
 
-    ```bash
-    # 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
-    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
-    # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
-    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
-    # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
-    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
-    # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
-    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
-    # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
-    ```
-    执行以下命令更新源。
-    
-    `apt-get update`
+&emsp;&emsp;由于安装过程中涉及很多apt依赖的安装，所以配置一个国内源是一个加快进度的好办法。
+&emsp;&emsp;配置ubuntu18.04-x86的apt清华源。  
 
-    > 如果apt-get update失败，可以试用其他的国内源 https://www.cnblogs.com/dream4567/p/9690850.html
+&emsp;&emsp;root用户下打开apt源文件。  
+
+&emsp;&emsp;**vi /etc/apt/sources.list** 
+
+&emsp;&emsp;将源文件内容替换为以下ubuntu18.04-x86的apt清华源。
+
+```bash
+# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse
+```
+&emsp;&emsp;执行以下命令更新源。
+
+&emsp;&emsp;**apt-get update** 
+
+> 如果apt-get update失败，可以试用其他的国内源 https://www.cnblogs.com/dream4567/p/9690850.html
 
 
 #### 使用方法
