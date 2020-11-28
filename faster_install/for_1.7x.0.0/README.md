@@ -38,7 +38,7 @@
     
 &emsp;&emsp;（b）源配置。
 
-&emsp;&emsp;由于安装过程中涉及很多apt依赖的安装，所以配置一个国内源是一个加快进度的好办法。
+&emsp;&emsp;由于安装过程中涉及很多apt依赖的安装，所以配置一个国内源是一个加快进度的好办法。  
 &emsp;&emsp;配置ubuntu18.04-x86的apt清华源。  
 
 &emsp;&emsp;root用户下打开apt源文件。  
