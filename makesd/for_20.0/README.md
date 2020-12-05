@@ -43,8 +43,6 @@
 	ascend@ubuntu:~$ cd tools/makesd/for_20.0/
 	ascend@ubuntu:~/tools/makesd/for_20.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
-	ascend@ubuntu:~/tools/makesd/for_20.0$ ^C
-	ascend@ubuntu:~/tools/makesd/for_20.0$ 
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
