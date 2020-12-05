@@ -12,7 +12,7 @@
 
 - 开发者板操作系统镜像包：ubuntu-18.04.xxserver-arm64.iso，[点击跳转](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- 制卡软件包：Ascend310-driver-xxx-ubuntu18.04.aarch64-minirc.tar.gz、Ascend310-aicpu_kernels-xxx-minirc.tar.gz、Ascend-acllib-xxx-ubuntu18.04.aarch64-minirc.run，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
+- 固件与驱动包：Ascend310-driver-xxx-ubuntu18.04.aarch64-minirc.tar.gz、Ascend310-aicpu_kernels-xxx-minirc.tar.gz、Ascend-acllib-xxx-ubuntu18.04.aarch64-minirc.run，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
 ## 制卡步骤
 
@@ -20,7 +20,7 @@
 
 1. 如下图下载制卡需要的软件包  
 	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**  
-	![](https://images.gitee.com/uploads/images/2020/1111/162912_683d5546_5395865.png "00.png")
+	![](https://images.gitee.com/uploads/images/2020/1205/162945_e7c3bea4_5400693.png "package.png")
 
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
 	在本地环境普通用户（以ascend用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
