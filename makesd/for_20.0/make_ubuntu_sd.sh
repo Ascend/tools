@@ -75,6 +75,29 @@ SYSLOG_MAXSIZE="1000M"
 SYSLOG_ROTATE="4"
 KERNLOG_MAXSIZE="1000M"
 KERNLOG_ROTATE="4"
+
+sectorEnd=`fdisk -l | grep "$DEV_NAME:" | awk -F ' ' '{print $7}'`
+sectorSize=`fdisk -l | grep -A 2 "$DEV_NAME:" | grep "Units" | awk -F ' ' '{print $6}'`
+sectorRsv=$[536870912/sectorSize+1]
+sectorEnd=$[sectorEnd-sectorRsv]
+
+#component main/backup offset
+COMPONENTS_MAIN_OFFSET=$[sectorEnd+1]
+COMPONENTS_BACKUP_OFFSET=$[COMPONENTS_MAIN_OFFSET+73728]
+#0 512k
+LPM3_OFFSET=0
+LPM3_SIZE=1024
+#1M 512k
+TEE_OFFSET=2048
+TEE_SIZE=1024
+#2M 2M
+DTB_OFFSET=4096
+DTB_SIZE=4096
+#32M 32M
+IMAGE_OFFSET=8192
+IMAGE_SIZE=65536
+#component main header
+#COMPONENTS_MAIN_HEADER=`${COMPONENTS_MAIN_OFFSET} |awk '{printf("%x\n", $0)}'`
 # end
 
 # ************************Cleanup*********************************************
@@ -149,6 +172,7 @@ function checkAscendCannPackage()
     ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
     AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
     if [[ ! -n "$ACLLIB_PACKAGE" ]] || [[ ! -n "$AICPU_KERNELS_PACKAGE" ]]; then
+        echo "HELLO WORLD"
         DRIVER_PACKAGE=$(ls A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz)
         if [ ! -n "$DRIVER_PACKAGE" ]; then
             echo "find A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz failed. please put this package in this folder."
@@ -330,12 +354,12 @@ EOF
     if [ -f ${LogPath}squashfs-root/etc/rsyslog.d/50-default.conf ];then
         sed -i 's/*.*;auth,authpriv.none/*.*;auth,authpriv,kern.none/g' ${LogPath}squashfs-root/etc/rsyslog.d/50-default.conf
     fi
-    echo 'LogLevel=emerg' >> /etc/systemd/system.conf
-    echo 'MaxLevelStore=emerg' >> /etc/systemd/journald.conf
-    echo 'MaxLevelSyslog=emerg' >> /etc/systemd/journald.conf
-    echo 'MaxLevelKMsg=emerg' >> /etc/systemd/journald.conf
-    echo 'MaxLevelConsole=emerg' >> /etc/systemd/journald.conf
-    echo 'MaxLevelWall=emerg' >> /etc/systemd/journald.conf
+    echo 'LogLevel=emerg' >> ${LogPath}squashfs-root/etc/systemd/system.conf
+    echo 'MaxLevelStore=emerg' >> ${LogPath}squashfs-root/etc/systemd/journald.conf
+    echo 'MaxLevelSyslog=emerg' >> ${LogPath}squashfs-root/etc/systemd/journald.conf
+    echo 'MaxLevelKMsg=emerg' >> ${LogPath}squashfs-root/etc/systemd/journald.conf
+    echo 'MaxLevelConsole=emerg' >> ${LogPath}squashfs-root/etc/systemd/journald.conf
+    echo 'MaxLevelWall=emerg' >> ${LogPath}squashfs-root/etc/systemd/journald.conf
 }
 
 
@@ -505,6 +529,9 @@ n
 +1G
 n
 
+
+
+$sectorEnd
 
 
 
@@ -754,7 +781,96 @@ function make_sysroot()
     ln -s /usr/aarch64-linux-gnu/include/sys /usr/include/sys
     ln -s /usr/aarch64-linux-gnu/include/bits /usr/include/bits
     ln -s /usr/aarch64-linux-gnu/include/gnu /usr/include/gnu
+    
     echo "make sysroot end"
+}
+
+# ************************writePartitionHeader**************************************
+# Description:  write partirion header
+# ******************************************************************************
+function writePartitionHeader()
+{
+    #sector 512��?��?��?
+    secStart=16
+    MAIN_HEADER=$(printf "%#x" $COMPONENTS_MAIN_OFFSET)
+    BACK_HEADER=$(printf "%#x" $COMPONENTS_BACKUP_OFFSET)
+
+    MAIN_A=$(printf "%x" $(( ($MAIN_HEADER & 0xFF000000) >> 24 )))
+    MAIN_B=$(printf "%x" $(( ($MAIN_HEADER & 0x00FF0000) >> 16 )))
+    MAIN_C=$(printf "%x" $(( ($MAIN_HEADER & 0x0000FF00) >> 8)))
+    MAIN_D=$(printf "%x" $(( $MAIN_HEADER & 0x000000FF )))
+
+    BACKUP_A=$(printf "%x" $(( ($BACK_HEADER & 0xFF000000) >> 24 )))
+    BACKUP_B=$(printf "%x" $(( ($BACK_HEADER & 0x00FF0000) >> 16 )))
+    BACKUP_C=$(printf "%x" $(( ($BACK_HEADER & 0x0000FF00) >> 8)))
+    BACKUP_D=$(printf "%x" $(( $BACK_HEADER & 0x000000FF )))
+
+    #echo 55AA55AA | xxd -r -ps > magic
+    echo -e -n "\x55\xAA\x55\xAA" > magic
+
+    echo -e -n "\x$MAIN_D\x$MAIN_C\x$MAIN_B\x$MAIN_A" > components_main_base
+    echo 0000 0000 0000 0000 0000 0000\
+        0004 0000 0000 0000 0008 0000 0000 0000\
+        0004 0000 0000 0000 0010 0000 0000 0000\
+        0010 0000 0000 0000 0020 0000 0000 0000\
+        0000 0100 0000 0000 0000 0000 0000 0000\
+        0000 0000 0000 0000 0000 0000 0000 0000 | xxd -r -ps >> components_main_base
+
+    echo -e -n "\x$BACKUP_D\x$BACKUP_C\x$BACKUP_B\x$BACKUP_A" > components_backup_base
+    echo 0000 0000 0000 0000 0000 0000\
+        0004 0000 0000 0000 0008 0000 0000 0000\
+        0004 0000 0000 0000 0010 0000 0000 0000\
+        0010 0000 0000 0000 0020 0000 0000 0000\
+        0000 0100 0000 0000 0000 0000 0000 0000\
+        0000 0000 0000 0000 0000 0000 0000 0000 | xxd -r -ps >> components_backup_base
+
+    dd if=magic of=${DEV_NAME} count=1 seek=$[secStart] bs=$sectorSize
+    dd if=magic of=${DEV_NAME} count=1 seek=$[secStart+1] bs=$sectorSize
+    dd if=components_main_base of=${DEV_NAME} count=1 seek=$[secStart+2] bs=$sectorSize
+    dd if=components_backup_base of=${DEV_NAME} count=1 seek=$[secStart+3] bs=$sectorSize
+
+    rm -rf magic
+    rm -rf components_main_base
+    rm -rf components_backup_base
+}
+
+
+# ************************writeComponents**************************************
+# Description:  write components main/backup
+# ******************************************************************************
+function writeComponents()
+{
+    FWM_DIR="${LogPath}squashfs-root/fw/"
+    OF_DIR=$1
+
+    if [[ -d "${FWM_DIR}" ]];then
+        echo "fw exist"
+    else
+        echo "failed: fw no exist"
+    fi
+
+    dd if=${FWM_DIR}lpm3.img of=${DEV_NAME} count=$LPM3_SIZE seek=$[OF_DIR+LPM3_OFFSET] bs=$sectorSize
+    if [ $? -ne 0 ];then
+        echo "failed: $OF_DIR lpm3"
+        return 1
+    fi
+    dd if=${FWM_DIR}tee.bin of=${DEV_NAME} count=$TEE_SIZE seek=$[OF_DIR+TEE_OFFSET] bs=$sectorSize
+    if [ $? -ne 0 ];then
+        echo "failed: $OF_DIR tee"
+        return 1
+    fi
+    dd if=${FWM_DIR}dt.img of=${DEV_NAME} count=$DTB_SIZE seek=$[OF_DIR+DTB_OFFSET] bs=$sectorSize
+    if [ $? -ne 0 ];then
+        echo "failed: $OF_DIR dt"
+        return 1
+    fi    
+    dd if=${FWM_DIR}Image of=${DEV_NAME} count=$IMAGE_SIZE seek=$[OF_DIR+IMAGE_OFFSET] bs=$sectorSize
+    if [ $? -ne 0 ];then
+        echo "failed: $OF_DIR Image"
+        return 1
+    fi
+
+
 }
 
 # ########################Begin Executing######################################
@@ -842,13 +958,40 @@ function main()
     mkdir ${TMPDIR_SD3_MOUNT}
     mount ${DEV_NAME}$p3 ${TMPDIR_SD3_MOUNT} 2>/dev/null  # updated by aman
     echo "make_sd_process: 55%"
-    
+
     echo "Process: 3/4(Pre install each run package and copy filesystem to SDcard)"
-    preInstallMinircPackage
+    preInstallMinircPackage    
     if [ $? -ne 0 ];then
         return 1
     fi
+
     # end
+
+    # ************************write Components************************************** 
+    writeComponents COMPONENTS_MAIN_OFFSET
+    if [ $? -ne 0 ];then
+        echo "Failed: writeComponents main"
+        return 1
+    fi
+    echo "writeComponents main Succ"
+    # end
+
+    writeComponents COMPONENTS_BACKUP_OFFSET
+    if [ $? -ne 0 ];then
+        echo "Failed: writeComponents backup"
+        return 1s
+    fi
+    echo "writeComponents backup Succ"
+    # end
+
+    # ************************write Partition Header********************************
+    writePartitionHeader
+    if [ $? -ne 0 ];then
+        echo "Failed: writePartitionHeader"
+        return 1
+    fi
+    echo "writePartitionHeader Succ"
+    #end
 
     echo "Process: 4/4(Make sysroot)"
     make_sysroot
