@@ -47,8 +47,6 @@
 	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.1/
 	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ^C
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ 
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
