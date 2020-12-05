@@ -58,7 +58,7 @@
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
 	-rw-r--r-- 1 ascend ascend   173441 Jul 28 04:32 Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz
-	-rw-r--r-- 1 ascend ascend   449942 Jul 28 04:32 Ascend310-firmware-1.73.5.1.b050-minirc.run
+	-rw-r--r-- 1 ascend ascend 79395214 Jul 28 04:32 Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz
 	-rw-r--r-- 1 ascend ascend  4457767 Jul 28 04:33 Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run
 	-rwxr-xr-x 1 ascend ascend    17633 Jul 28 04:23 make_sd_card.py*
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
