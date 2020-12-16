@@ -48,7 +48,7 @@ def load_model(model_path, input_shape):
     #model = ResNet50()
     
     #修改点3:放开加载模型的注释
-    #model.load_state_dict(torch.load(model_file))
+    #model.load_state_dict(torch.load(model_path))
     
     return model
 
