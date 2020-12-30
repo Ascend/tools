@@ -38,8 +38,11 @@ cd $HOME/AscendProjects/tools/msame/
 ```
 cd out
 ```
-
-运行方式例如
+运行方式例1（不加input参数时，会构造全为0的假数据送入模型推理）
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
+```
+运行方式例2
 ```
 ./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
 ```
