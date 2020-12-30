@@ -40,11 +40,11 @@ cd out
 ```
 运行方式例1（不加input参数时，会构造全为0的假数据送入模型推理）
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
+./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
 ```
 运行方式例2
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
 ```
 如果有多个输入，需要用**英文逗号**隔开，注意逗号两边不能有空格。  
 其他参数详情可使用--help查询。
@@ -85,6 +85,6 @@ dump、动态多batch功能暂不支持。
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
 | --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认fasle |
-| --profiler   | profiler开关，可选参数，默认false |
+| --profiler   | profiler开关，，true或者false, 可选参数，默认false |
 | --device   | 指定运行设备 [0,255]，可选参数，默认0 |
 | --help   | 工具使用帮助信息                  |
