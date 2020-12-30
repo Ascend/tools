@@ -70,7 +70,7 @@ EN|[CH](README.md)
 4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
 
 	Switch to the root user and prepare for card making:  
-	**su - root**
+	**su - root**   
         **cd /home/HwHiAiUser/tools/makesd/for_1.7x.0.0/**
 
 	Run the SD card making script:  
