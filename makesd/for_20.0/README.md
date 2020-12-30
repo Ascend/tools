@@ -70,7 +70,7 @@
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
 
 	执行以下命令，切换root用户，准备制卡。  
-	**su - root**
+	**su - root**    
         **cd /home/HwHiAiUser/tools/makesd/for_20.0/
 
 	执行以下命令，执行脚本准备制卡  
