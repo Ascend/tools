@@ -10,7 +10,7 @@ Ascend Tools，欢迎各位开发者！
 
  **一、源码**
 
-1. 工具的源码需符合第四部分编码规范
+1. 工具的源码需符合第五部分编码规范
 
 2. 工具提交样例规范请参考[sample](../msame)。
 
@@ -73,49 +73,12 @@ readme用于指导用户理解和使用工具，要包含如下内容：
 
  **四、PR提交规范**
 
-提交PR操作可以参考[如何fork仓库并提交PR_wiki](https://gitee.com/ascend/samples/wikis/%E5%A6%82%E4%BD%95fork%E4%BB%93%E5%BA%93%E5%B9%B6%E6%8F%90%E4%BA%A4PR?sort_id=3271318)。
+1. 提交PR操作可以参考[如何fork仓库并提交PR_wiki](https://gitee.com/ascend/samples/wikis/%E5%A6%82%E4%BD%95fork%E4%BB%93%E5%BA%93%E5%B9%B6%E6%8F%90%E4%BA%A4PR?sort_id=3271318)。
 
-PR提交的样例需要包含门禁项、工程测试用例和readme。
+2. 如需上传图片、视频、模型等大文件，请提供归档OBS、网盘链接或联系管理员存放到固定的obs地址，不要将大文件上传至tools仓中。
 
-1. 简介：
+3. 环境和其他问题，请提交Issue跟踪。
 
-   - 提交的PR中应该包含如下文件， 这是校验PR提交是否有效的门禁项： 
-
-        1. 工程目录下有 src 文件夹，用于存放源码。   
-        2. 工程目录下有 readme (*.md 格式的文件)。   
-        3. 工程目录下有 scripts 文件夹, 文件夹下有testcase*.sh脚本。
-        4. 工程目录下有 scripts 文件夹, 文件夹下有host_version.conf配置文件。   
-
-   - 提交PR后，会自动触发门禁流水，后台会根据用例入口shell(工程目录下的scripts/testcase*.sh)进行编译，关键要求如下：
-
-        1. 提交的PR中的文件不能包含 rm 删除命令；   
-        2. 提交的PR中不应上传原始模型文件和转换后的Davinci模型；   
-        3. 提交的PR中不应上传测试集和验证集;   
-
-2. scripts/testcase*.sh 应该包含如下功能。   
-    testcase*.sh 包含两方面功能：推理和校验推理的结果。 
-  
-    推理阶段包含：   
-    -    下载测试集和验证集。    
-    -    下载原始模型文件。   
-    -    设置模型转换所需的环境变量。   
-    -    使用atc命令进行模型转换。   
-    -    根据自己提交的工程配置工程编译时所需的环境变量。   
-    -    配置程序运行所需的环境变量。  
-    -    运行程序。    
-
-    校验推理的结果(根据不同的工程提供不同的推理结果校验方法，校验方法可以写在脚本中)：   
-    -    当推理阶段发生成错误时 返回 inferenceError。     
-    -    当推理结果校验阶段发生成错误时 返回 verifyResError。    
-    -    如果两个阶段执行都成功 最后返回 success。   
-
-3. 执行环境已预装软件包和Python3.6.9环境，调用命令"python3.6"、，安装第三方库依赖使用"pip3 install package --user"、"python3.6 -m pip install package --user"均可。
-
-4. 模型需要按照 [modelzoo](https://gitee.com/ascend/modelzoo)仓的贡献指南，上传到modelzoo中。验证文件(bin、图片、视频)请提供归档OBS、网盘链接或联系管理员存放到固定的obs地址，不要放在samples仓中。
-
-5. 环境和其他问题，请提交Issue跟踪。
-
-6. 提交测试用例可以参考[PR提交示例](https://gitee.com/ascend/samples/tree/dev/cplusplus/level2_simple_inference/1_classification/googlenet_imagenet_picture)。
 
 
  **五、编程规范**
