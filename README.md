@@ -36,3 +36,11 @@ Ascend tools，昇腾工具仓库。
 7. [dnmetis](https://gitee.com/ascend/tools/tree/master/dnmetis)  
 
    **NPU推理精度和性能测试工具**：使用Python封装ACL的C++接口，输入om模型和原始数据集图片、标签，即可执行模型推理，输出精度数据和性能数据
+
+#### 贡献
+
+欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。
+
+#### 许可证
+[Apache License 2.0](LICENSE)
+
