@@ -12,7 +12,7 @@ Ascend Tools，欢迎各位开发者！
 
 1. 工具的源码需符合第五部分编码规范
 
-2. 工具提交样例规范请参考[sample](../msame)。
+2. 工具提交样例规范请参考[sample](https://gitee.com/ascend/tools/msame)。
 
 3. 贡献者工程代码目录规则：目录名即为工具名，需能体现出工具的作用。   
     
