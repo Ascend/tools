@@ -12,28 +12,10 @@ Ascend Tools，欢迎各位开发者！
 
 1. 工具的源码需符合第四部分编码规范
 
-2. C++PR 提交样例规范请参考[sample](https://gitee.com/ascend/samples/tree/dev/cplusplus/level2_simple_inference/1_classification/googlenet_imagenet_picture)。
+2. 工具提交样例规范请参考[sample](../msame)。
 
-3. 贡献者工程代码目录规则：   
+3. 贡献者工程代码目录规则：目录名即为工具名，需能体现出工具的作用。   
     
-    -   工程目录下有 src 文件夹，用于存放源码。   
-    -   工程目录下有 readme (*.md 格式的文件)。   
-    -   工程目录下有 scripts 文件夹, 文件夹下有当前待提交工程的入口脚本 : testcase*.sh 。
-    -   工程目录下有 scripts 文件夹, 文件夹下有描述当前工程所适配的设备形态以及相应版本的配置说明文件 host_version.conf 。
-    
-    > **说明：** 每一个入口脚本对应一种设备形态，要求当前工程至少适配一种设备形态，每种设备的入口脚本对应的版本号须填写在同级目录下的 host_version.conf 文件中。
-    >- testcase_200dk.sh   适配设备Atlas200dk。   
-    >- testcase_300.sh     适配设备Atlas300。   
-    >- testcase_800.sh     适配设备Atlas800。   
-    >- testcase_1951.sh    适配设备1951。
-   
-    > **说明：** 每一个设备形态对应一种或多种版本，要求当前工程至少适配一种版本。例如 host_version.conf中内容为：
-    >- Atlas300 = c75,c73         当前工程适配Atlas300的c73和c75两种版本。
-    >- Atlas200dk = c73,c75       当前工程适配Atlas200dk的c73和c75两种版本。
-    >- Atlas800 = c75             当前工程适配Atlas800的c75版本。
-    >- Atlas1951 = c75            当前工程适配Atlas1951的c75版本。
-
-
 4. 从其他开源迁移的代码，请增加License声明。
 
  **二、License规则**
@@ -74,23 +56,20 @@ Ascend Tools，欢迎各位开发者！
 
  **三、readme**
 
-readme用于指导用户理解和部署样例，要包含如下内容：
+readme用于指导用户理解和使用工具，要包含如下内容：
 
 1. 简介：
 
-    工程项目的功能和运行方法、模型的来源；
+    工具的功能、运行所依赖的环境、使用方法；
 
 2. 关键要求：
 
-    1. 提交的工程项目的功能：包含样例的输入和输出;   
+    1. 如工具只支持特定的版本请注明；   
     2. 环境变量设置，依赖的第三方软件包和库，以及安装方法；   
-    3. 工程文件获取方法：下载工程文件压缩包或是git clone；   
-    4. 模型如何从(modelzoo)[https://gitee.com/ascend/modelzoo]仓下载；  
-    5. 模型转换得到的离线模型对输入数据的要求；   
-    6. 测试数据(bin文件，图片，视频)请提供归档OBS、网盘链接;   
-    7. 将原始模型转换为Davinci模型的模型转换命令；   
-    8. 工程编译步骤以及工程运行步骤；  
-    9. 推理后的校验方法 (校验方法以shell脚本或是python脚本提供)   
+    3. 工程文件获取方法：下载工程文件压缩包或是git clone；      
+    4. 给出工具最常见的运作命令或运行步骤；  
+    5. 工具的参数说明。   
+    
 
  **四、PR提交规范**
 
