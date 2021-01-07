@@ -10,7 +10,7 @@ Ascend Tools，欢迎各位开发者！
 
  **一、源码**
 
-1. 工具的源码需符合第五部分编码规范
+1. 工具的源码需符合第五部分编码规范。
 
 2. 工具提交样例规范请参考[sample](https://gitee.com/ascend/tools/tree/master/msame)。
 
