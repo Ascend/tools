@@ -193,7 +193,7 @@ void Utils::printHelpLetter()
     cout << "  --output	Output path(User needs to have permission to create directories)" << endl;
     cout << "  --outfmt	Output file format (TXT or BIN)" << endl;
     cout << "  --loop 	loop time(must in 1 to 100)" << endl;
-    cout << "  --dump	Enable dump (true or false)(Do not support now)" << endl;
+    cout << "  --dump	Enable dump (true or false)" << endl;
     cout << "  --profiler	Enable profiler (true or false)" << endl;
     cout << "  --device      Designated the device ID(must in 0 to 255)" << endl;
     cout << "  --debug       Debug switch,print model information (true or false)" << endl;
@@ -201,6 +201,8 @@ void Utils::printHelpLetter()
          << endl
          << endl;
 }
+
+
 
 double Utils::printDiffTime(time_t begin, time_t end)
 {
@@ -259,10 +261,10 @@ void Utils::DumpJson(bool isdump, map<char, string>& params)
         std::string out_path = params['o'].c_str();
         std::string out_dump_path = out_path + "/dump";
         ofstream outstr("acl.json", ios::out);
-        outstr << "{\n\"dump\": {\n    \"dump_path\"： \"";
+        outstr << "{\n\"dump\": {\n    \"dump_path\": \"";
         outstr << out_dump_path << "\",\n    ";
         outstr << "\"dump_mode\": \"output\",\n    \"dump_list\": [{\n    ";
-        outstr << "        \"model_name\": \"" << modelName << "\",\n        }]\n";
+        outstr << "        \"model_name\": \"" << modelName << "\"\n        }]\n";
         outstr << "    }\n}";
         outstr.close();
 

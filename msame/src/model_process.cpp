@@ -62,12 +62,16 @@ Result ModelProcess::LoadModelFromFileWithMem(const string& modelPath)
     }
 
     ret = aclrtMalloc(&modelMemPtr_, modelMemSize_, ACL_MEM_MALLOC_NORMAL_ONLY);
+   // ret = aclrtMalloc(&modelMemPtr_, modelMemSize_, ACL_MEM_MALLOC_HUGE_FIRST);
+    INFO_LOG("malloc buffer , require size is %zu", modelMemSize_);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("malloc buffer for mem failed, require size is %zu", modelMemSize_);
         return FAILED;
     }
 
     ret = aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_NORMAL_ONLY);
+    //ret = aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_HUGE_FIRST);
+    INFO_LOG("malloc buffer for weight,  require size is %zu", modelWeightSize_);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("malloc buffer for weight failed, require size is %zu", modelWeightSize_);
         return FAILED;
@@ -83,6 +87,20 @@ Result ModelProcess::LoadModelFromFileWithMem(const string& modelPath)
     loadFlag_ = true;
     INFO_LOG("load model %s success", modelPath.c_str());
     return SUCCESS;
+}
+
+Result ModelProcess::LoadModelFromFile(const string& modelPath)
+{
+    aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("load model from file failed, model file is %s", modelPath.c_str());
+        return FAILED;
+    }
+
+    loadFlag_ = true;
+    INFO_LOG("load model %s success", modelPath.c_str());
+    return SUCCESS;
+
 }
 
 Result ModelProcess::CreateDesc()

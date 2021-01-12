@@ -43,10 +43,12 @@ Result SampleProcess::InitResource()
 {
     // ACL init
     aclError ret;
-    const char* aclConfigPath = "acl.json";
-    if (is_profi == true) {
+    const char* aclConfigPath = "./acl.json";
+    ifstream acl_file(aclConfigPath);
+    if (is_profi || is_dump || acl_file) {
         ret = aclInit(aclConfigPath);
-    } else {
+    } 
+    else {
         ret = aclInit(nullptr);
     }
     if (ret != ACL_ERROR_NONE) {
@@ -109,7 +111,8 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
     struct timeval begin;
     struct timeval end;
     double inference_time[loop];
-    Result ret = processModel.LoadModelFromFileWithMem(omModelPath);
+    //Result ret = processModel.LoadModelFromFileWithMem(omModelPath);
+    Result ret = processModel.LoadModelFromFile(omModelPath);
     if (ret != SUCCESS) {
         ERROR_LOG("load model from file failed");
         return FAILED;
