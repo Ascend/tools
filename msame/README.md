@@ -73,7 +73,7 @@ cd $HOME/AscendProjects/tools/msame/
 
 ## 注意事项
 运行工具的用户在当前目录需要有创建目录以及执行工具的权限，使用前请自行检查。  
-dump、动态多batch功能暂不支持。
+动态多batch功能暂不支持。
 
 ## 参数说明
 
@@ -85,6 +85,7 @@ dump、动态多batch功能暂不支持。
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
 | --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认fasle |
-| --profiler   | profiler开关，，true或者false, 可选参数，默认false |
+| --profiler   | profiler开关，，true或者false, 可选参数，默认false。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。与--dump不同时为true。 |  
+| --dump   | dump开关，true或者false, 可选参数，默认false。<br>dump数据在--output参数指定的目录下的dump文件夹内。与--profiler不同时为true。 |
 | --device   | 指定运行设备 [0,255]，可选参数，默认0 |
 | --help   | 工具使用帮助信息                  |
