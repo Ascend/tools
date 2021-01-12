@@ -78,7 +78,7 @@ The second parameter specifies the directory for msame. To specify a relative di
 ## Precautions
 
 The msame running user must have the permission to create the directory and execute msame in the directory. Check the permissions in advance.   
-Currently, dumping and dynamic batch are not supported.
+Currently, dynamic batch is not supported.
 
 ## Parameter Description
 
@@ -90,7 +90,8 @@ Currently, dumping and dynamic batch are not supported.
 | --outfmt  | Format of the output data, either .txt or .bin
 | --loop    | Inference loop count (optional). The value ranges from 1 to 100. Defaults to **1**. When **profiler** is set to **True**, the recommended value is **1**.
 | --debug   | Debug enable (optional). The value can be **True** or **False**. Defaults to **False**.
-| --profiler| Profiler enable (optional). Defaults to **False**.
+| --profiler| Profiler enable (optional). Defaults to **False**.  
+| --dump| dump enable (optional). Defaults to **False**.
 | --device  | Device for inference (optional). The value ranges from 0 to 255. Defaults to **0**.
 | --help    | Help information about the tool
 
