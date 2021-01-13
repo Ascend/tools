@@ -153,6 +153,7 @@ std::string Utils::modelName(string& s)
     position1 = s.find_last_of("/");
     if (position1 == s.npos) {
         position1 = 0;
+    }else{position1 = position1 + 1;
     }
     position2 = s.find_last_of(".");
     std::string modelName = s.substr(position1, position2 - position1);
