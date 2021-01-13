@@ -1,0 +1,233 @@
+#!/usr/bin/env python
+# coding=utf-8
+"""
+Function:
+This class mainly involves generate npu dump data function.
+Copyright Information:
+HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
+"""
+import json
+import os
+import re
+from json import JSONDecodeError
+
+import numpy as np
+
+from msquickcmp.common import utils
+from msquickcmp.common.dump_data import DumpData
+from msquickcmp.common.utils import AccuracyCompareException
+
+MSAME_DIR = "msame"
+BUILD_SH = "build.sh"
+OUT_PATH = "out"
+MSAME_COMMAND_PATH = "out/msame"
+ACL_JSON_PATH = "src/acl.json"
+NPU_DUMP_DATA_BASE_PATH = "dump_data/npu"
+RESULT_DIR = "result"
+DATA = "data"
+GRAPH_OBJECT = "graph"
+OP_OBJECT = "op"
+NAME_OBJECT = "name"
+TYPE_OBJECT = "type"
+INPUT_DESC_OBJECT = "input_desc"
+ATTR_OBJECT = "attr"
+SHAPE_OBJECT = "shape"
+DIM_OBJECT = "dim"
+DATA_OBJECT = "data"
+DTYPE_OBJECT = "dtype"
+DTYPE_MAP = {"DT_FLOAT": np.float32, "DT_FLOAT16": np.float16, "DT_DOUBLE": np.float64, "DT_INT8": np.int8,
+             "DT_INT16": np.int16, "DT_INT32": np.int32, "DT_INT64": np.int64, "DT_UINT8": np.uint8,
+             "DT_UINT16": np.uint16, "DT_UINT32": np.uint32, "DT_UINT64": np.uint64, "DT_BOOL": np.bool}
+
+
+class NpuDumpData(DumpData):
+    """
+    Class for generate npu dump data
+    """
+
+    def __init__(self, arguments, output_json_path):
+        self.arguments = arguments
+        self.output_json_path = output_json_path
+
+    def generate_dump_data(self):
+        """
+        Function Description:
+            compile and rum msame project
+        Parameter:
+            none
+        Return Value:
+            npu dump data path
+        Exception Description:
+            none
+        """
+        msame_dir = os.path.join(os.path.relpath(".."), MSAME_DIR)
+        self.compile(msame_dir)
+        return self.run(msame_dir)
+
+    def compile(self, msame_dir):
+        """
+        Function Description:
+            compile msame project
+        Parameter:
+            msame_dir: msame project directory
+        Return Value:
+            none
+        Exception Description:
+            none
+        """
+        utils.print_info_log("Start to compile %s" % msame_dir)
+        out_path = os.path.join(msame_dir, OUT_PATH)
+        build_sh_cmd = ["sh" + BUILD_SH, "g++", out_path]
+        os.chdir(msame_dir)
+        # do build.sh command
+        utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(build_sh_cmd)))
+        utils.execute_command(build_sh_cmd)
+        utils.print_info_log("Finish to compile %s." % msame_dir)
+
+    def run(self, msame_dir):
+        """
+        Function Description:
+            run msame project
+        Parameter:
+            msame_dir: msame project directory
+        Return Value:
+            npu dump data path
+        Exception Description:
+            when invalid npu dump data path throw exception
+        """
+        self._check_data_path_param()
+        self._compare_shape_vs_bin_file()
+        npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
+        utils.create_directory(npu_data_output_dir)
+        model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
+        acl_json_path = os.path.join(npu_data_output_dir)
+        self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
+        output_result_path = os.path.join(self.arguments.out_path, RESULT_DIR)
+        utils.create_directory(output_result_path)
+        msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
+                     self.arguments.data_path, "--output", output_result_path]
+        os.chdir(msame_dir)
+        # do msame command
+        utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
+        utils.execute_command()
+        npu_dump_data_path = utils.get_dump_data_path(npu_data_output_dir)
+        if npu_dump_data_path is None:
+            utils.print_error_log("The path {} dump data is not exist.".format(npu_dump_data_path))
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+        return npu_dump_data_path
+
+    def _check_data_path_param(self):
+        if self.arguments.data.path == "":
+            data_path = os.path.join(self.arguments.out_path, DATA)
+            bin_files = os.listdir(data_path)
+            bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
+            bin_file_path_array = []
+            for item in bin_files:
+                bin_file_path_array.append(os.path.join(data_path, item))
+        else:
+            utils.check_file_or_directory_path(self.arguments.data_path)
+
+    def _compare_shape_vs_bin_file(self):
+        shape_size_array = self._get_shape_size()
+        bin_files_size_array = self._get_bin_file_size()
+        self._shape_size_vs_bin_file_size(shape_size_array, bin_files_size_array)
+
+    def _get_shape_size(self):
+        json_object = self.load_json_file(self.output_json_path)
+        op_array = self._get_op_by_type(json_object)
+        input_desc_array = self._get_input_desc_list(op_array)
+        # extracts the input shape value
+        return self._process_inputs(input_desc_array)
+
+    @staticmethod
+    def load_json_file(json_file_path):
+        """
+        Function Description:
+            load json file
+        Parameter:
+            json_file: json file path
+        Return Value:
+            json object
+        Exception Description:
+            when invalid json file path throw exception
+        """
+        try:
+            with open(json_file_path, "r") as input_file:
+                try:
+                    return json.load(input_file)
+                except(JSONDecodeError, TypeError) as load_input_file_except:
+                    utils.print_error_log(load_input_file_except)
+        except(FileNotFoundError, IOError) as input_file_open_except:
+            utils.print_error_log(input_file_open_except)
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
+
+    def _get_op_by_type(self, json_object):
+        op_array = []
+        for graph in json_object[GRAPH_OBJECT]:
+            for operator in graph[OP_OBJECT]:
+                if DATA_OBJECT == operator[TYPE_OBJECT]:
+                    self._get_op_by_type(operator)
+                    op_array.append(operator)
+        return op_array
+
+    @staticmethod
+    def _get_input_desc_list(op_array):
+        input_desc_list = []
+        for operator in op_array:
+            if len(operator[INPUT_DESC_OBJECT] != 0):
+                for item in operator[INPUT_DESC_OBJECT]:
+                    input_desc_list.append(item)
+        return input_desc_list
+
+    @staticmethod
+    def _process_inputs(input_desc_array):
+        value = []
+        for input_object in input_desc_array:
+            for obj in input_object:
+                item_sum = 1
+                for num in obj[SHAPE_OBJECT][DIM_OBJECT]:
+                    item_sum *= num
+                data_type = DTYPE_MAP.get(input_object[DTYPE_OBJECT])
+                if not data_type:
+                    utils.print_error_log(
+                        "The dtype attribute does not support {} value.".format(input_object[DTYPE_OBJECT]))
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_KEY_ERROR)
+        return value
+
+    def _get_bin_file_size(self):
+        bin_file_size = []
+        bin_files = self.arguments.data_path.split(",")
+        for item in bin_files:
+            bin_file_size.append(os.path.getsize(item))
+        return bin_file_size
+
+    @staticmethod
+    def _shape_size_vs_bin_file_size(shape_size_array, bin_files_size_array):
+        if len(shape_size_array) != len(bin_files_size_array):
+            utils.print_error_log("The number of input bin files is incorrect")
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
+        for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):
+            if shape_size != bin_file_size:
+                utils.print_error_log("The shape value is different from the size of the bin file.")
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
+
+    @staticmethod
+    def _write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir):
+        load_dict = {
+            "dump": {"dump_list": [{"model_name": model_name}], "dump_path": npu_data_output_dir, "dump_mode": "all",
+                     "dump_op_switch": "off"}}
+        if os.access(acl_json_path, os.W_OK):
+            try:
+                with open(acl_json_path, "w") as write_json:
+                    try:
+                        json.dump(load_dict, write_json)
+                    except ValueError as write_json_except:
+                        utils.print_error_log(write_json_except)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
+            except(FileNotFoundError, IOError) as acl_json_file_except:
+                utils.print_error_log(acl_json_file_except)
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
+        else:
+            utils.print_error_log(
+                "The path {} does not have permission to write.Please check the path permission".format(acl_json_path))
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
