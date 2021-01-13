@@ -109,7 +109,7 @@ class NpuDumpData(DumpData):
         os.chdir(msame_dir)
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
-        utils.execute_command(msame_cmd)
+        utils.execute_command(msame_dir)
         npu_dump_data_path = utils.get_dump_data_path(npu_data_output_dir)
         if npu_dump_data_path is None:
             utils.print_error_log("The path {} dump data is not exist.".format(npu_dump_data_path))
