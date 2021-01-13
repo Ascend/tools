@@ -58,6 +58,7 @@ ISO_FILE=$3
 
 NETWORK_CARD_DEFAULT_IP=$4
 USB_CARD_DEFAULT_IP=$5
+PACKAGE_VERSION="20.0"
 
 
 LogPath=${ScriptPath}"sd_card_making_log/"
@@ -163,50 +164,46 @@ function checkIpAddr()
    return 0
 }
 
-# ************************check Ascend CANN****************************************
-# Description:  check Ascend CANN valid or not
-# $1: ip
+# ************************check Ascend package**********************************
+# Description:  check Ascend package valid or not
 # ******************************************************************************
-function checkAscendCannPackage()
+function checkAscendPackage()
 {
-    ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
-    AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
-    if [[ ! -n "$ACLLIB_PACKAGE" ]] || [[ ! -n "$AICPU_KERNELS_PACKAGE" ]]; then
-        echo "HELLO WORLD"
-        DRIVER_PACKAGE=$(ls A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz)
-        if [ ! -n "$DRIVER_PACKAGE" ]; then
-            echo "find A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz failed. please put this package in this folder."
-            return 1
-        fi
-        
-        CANN_PACKAGE=$(ls Ascend-cann-minirc_*_ubuntu18.04-aarch64.zip)
-        if [ ! -n "$CANN_PACKAGE" ]; then
-            echo "find Ascend-cann-minirc_*_ubuntu18.04-aarch64.zip failed. please put this package in this folder."
-            return 1
-        fi
 
-        unzip ${CANN_PACKAGE} Ascend310-aicpu_kernels-*-minirc.tar.gz
-        if [ $? -ne 0 ]; then
-            echo "unzip Ascend310-aicpu_kernels-*-minirc.tar.gz failed. please check ${CANN_PACKAGE}."
-            return 1
-        fi
-        AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
+    ACLLIB_PACKAGE=$(ls Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run 2>/dev/null)
+    if [ ! -n "$ACLLIB_PACKAGE" ]; then
+        echo "find Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run failed. please put this package in this folder."
+        return 1
+    fi   
 
-        unzip ${CANN_PACKAGE} Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run
-        if [ $? -ne 0 ]; then
-            echo "unzip Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run failed. please check ${CANN_PACKAGE}."
-            return 1
-        fi
-        ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
-
-        return 0
-    else
-        DRIVER_PACKAGE=$(ls Ascend310-driver-*.tar.gz)
-        if [ ! -n "$DRIVER_PACKAGE" ]; then
-            echo "find Ascend310-driver-*.tar.gz failed. please put this package in this folder."
-            return 1
-        fi
+    if [[ "4.3M" != $(du -h Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run | awk -F' ' '{print $1}') ]];then
+        echo "Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run is incomplete. please re-download this package."
+        return 1
     fi
+
+    AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz 2>/dev/null)
+    if [ ! -n "$AICPU_KERNELS_PACKAGE" ]; then
+        echo "find Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz failed. please put this package in this folder."
+        return 1
+    fi
+
+    if [[ "172K" != $(du -h Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+        echo "Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz is incomplete. please re-download this package."
+        return 1
+    fi
+
+    DRIVER_PACKAGE=$(ls Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz 2>/dev/null)
+    if [ ! -n "$DRIVER_PACKAGE" ]; then
+        echo "find Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz failed. please put this package in this folder."
+        return 1
+    fi
+
+    if [[ "79M" != $(du -h Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+        echo "Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz is incomplete. please re-download this package."
+        return 1
+    fi
+
+    return 0
 }
 
 
@@ -708,10 +705,10 @@ function copyFilesToSDcard()
     fi
 
     cp -rf ${TMPDIR_SD_MOUNT}/home/* ${TMPDIR_SD3_MOUNT}/
-    #rm -rf ${TMPDIR_SD_MOUNT}/home/*
+
 
     cp -rf ${TMPDIR_SD_MOUNT}/var/log/* ${TMPDIR_SD2_MOUNT}/
-    #rm -rf ${TMPDIR_SD_MOUNT}/var/log/*
+
     echo "make_sd_process: 90%"
     return 0
 }
@@ -890,8 +887,9 @@ function main()
     fi
 
     # ***************check ascend cann package **********************************
-    checkAscendCannPackage
+    checkAscendPackage
     if [ $? -ne 0 ];then
+        echo "Make the ${PACKAGE_VERSION} version of SD card failed"
         return 1
     fi
     # ************************umount dev_name***************************************

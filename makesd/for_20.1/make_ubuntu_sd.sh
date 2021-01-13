@@ -58,6 +58,7 @@ ISO_FILE=$3
 
 NETWORK_CARD_DEFAULT_IP=$4
 USB_CARD_DEFAULT_IP=$5
+PACKAGE_VERSION="20.1"
 
 
 LogPath=${ScriptPath}"sd_card_making_log/"
@@ -163,52 +164,53 @@ function checkIpAddr()
    return 0
 }
 
-# ************************check Ascend CANN****************************************
-# Description:  check Ascend CANN valid or not
-# $1: ip
+# ************************check Ascend package**********************************
+# Description:  check Ascend package valid or not
 # ******************************************************************************
-function checkAscendCannPackage()
+function checkAscendPackage()
 {
-    ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
-    AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
-    if [[ ! -n "$ACLLIB_PACKAGE" ]] || [[ ! -n "$AICPU_KERNELS_PACKAGE" ]]; then
-        echo "HELLO WORLD"
-        DRIVER_PACKAGE=$(ls A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz)
-        if [ ! -n "$DRIVER_PACKAGE" ]; then
-            echo "find A200dk-npu-driver-*-ubuntu18.04-aarch64-minirc.tar.gz failed. please put this package in this folder."
-            return 1
-        fi
-        
-        CANN_PACKAGE=$(ls Ascend-cann-minirc_*_ubuntu18.04-aarch64.zip)
-        if [ ! -n "$CANN_PACKAGE" ]; then
-            echo "find Ascend-cann-minirc_*_ubuntu18.04-aarch64.zip failed. please put this package in this folder."
-            return 1
-        fi
 
-        unzip ${CANN_PACKAGE} Ascend310-aicpu_kernels-*-minirc.tar.gz
-        if [ $? -ne 0 ]; then
-            echo "unzip Ascend310-aicpu_kernels-*-minirc.tar.gz failed. please check ${CANN_PACKAGE}."
-            return 1
-        fi
-        AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
-
-        unzip ${CANN_PACKAGE} Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run
-        if [ $? -ne 0 ]; then
-            echo "unzip Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run failed. please check ${CANN_PACKAGE}."
-            return 1
-        fi
-        ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
-
-        return 0
-    else
-        DRIVER_PACKAGE=$(ls Ascend310-driver-*.tar.gz)
-        if [ ! -n "$DRIVER_PACKAGE" ]; then
-            echo "find Ascend310-driver-*.tar.gz failed. please put this package in this folder."
-            return 1
-        fi
+    DRIVER_PACKAGE=$(ls A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz)
+    if [ ! -n "$DRIVER_PACKAGE" ]; then
+        echo "find A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz failed. please put this package in this folder."
+        return 1
     fi
-}
 
+    if [[ "55M" != $(du -h A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+        echo "A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz is incomplete. please re-download this package."
+        return 1
+    fi
+    
+    CANN_PACKAGE=$(ls Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip)
+    if [ ! -n "$CANN_PACKAGE" ]; then
+        echo "find Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip failed. please put this package in this folder."
+        return 1
+    fi
+
+    if [[ "40M" != $(du -h Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip | awk -F' ' '{print $1}') ]];then
+        echo "Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip is incomplete. please re-download this package."
+        return 1
+    fi
+
+    rm -rf Ascend310-aicpu_kernels-*-minirc.tar.gz 2>/dev/null
+    rm -rf Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run 2>/dev/null
+
+    unzip ${CANN_PACKAGE} Ascend310-aicpu_kernels-*-minirc.tar.gz
+    if [ $? -ne 0 ]; then
+        echo "unzip Ascend310-aicpu_kernels-*-minirc.tar.gz failed. please check ${CANN_PACKAGE}."
+        return 1
+    fi
+    AICPU_KERNELS_PACKAGE=$(ls Ascend310-aicpu_kernels-*-minirc.tar.gz)
+
+    unzip ${CANN_PACKAGE} Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run
+    if [ $? -ne 0 ]; then
+        echo "unzip Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run failed. please check ${CANN_PACKAGE}."
+        return 1
+    fi
+    ACLLIB_PACKAGE=$(ls Ascend-acllib-*-ubuntu18.04.aarch64-minirc.run)
+
+    return 0
+}
 
 # **************check network card and usb card ip******************************
 # Description:  check network card and usb card ip
@@ -890,8 +892,9 @@ function main()
     fi
 
     # ***************check ascend cann package **********************************
-    checkAscendCannPackage
+    checkAscendPackage
     if [ $? -ne 0 ];then
+        echo "Make the ${PACKAGE_VERSION} version of SD card failed"
         return 1
     fi
     # ************************umount dev_name***************************************

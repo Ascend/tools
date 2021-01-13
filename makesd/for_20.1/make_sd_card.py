@@ -281,45 +281,7 @@ def parse_download_info(ascend_version):
 
     return True, ascend_developerkit_url, ascend_sd_making_url, ubuntu_url
 
-def check_minirc_run_package():
-    #check driver package
-    ret, paths = execute(
-        "find {path} -name \"Ascend310-driver-*.tar.gz\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR]Can not find driver run package in current path")
-        return False
-
-    if len(paths) > 1:
-        print("[ERROR]Too many driver packages, please delete redundant packages.")
-        return False 
-
-    #check aicpu_kernel package
-    ret, paths = execute(
-        "find {path} -name \"Ascend310-aicpu_kernels-*.tar.gz\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR]Can not find aicpu_kernels package in current path")
-        return False
-
-    if len(paths) > 1:
-        print("[ERROR]Too many aicpu_kernels packages, please delete redundant packages.")
-        return False  
-
-    #check acl package
-    ret, paths = execute(
-        "find {path} -name \"Ascend310-acllib-*.run\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR]Can not find acllib run package in current path")
-        return False
-
-    if len(paths) > 1:
-        print("[ERROR]Too many acllib run packages, please delete redundant packages.")
-        return False  
-  
-
 def process_local_installation(dev_name):
-    ret = check_minirc_run_package
-    if not ret:
-        return False
         
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
