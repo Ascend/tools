@@ -111,8 +111,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
     struct timeval begin;
     struct timeval end;
     double inference_time[loop];
-    //Result ret = processModel.LoadModelFromFileWithMem(omModelPath);
-    Result ret = processModel.LoadModelFromFile(omModelPath);
+    Result ret = processModel.LoadModelFromFileWithMem(omModelPath);
     if (ret != SUCCESS) {
         ERROR_LOG("load model from file failed");
         return FAILED;
