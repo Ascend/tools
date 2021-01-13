@@ -156,9 +156,10 @@ class NpuDumpData(DumpData):
                 try:
                     return json.load(input_file)
                 except(JSONDecodeError, TypeError) as load_input_file_except:
-                    utils.print_error_log(load_input_file_except)
+                    print(load_input_file_except)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
         except(FileNotFoundError, IOError) as input_file_open_except:
-            utils.print_error_log(input_file_open_except)
+            print(input_file_open_except)
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
 
     def _get_op_by_type(self, json_object):
@@ -222,11 +223,11 @@ class NpuDumpData(DumpData):
                     try:
                         json.dump(load_dict, write_json)
                     except ValueError as write_json_except:
-                        utils.print_error_log(write_json_except)
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
+                        print(write_json_except)
+                        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
             except(FileNotFoundError, IOError) as acl_json_file_except:
-                utils.print_error_log(acl_json_file_except)
-            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
+                print(acl_json_file_except)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         else:
             utils.print_error_log(
                 "The path {} does not have permission to write.Please check the path permission".format(acl_json_path))

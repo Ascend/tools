@@ -55,8 +55,8 @@ class NetCompare:
             if "Python 3.7.5 " != output_text:
                 utils.print_error_log("The Python version should be 3.7.5: %s" % " ".join(cmd))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_VERSION_ERROR)
-        except (subprocess.CalledProcessError, FileNotFoundError) as ex:
-            print(ex)
+        except (subprocess.CalledProcessError, FileNotFoundError) as check_output_except:
+            print(check_output_except)
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR)
 
     def get_csv_object_by_cosine(self):
@@ -84,6 +84,6 @@ class NetCompare:
                     if float(item["CosineSimilarity"]) < 0.9:
                         return item
         except(FileNotFoundError, IOError) as csv_file_except:
-            utils.print_error_log(csv_file_except)
+            print(csv_file_except)
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         return None
