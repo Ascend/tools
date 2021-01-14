@@ -102,10 +102,10 @@ class NpuDumpData(DumpData):
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
         acl_json_path = os.path.join(npu_data_output_dir)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
-        output_result_path = os.path.join(self.arguments.out_path, RESULT_DIR)
-        utils.create_directory(output_result_path)
+        # output_result_path = os.path.join(self.arguments.out_path, RESULT_DIR)
+        # utils.create_directory(output_result_path)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
-                     self.arguments.data_path, "--output", output_result_path]
+                     self.arguments.data_path, "--output", npu_data_output_dir]
         os.chdir(msame_dir)
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
@@ -184,15 +184,14 @@ class NpuDumpData(DumpData):
     def _process_inputs(input_desc_array):
         value = []
         for input_object in input_desc_array:
-            for obj in input_object:
-                item_sum = 1
-                for num in obj[SHAPE_OBJECT][DIM_OBJECT]:
-                    item_sum *= num
-                data_type = DTYPE_MAP.get(input_object[DTYPE_OBJECT])
-                if not data_type:
-                    utils.print_error_log(
-                        "The dtype attribute does not support {} value.".format(input_object[DTYPE_OBJECT]))
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_KEY_ERROR)
+            item_sum = 1
+            for num in input_object[SHAPE_OBJECT][DIM_OBJECT]:
+                item_sum *= num
+            data_type = DTYPE_MAP.get(input_object[DTYPE_OBJECT])
+            if not data_type:
+                utils.print_error_log(
+                    "The dtype attribute does not support {} value.".format(input_object[DTYPE_OBJECT]))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_KEY_ERROR)
         return value
 
     def _get_bin_file_size(self):
