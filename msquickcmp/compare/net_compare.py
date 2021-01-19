@@ -45,7 +45,13 @@ class NetCompare:
         msaccucmp_cmd = ["python3", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
         utils.print_info_log("msaccucmp command line: %s " % " ".join(msaccucmp_cmd))
-        utils.execute_command(msaccucmp_cmd)
+        status_code = self.execute_command(msaccucmp_cmd)
+        if status_code == 2 or status_code == 0:
+            utils.print_info_log("Finish compare the files in directory %s with those in directory %s." % (
+                self.npu_dump_data_path, self.cpu_dump_data_path))
+        else:
+            utils.print_error_log("Failed to execute command: %s" % " ".join(msaccucmp_cmd))
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
 
     @staticmethod
     def _check_python_command_valid(cmd):
@@ -87,3 +93,23 @@ class NetCompare:
             print(csv_file_except)
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         return None
+
+    def execute_command(self, cmd):
+        """
+        Function Description:
+            run the following command
+        Parameter:
+            command
+        Return Value:
+            status code
+        Exception Description:
+            none
+        """
+        utils.print_info_log('Execute command:%s' % cmd)
+        process = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while process.poll() is None:
+            line = process.stdout.readline()
+            line = line.strip()
+            if line:
+                print(line)
+        return process.returncode

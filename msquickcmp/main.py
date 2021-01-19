@@ -27,12 +27,12 @@ def _accuracy_compare_parser(parser):
                         help="<Required> model_path,original model file path,for example,.pb or .onnx", required=True)
     parser.add_argument("-om", "--offline-model-path", dest="offline_model_path", default="",
                         help="<Required> offline model(.om) path", required=True)
-    parser.add_argument("-d", "--data-path", dest="data_path", default="",
+    parser.add_argument("-i", "--input-path", dest="input_path", default="",
                         help="<Optional> Input path of the model,If there are multiple input values,separate them "
                              "with commas (,)")
     parser.add_argument("-c", "--cann-path", dest="cann_path", default="/usr/local/Ascend/ascend-toolkit/latest/",
                         help="<Optional> CAAN installation path")
-    parser.add_argument("-out", "--out-path", dest="out_path", default="", help="<Optional> output result report path")
+    parser.add_argument("-o", "--out-path", dest="out_path", default="", help="<Optional> output result report path")
 
 
 def _generate_cpu_data_model(args):

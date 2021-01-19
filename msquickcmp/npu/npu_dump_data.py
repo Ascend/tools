@@ -24,7 +24,7 @@ MSAME_COMMAND_PATH = "out/msame"
 ACL_JSON_PATH = "src/acl.json"
 NPU_DUMP_DATA_BASE_PATH = "dump_data/npu"
 RESULT_DIR = "result"
-DATA = "data"
+INPUT = "input"
 GRAPH_OBJECT = "graph"
 OP_OBJECT = "op"
 NAME_OBJECT = "name"
@@ -33,7 +33,7 @@ INPUT_DESC_OBJECT = "input_desc"
 ATTR_OBJECT = "attr"
 SHAPE_OBJECT = "shape"
 DIM_OBJECT = "dim"
-DATA_OBJECT = "data"
+DATA_OBJECT = "Data"
 DTYPE_OBJECT = "dtype"
 DTYPE_MAP = {"DT_FLOAT": np.float32, "DT_FLOAT16": np.float16, "DT_DOUBLE": np.float64, "DT_INT8": np.int8,
              "DT_INT16": np.int16, "DT_INT32": np.int32, "DT_INT64": np.int64, "DT_UINT8": np.uint8,
@@ -95,15 +95,13 @@ class NpuDumpData(DumpData):
         Exception Description:
             when invalid npu dump data path throw exception
         """
-        self._check_data_path_param()
+        self._check_input_path_param()
         self._compare_shape_vs_bin_file()
         npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
         utils.create_directory(npu_data_output_dir)
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
         acl_json_path = os.path.join(npu_data_output_dir)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
-        # output_result_path = os.path.join(self.arguments.out_path, RESULT_DIR)
-        # utils.create_directory(output_result_path)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
                      self.arguments.data_path, "--output", npu_data_output_dir]
         os.chdir(msame_dir)
@@ -116,14 +114,15 @@ class NpuDumpData(DumpData):
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
         return npu_dump_data_path
 
-    def _check_data_path_param(self):
-        if self.arguments.data.path == "":
-            data_path = os.path.join(self.arguments.out_path, DATA)
-            bin_files = os.listdir(data_path)
-            bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
+    def _check_input_path_param(self):
+        if self.arguments.input.path == "":
+            data_path = os.path.join(self.arguments.out_path, INPUT)
+            input_bin_files = os.listdir(data_path)
+            input_bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
             bin_file_path_array = []
-            for item in bin_files:
+            for item in input_bin_files:
                 bin_file_path_array.append(os.path.join(data_path, item))
+            self.arguments.input_path = ",".join(bin_file_path_array)
         else:
             utils.check_file_or_directory_path(self.arguments.data_path)
 
@@ -192,6 +191,7 @@ class NpuDumpData(DumpData):
                 utils.print_error_log(
                     "The dtype attribute does not support {} value.".format(input_object[DTYPE_OBJECT]))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_KEY_ERROR)
+            value.append(item_sum * np.dtype(data_type).itemsize)
         return value
 
     def _get_bin_file_size(self):
@@ -204,7 +204,7 @@ class NpuDumpData(DumpData):
     @staticmethod
     def _shape_size_vs_bin_file_size(shape_size_array, bin_files_size_array):
         if len(shape_size_array) != len(bin_files_size_array):
-            utils.print_error_log("The number of input bin files is incorrect")
+            utils.print_error_log("The number of input bin files is incorrect.")
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
         for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):
             if shape_size != bin_file_size:

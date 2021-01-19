@@ -23,6 +23,7 @@ ACCURACY_COMPARISON_OPEN_FILE_ERROR = 9
 ACCURACY_COMPARISON_BIN_FILE_ERROR = 10
 ACCURACY_COMPARISON_INVALID_KEY_ERROR = 11
 ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR = 12
+ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 
 
@@ -126,7 +127,7 @@ def get_model_name_and_extension(offline_model_path):
     return model_name, extension
 
 
-def get_dump_data_path(dump_data_dir):
+def get_dump_data_path(dump_dir):
     """
     Function Description:
         traverse directories and obtain the absolute path of dump data
@@ -135,11 +136,12 @@ def get_dump_data_path(dump_data_dir):
     Return Value:
         dump data path,file is exist or file is not exist
     Exception Description:
-        none
+        dump data path
     """
+    dump_data_dir = os.walk(dump_dir)
     dump_data_path = None
     file_is_exist = True
-    for dir_path, sub_paths, files in os.walk(dump_data_dir):
+    for dir_path, sub_paths, files in dump_data_dir:
         if len(files) != 0:
             dump_data_path = dir_path
             file_is_exist = False
@@ -182,7 +184,6 @@ def create_directory(dir_path):
     Exception Description:
         when invalid data throw exception
     """
-    check_file_or_directory_path(dir_path, True)
     try:
         os.makedirs(dir_path, mode=0o700)
     except OSError as ex:
@@ -191,7 +192,7 @@ def create_directory(dir_path):
         raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
 
 
-def check_input_bin_file_path(data_path):
+def check_input_bin_file_path(input_path):
     """
     Function Description:
         check the output bin file
@@ -202,6 +203,6 @@ def check_input_bin_file_path(data_path):
     Exception Description:
         none
     """
-    bin_files = data_path.split(',')
-    for item in bin_files:
-        check_file_or_directory_path(item)
+    input_bin_files = input_path.split(',')
+    for input_item in input_bin_files:
+        check_file_or_directory_path(input_item)
