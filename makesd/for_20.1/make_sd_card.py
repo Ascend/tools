@@ -53,13 +53,13 @@ MIN_DISK_SIZE = 7 * 1024 * 1024 * 1024
 
 MAKING_SD_CARD_COMMAND = "bash {path}/make_ubuntu_sd.sh " + " {dev_name}" + \
     " {pkg_path} {ubuntu_file_name}" + \
-    " " + NETWORK_CARD_DEFAULT_IP + " " + USB_CARD_DEFAULT_IP + \
+    " " + NETWORK_CARD_DEFAULT_IP + " " + USB_CARD_DEFAULT_IP + " {sector_num}" + " {sector_size}" \
     " > {log_path}/make_ubuntu_sd.log "
 
 
 def execute(cmd, timeout=3600, cwd=None):
     '''execute os command'''
-    # print(cmd)
+
     is_linux = platform.system() == 'Linux'
 
     if not cwd:
@@ -202,19 +202,18 @@ def remove_chn_and_charactor(str1):
     return stren
 
 def check_sd(dev_name):
-    ret, disk = execute(
-        "fdisk -l 2>/dev/null | grep \"Disk {dev_name}[:：]\"".format(dev_name=dev_name))
+    ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'"%(dev_name))
     disk[0] = remove_chn_and_charactor(disk[0])    
     if not ret or len(disk) > 1:
         print(
             "[ERROR] Can not get disk, please use fdisk -l to check available disk name!")
-        return False
+        return False,None,None
 
     ret, mounted_list = execute("df -h")
 
     if not ret:
         print("[ERROR] Can not get mounted disk list!")
-        return False
+        return False,None,None
 
     unchanged_disk_list = []
     for each_mounted_disk in mounted_list:
@@ -224,15 +223,30 @@ def check_sd(dev_name):
             unchanged_disk_list.append(disk_name)
     unchanged_disk = " ".join(unchanged_disk_list)
 
-    disk_size_str = disk[0].split(",")[1]
-    disk_size_str = disk_size_str.split()[0]
+
+    disk_size_str = disk[0].split(",")[1].split()[0]
     disk_size = int(disk_size_str)
     print("disk %s size %d"%(dev_name, disk_size))
-    if dev_name not in unchanged_disk and disk_size >= MIN_DISK_SIZE:
-        return True
+    if dev_name  in unchanged_disk or disk_size < MIN_DISK_SIZE:
+        print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
+        return False,None,None
 
-    print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
-    return False
+    sector_num_str = disk[0].split(",")[2].split()[0]
+    sector_num = int(sector_num_str)
+    print("sector num %d"%(sector_num))
+
+    ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P '[\\x{5355}\\x{5143}]|Units'"%(dev_name))
+    if not ret or len(sector) > 1:
+        print("[ERROR] Can not get sector size , please use fdisk -l to check available disk name!")
+        return False,None,None
+
+    sector[0] = remove_chn_and_charactor(sector[0])    
+    sector_size_str=sector[0].split('*')[1].split('=')[0].strip()
+    sector_size=int(sector_size_str)
+
+    print("sector size %d"%(sector_size))
+
+    return True,sector_num,sector_size
 
 
 def parse_download_info(ascend_version):
@@ -281,8 +295,7 @@ def parse_download_info(ascend_version):
 
     return True, ascend_developerkit_url, ascend_sd_making_url, ubuntu_url
 
-def process_local_installation(dev_name):
-        
+def process_local_installation(dev_name,sector_num,sector_size):
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
         "Please input Y: continue, other to install them:"
@@ -295,30 +308,19 @@ def process_local_installation(dev_name):
     execute("rm -rf {path}_log/*".format(path=SD_CARD_MAKING_PATH))
     execute("mkdir -p {path}_log".format(path=SD_CARD_MAKING_PATH))
     log_path = "{path}_log".format(path=SD_CARD_MAKING_PATH)
-    ret, paths = execute(
-        "find {path} -name \"Ascend310-driver-*.tar\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR] Can not fine driver run package in current path")
-        return False
-
-    if len(paths) > 1:
-        print(
-            "[ERROR] Too many mini driver run packages, please delete redundant packages.")
-        return False
-    ascend_driver_path = paths[0]
-    ascend_driver_file_name = os.path.basename(ascend_driver_path)
 
     ret, paths = execute(
-        "find {path} -name \"make-ubuntu-sd.sh\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR] Can not fine make_ubuntu_sd.sh in current path")
+        "find {path} -name \"make_ubuntu_sd.sh\"".format(path=CURRENT_PATH))
+    if not ret or len(paths[0]) == 0:
+        print("[ERROR] Can not find make_ubuntu_sd.sh in current path")
         return False
 
     ret, paths = execute(
         "find {path} -name \"ubuntu*server*arm*.iso\"".format(path=CURRENT_PATH))
-    if not ret:
-        print("[ERROR] Can not fine ubuntu\ package in current path")
+    if not ret or len(paths[0])==0:
+        print("[ERROR] Can not find ubuntu*server*arm*.iso package in current path")
         return False
+
     if len(paths) > 1:
         print("[ERROR] Too many ubuntu packages, please delete redundant packages.")
         return False
@@ -329,9 +331,10 @@ def process_local_installation(dev_name):
     
     print("Command:")
     print(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,
-                                                ubuntu_file_name=ubuntu_file_name, log_path=log_path))
+                                                ubuntu_file_name=ubuntu_file_name, log_path=log_path,sector_num=sector_num,sector_size=sector_size ))
+
     execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,
-                                                ubuntu_file_name=ubuntu_file_name, log_path=log_path))
+                                                ubuntu_file_name=ubuntu_file_name, log_path=log_path,sector_num=sector_num,sector_size=sector_size))
     ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=log_path))
     if not ret[0]:
         print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % log_path)
@@ -433,6 +436,8 @@ def main():
     command = ""
     dev_name = ""
     version = ""
+    sector_num=None
+    sector_size=None
     if (len(sys.argv) >= 3):
         command = sys.argv[1]
         dev_name = sys.argv[2]
@@ -449,14 +454,14 @@ def main():
         print_usage()
         exit(-1)
 
-    ret = check_sd(dev_name)
+    ret, sector_num, sector_size = check_sd(dev_name)
     if not ret:
         exit(-1)
 
     if command == "internet":
         result = process_internet_installation(dev_name, version)
     else:
-        result = process_local_installation(dev_name)
+        result = process_local_installation(dev_name,sector_num,sector_size)
 
     if result:
         print("Make SD Card successfully!")
