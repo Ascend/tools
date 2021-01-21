@@ -58,6 +58,9 @@ ISO_FILE=$3
 
 NETWORK_CARD_DEFAULT_IP=$4
 USB_CARD_DEFAULT_IP=$5
+sectorEnd=$6
+sectorSize=$7
+
 PACKAGE_VERSION="20.1"
 
 
@@ -77,13 +80,13 @@ SYSLOG_ROTATE="4"
 KERNLOG_MAXSIZE="1000M"
 KERNLOG_ROTATE="4"
 
-sectorEnd=`fdisk -l | grep "$DEV_NAME:" | awk -F ' ' '{print $7}'`
-sectorSize=`fdisk -l | grep -A 2 "$DEV_NAME:" | grep "Units" | awk -F ' ' '{print $6}'`
+
 sectorRsv=$[536870912/sectorSize+1]
 sectorEnd=$[sectorEnd-sectorRsv]
 
 #component main/backup offset
 COMPONENTS_MAIN_OFFSET=$[sectorEnd+1]
+
 COMPONENTS_BACKUP_OFFSET=$[COMPONENTS_MAIN_OFFSET+73728]
 #0 512k
 LPM3_OFFSET=0
@@ -164,7 +167,7 @@ function checkIpAddr()
    return 0
 }
 
-# ************************check Ascend package**********************************
+# ************************check Ascend package********************************
 # Description:  check Ascend package valid or not
 # ******************************************************************************
 function checkAscendPackage()
@@ -176,7 +179,8 @@ function checkAscendPackage()
         return 1
     fi
 
-    if [[ "55M" != $(du -h A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+    echo "7802b6b70bb7a785e264b8cb4e9b9bcd  A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz" | md5sum --status -c
+    if [[ $? -ne 0 ]];then
         echo "A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz is incomplete. please re-download this package."
         return 1
     fi
@@ -187,8 +191,9 @@ function checkAscendPackage()
         return 1
     fi
 
-    if [[ "40M" != $(du -h Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip | awk -F' ' '{print $1}') ]];then
-        echo "Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip is incomplete. please re-download this package."
+    echo "8b1a34f59ca04e8e78b5efee1b755d92  Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip" | md5sum --status -c
+    if [[ $? -ne 0 ]];then
+        echo "8b1a34f59ca04e8e78b5efee1b755d92  Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip is incomplete. please re-download this package."
         return 1
     fi
 
@@ -844,6 +849,11 @@ function writeComponents()
 {
     FWM_DIR="${LogPath}squashfs-root/fw/"
     OF_DIR=$1
+    echo "\${OF_DIR} = ${OF_DIR}"
+    echo "\${DEV_NAME} = ${DEV_NAME}"
+    echo "\${LPM3_OFFSET} = ${LPM3_OFFSET}"
+    echo "\$[OF_DIR+LPM3_OFFSET] = $[OF_DIR+LPM3_OFFSET]"
+    echo "\${sectorSize} = ${sectorSize}"
 
     if [[ -d "${FWM_DIR}" ]];then
         echo "fw exist"
@@ -971,7 +981,7 @@ function main()
     # end
 
     # ************************write Components************************************** 
-    writeComponents COMPONENTS_MAIN_OFFSET
+    writeComponents ${COMPONENTS_MAIN_OFFSET}
     if [ $? -ne 0 ];then
         echo "Failed: writeComponents main"
         return 1
@@ -979,7 +989,7 @@ function main()
     echo "writeComponents main Succ"
     # end
 
-    writeComponents COMPONENTS_BACKUP_OFFSET
+    writeComponents ${COMPONENTS_BACKUP_OFFSET}
     if [ $? -ne 0 ];then
         echo "Failed: writeComponents backup"
         return 1s

@@ -58,6 +58,8 @@ ISO_FILE=$3
 
 NETWORK_CARD_DEFAULT_IP=$4
 USB_CARD_DEFAULT_IP=$5
+sectorEnd=$6
+sectorSize=$7
 PACKAGE_VERSION="20.0"
 
 
@@ -77,8 +79,7 @@ SYSLOG_ROTATE="4"
 KERNLOG_MAXSIZE="1000M"
 KERNLOG_ROTATE="4"
 
-sectorEnd=`fdisk -l | grep "$DEV_NAME:" | awk -F ' ' '{print $7}'`
-sectorSize=`fdisk -l | grep -A 2 "$DEV_NAME:" | grep "Units" | awk -F ' ' '{print $6}'`
+
 sectorRsv=$[536870912/sectorSize+1]
 sectorEnd=$[sectorEnd-sectorRsv]
 
@@ -176,7 +177,8 @@ function checkAscendPackage()
         return 1
     fi   
 
-    if [[ "4.3M" != $(du -h Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run | awk -F' ' '{print $1}') ]];then
+    echo "ff0a1e2b644b16b1e2a9239e583fe434  Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run" | md5sum --status -c
+    if [[ $? -ne 0 ]];then
         echo "Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run is incomplete. please re-download this package."
         return 1
     fi
@@ -187,7 +189,8 @@ function checkAscendPackage()
         return 1
     fi
 
-    if [[ "172K" != $(du -h Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+    echo "cfc07ddcf3a270bca7e2844d782f69a3  Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz" | md5sum --status -c
+    if [[ $? -ne 0 ]];then
         echo "Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz is incomplete. please re-download this package."
         return 1
     fi
@@ -198,7 +201,8 @@ function checkAscendPackage()
         return 1
     fi
 
-    if [[ "79M" != $(du -h Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz | awk -F' ' '{print $1}') ]];then
+    echo "e3584c2e67518fbe20116cab059e0b42  Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz" | md5sum --status -c
+    if [[ $? -ne 0 ]];then
         echo "Ascend310-driver-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.tar.gz is incomplete. please re-download this package."
         return 1
     fi
