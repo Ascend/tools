@@ -107,7 +107,7 @@ public:
     /**
     * @brief get model output result
     */
-    void OutputModelResult(std::string& s, std::string& modelName, size_t index);
+    void OutputModelResult(std::string& s, std::string& modelName);
 
 private:
     uint32_t modelId_;

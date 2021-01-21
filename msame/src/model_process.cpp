@@ -339,14 +339,14 @@ Result ModelProcess::CreateOutput()
     return SUCCESS;
 }
 
-void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, size_t index)
+void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
 {
     const char* temp_s = s.c_str();
     if (NULL == opendir(temp_s)) {
         mkdir(temp_s, 0775);
     }
     std::string T = Utils::TimeLine();
-    string times = s + "/" + T + "_" + to_string(index);
+    string times = s + "/" + T;
     const char* time = times.c_str();
     cout << time << endl;
     mkdir(time, 0775);

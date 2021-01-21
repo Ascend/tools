@@ -173,8 +173,8 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
             ERROR_LOG("model execute failed");
             return FAILED;
         }
-        processModel.OutputModelResult(output_path, modelName, t);
     }
+	processModel.OutputModelResult(output_path, modelName);
     double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
     printf("Inference average time: %f ms\n", infer_time_ave);
     if (loop > 1) {
