@@ -59,10 +59,6 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             }
         case 'i':
             check = optarg;
-            if (check.find(input_Ftype) == string::npos) {
-                printf("input data file type is not .bin , please check your input file type!\n");
-                exit(0);
-            }
             params['i'] = optarg;
             Utils::SplitString(params['i'], inputs, ',');
             break;

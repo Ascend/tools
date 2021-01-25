@@ -85,6 +85,8 @@ public:
     static void ProfilerJson(bool isprof, std::map<char, std::string>& params);
 
     static void DumpJson(bool isdump, std::map<char, std::string>& params);
+
+    static int ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory);
 };
 
 #endif

@@ -28,6 +28,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
 {
     std::ifstream binFile(fileName, std::ifstream::binary);
     if (binFile.is_open() == false) {
+        cout<<"qwe"<<endl;
         ERROR_LOG("open file %s failed", fileName.c_str());
         return nullptr;
     }
@@ -279,4 +280,25 @@ void Utils::DumpJson(bool isdump, map<char, string>& params)
             mkdir(temp_s1, 0775);
         }
     }
+}
+
+int Utils::ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory)
+{
+    const char* str= inputDirectory.c_str();
+    DIR* dir= opendir(str);
+    struct dirent* p= NULL;
+    while((p= readdir(dir)) != NULL )
+    {
+        if (p->d_name[0] != '.')
+        {
+            string name = string(p->d_name);
+            fileList.push_back(name);
+        }
+    }
+    closedir(dir);
+    if (fileList.size() ==0)
+    {
+        printf("[ERROR] No file in the directory[%s]", str);
+    }
+    return fileList.size();
 }

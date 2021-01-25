@@ -61,15 +61,13 @@ Result ModelProcess::LoadModelFromFileWithMem(const string& modelPath)
         return FAILED;
     }
 
-    //ret = aclrtMalloc(&modelMemPtr_, modelMemSize_, ACL_MEM_MALLOC_NORMAL_ONLY);
     ret = aclrtMalloc(&modelMemPtr_, modelMemSize_, ACL_MEM_MALLOC_HUGE_FIRST);
-    INFO_LOG("malloc buffer , require size is %zu", modelMemSize_);
+    INFO_LOG("malloc buffer for mem , require size is %zu", modelMemSize_);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("malloc buffer for mem failed, require size is %zu", modelMemSize_);
         return FAILED;
     }
 
-    //ret = aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_NORMAL_ONLY);
     ret = aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_HUGE_FIRST);
     INFO_LOG("malloc buffer for weight,  require size is %zu", modelWeightSize_);
     if (ret != ACL_ERROR_NONE) {
@@ -252,6 +250,7 @@ Result ModelProcess::CreateZeroInput()
                 aclrtFreeHost(binFileBufferData);
                 return FAILED;
             }
+			aclrtFreeHost(binFileBufferData);
         } else {
             aclError ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
             if (ret != ACL_ERROR_NONE) {
@@ -289,7 +288,9 @@ void ModelProcess::DestroyInput()
 
     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(input_); ++i) {
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(input_, i);
-        aclDestroyDataBuffer(dataBuffer);
+		void* data = aclGetDataBufferAddr(dataBuffer);
+		(void)aclrtFree(data);
+        (void)aclDestroyDataBuffer(dataBuffer);
     }
     aclmdlDestroyDataset(input_);
     input_ = nullptr;

@@ -135,54 +135,117 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         ERROR_LOG("create model output failed");
         return FAILED;
     }
+    if ((input_files.empty() != 1) && (input_files[0].find(".bin") == string::npos)){
+        std::vector<std::string> fileName_vec;
+        Utils::ScanFiles(fileName_vec, input_files[0]);
+        sort(fileName_vec.begin(), fileName_vec.end());
+        int fileNums = 0;
+        float first_time = 0.0;
+        float total_time = 0.0;
+        for (int i=0; i < fileName_vec.size(); ++i)
+        {
+            vector<void*> picDevBuffer(input_files.size(), nullptr);
+            for (size_t index = 0; index < input_files.size(); ++index) {
+                INFO_LOG("start to process file:%s/%s", input_files[index].c_str(), fileName_vec[i].c_str());
+                // model process
+                uint32_t devBufferSize;
+                picDevBuffer[index] = Utils::GetDeviceBufferOfFile(input_files[index]+"/"+fileName_vec[i], devBufferSize);
+                if (picDevBuffer[index] == nullptr) {
+                    ERROR_LOG("get pic device buffer failed,index is %zu", index);
+                    return FAILED;
+                }
 
-    if (input_files.empty() == 1) {
-        ret = processModel.CreateZeroInput();
-        if (ret != SUCCESS) {
-            ERROR_LOG("model create input failed");
-            return FAILED;
-        }
-    } else {
-        vector<void*> picDevBuffer(input_files.size(), nullptr);
-        for (size_t index = 0; index < input_files.size(); ++index) {
-            INFO_LOG("start to process file:%s", input_files[index].c_str());
-            // model process
-            uint32_t devBufferSize;
-            picDevBuffer[index] = Utils::GetDeviceBufferOfFile(input_files[index], devBufferSize);
-            if (picDevBuffer[index] == nullptr) {
-                ERROR_LOG("get pic device buffer failed,index is %zu", index);
+                ret = processModel.CreateInput(picDevBuffer[index], devBufferSize);
+                if (ret != SUCCESS) {
+                    ERROR_LOG("model create input failed");
+                    return FAILED;
+                }
+            }
+            gettimeofday(&begin, NULL);
+            ret = processModel.Execute();
+            gettimeofday(&end, NULL);
+
+            float time_cost = 1000 * (end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec) / 1000.000;
+            if (i == 0) {
+                first_time = time_cost;
+            }
+            
+            std::cout << "Inference time: " << time_cost << "ms" << endl;
+            if (ret != SUCCESS) {
+                ERROR_LOG("model execute failed");
                 return FAILED;
             }
-
-            ret = processModel.CreateInput(picDevBuffer[index], devBufferSize);
+            fileNums += 1;
+            total_time += time_cost;
+            string framename = fileName_vec[i];
+            size_t dex = (framename).find_last_of(".");
+            modelName = (framename).erase(dex);
+            
+            processModel.OutputModelResult(output_path, modelName);
+            for (size_t index = 0; index < picDevBuffer.size(); ++index) {
+                aclrtFree(picDevBuffer[index]);
+            }
+            processModel.DestroyInput();
+            
+        }
+        printf("Inference average time : %.2f ms\n", total_time / (fileNums));
+        if (fileNums > 1)
+        {
+            printf("Inference average time without first time: %.2f ms\n", (total_time - first_time) / (fileNums - 1));
+        }
+        processModel.DestroyOutput();
+        		
+	}else{
+        if (input_files.empty() == 1) {
+            ret = processModel.CreateZeroInput();
             if (ret != SUCCESS) {
                 ERROR_LOG("model create input failed");
                 return FAILED;
             }
-        }
-    }
+        } 
+        else if(input_files[0].find(".bin") != string::npos) {
+            vector<void*> picDevBuffer(input_files.size(), nullptr);
+            for (size_t index = 0; index < input_files.size(); ++index) {
+                INFO_LOG("start to process file:%s", input_files[index].c_str());
+                // model process
+                uint32_t devBufferSize;
+                picDevBuffer[index] = Utils::GetDeviceBufferOfFile(input_files[index], devBufferSize);
+                if (picDevBuffer[index] == nullptr) {
+                    ERROR_LOG("get pic device buffer failed,index is %zu", index);
+                    return FAILED;
+                }
 
-    // loop end
-    for (size_t t = 0; t < loop; ++t) {
-        gettimeofday(&begin, NULL);
-        ret = processModel.Execute();
-        gettimeofday(&end, NULL);
-        inference_time[t] = 1000 * (end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec) / 1000.000;
-        std::cout << "Inference time: " << inference_time[t] << "ms" << endl;
-        if (ret != SUCCESS) {
-            ERROR_LOG("model execute failed");
-            return FAILED;
+                ret = processModel.CreateInput(picDevBuffer[index], devBufferSize);
+                if (ret != SUCCESS) {
+                    ERROR_LOG("model create input failed");
+                    return FAILED;
+                }
+            }
         }
-    }
-	processModel.OutputModelResult(output_path, modelName);
-    double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
-    printf("Inference average time: %f ms\n", infer_time_ave);
-    if (loop > 1) {
-        double infer_time_ave_without_first = Utils::InferenceTimeAverageWithoutFirst(inference_time, loop);
-        printf("Inference average time without first time: %f ms\n", infer_time_ave_without_first);
-    }
-    processModel.DestroyInput();
-    processModel.DestroyOutput();
+
+        // loop end
+        for (size_t t = 0; t < loop; ++t) {
+            gettimeofday(&begin, NULL);
+            ret = processModel.Execute();
+            gettimeofday(&end, NULL);
+            inference_time[t] = 1000 * (end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec) / 1000.000;
+            std::cout << "Inference time: " << inference_time[t] << "ms" << endl;
+            if (ret != SUCCESS) {
+                ERROR_LOG("model execute failed");
+                return FAILED;
+            }
+        }
+        processModel.OutputModelResult(output_path, modelName);
+        double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
+        printf("Inference average time: %f ms\n", infer_time_ave);
+        if (loop > 1) {
+            double infer_time_ave_without_first = Utils::InferenceTimeAverageWithoutFirst(inference_time, loop);
+            printf("Inference average time without first time: %f ms\n", infer_time_ave_without_first);
+        }
+        processModel.DestroyInput();
+        processModel.DestroyOutput();
+		
+	}
 
     if (is_dump || is_profi) {
         if (remove("acl.json") == 0) {
