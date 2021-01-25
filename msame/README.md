@@ -38,16 +38,6 @@ cd $HOME/AscendProjects/tools/msame/
 ```
 cd out
 ```
-运行方式例1（不加input参数时，会构造全为0的假数据送入模型推理）
-```
-./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
-```
-运行方式例2
-```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
-```
-如果有多个输入，需要用**英文逗号**隔开，注意逗号两边不能有空格。  
-其他参数详情可使用--help查询。
 
 
 #### b. 源码编译运行。
@@ -71,6 +61,32 @@ cd $HOME/AscendProjects/tools/msame/
 第一个参数指定编译器，由运行环境决定。  
 第二个参数指定工具生成的目录，填相对路径的话，是相对out目录。
 
+## 运行示例
+ **示例一**   
+不加input参数，会构造全为0的假数据送入模型推理
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
+```
+ **示例二**   
+加input参数，输入为bin文件  
+如果有多个输入，需要用**英文逗号**隔开，注意逗号两边不能有空格。
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
+```
+  
+
+ **示例三**  
+加input参数，输入为目录  
+如果输入为多个目录，每个目录中的bin文件名需保持一致。  
+当输入为目录时，推理目录下的所有bin文件，此时loop参数无效。
+
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1,/home/HwHiAiUser/ljj/input2 --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
+```
+  
+其他参数详情可使用--help查询。
+
+
 ## 注意事项
 运行工具的用户在当前目录需要有创建目录以及执行工具的权限，使用前请自行检查。  
 动态多batch功能暂不支持。
@@ -80,7 +96,7 @@ cd $HOME/AscendProjects/tools/msame/
 | 参数名   | 说明                            |
 | -------- | ------------------------------- |
 | --model  | 需要进行推理的om模型            |
-| --input  | 模型需要的输入，若不填，会自动生成都为0的数据                  |
+| --input  | 模型需要的输入，支持bin文件和目录，若不加该参数，会自动生成都为0的数据                  |
 | --output | 推理数据输出路径                |
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
