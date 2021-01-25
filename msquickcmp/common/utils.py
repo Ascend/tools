@@ -219,4 +219,4 @@ def print_open_file_error(path, io_error):
     Exception Description:
         none
     """
-    print_error_log('Failed to open"'+path+'", '+str(io_error))
+    print_error_log('Failed to open"' + path + '", ' + str(io_error))
