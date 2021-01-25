@@ -9,7 +9,7 @@ HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 import json
 import os
 import re
-from json import JSONDecodeError
+from json.decoder import JSONDecodeError
 
 import numpy as np
 
@@ -157,8 +157,8 @@ class NpuDumpData(DumpData):
                 except(JSONDecodeError, TypeError) as load_input_file_except:
                     print(load_input_file_except)
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
-        except(FileNotFoundError, IOError) as input_file_open_except:
-            print(input_file_open_except)
+        except IOError as input_file_open_except:
+            utils.print_open_file_error(json_file_path, input_file_open_except)
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
 
     def _get_op_by_type(self, json_object):
@@ -224,8 +224,8 @@ class NpuDumpData(DumpData):
                     except ValueError as write_json_except:
                         print(write_json_except)
                         raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
-            except(FileNotFoundError, IOError) as acl_json_file_except:
-                print(acl_json_file_except)
+            except IOError as acl_json_file_except:
+                utils.print_open_file_error(acl_json_path, acl_json_file_except)
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         else:
             utils.print_error_log(
