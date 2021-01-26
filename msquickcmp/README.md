@@ -9,6 +9,7 @@
 1. 已在昇腾AI推理设备上安装开发与运行环境。
    安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 2. 安装python3.7.5环境
+3. 
 
 ### 获取
 
@@ -68,4 +69,20 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 | -i，--input-path          | 模型的输入数据路径，默认根据模型的input随机生成，多个输入以逗号分隔，例如：/home/input_0.bin，/home/input_1.bin | 否   |
 | -c,--cann-path            | CANN包安装完后路径，默认为/usr/local/Ascend/ascend-toolkit/latest | 否   |
 | -o，--output-path         | 输出文件路径，默认为当前路径                                 | 否   |
+
+### 执行案例
+
+#### 模型获取
+
+1. 原始模型获取地址
+
+   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb](https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC Model/painting/AIPainting_v2.pb)
+
+2. om模型获取地址
+
+   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om](https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC Model/painting/AIPainting_v2.om)
+
+**参考上述使用方法，执行命令运行**
+
+
 
