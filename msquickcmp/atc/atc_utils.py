@@ -14,7 +14,7 @@ from msquickcmp.common.utils import AccuracyCompareException
 ATC_FILE_PATH = "atc/bin/atc"
 
 
-class AtcUtils:
+class AtcUtils(object):
     """
     Class for convert the om model to json.
     """

@@ -16,7 +16,7 @@ from msquickcmp.common.utils import AccuracyCompareException
 MSACCUCMP_PATH = "toolchain/operator_cmp/compare/msaccucmp.pyc"
 
 
-class NetCompare:
+class NetCompare(object):
     """
     Class for compare the entire network
     """
