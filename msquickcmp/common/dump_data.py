@@ -6,10 +6,25 @@ This class mainly involves generate dump data function.
 Copyright Information:
 HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 """
-from abc import abstractmethod
 
 
 class DumpData(object):
-    @abstractmethod
+    """
+     Class for generate dump data.
+     """
+
+    def __init__(self):
+        pass
+
     def generate_dump_data(self):
+        """
+        Function Description:
+            generate dump data
+        Parameter:
+            self object
+        Return Value:
+            none
+        Exception Description:
+            none
+        """
         pass
