@@ -45,7 +45,6 @@ class NpuDumpData(DumpData):
     """
 
     def __init__(self, arguments, output_json_path):
-        super().__init__()
         self.arguments = arguments
         self.output_json_path = output_json_path
 
