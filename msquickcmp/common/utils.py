@@ -33,7 +33,7 @@ class AccuracyCompareException(Exception):
     """
 
     def __init__(self, error_info):
-        super().__init__(error_info)
+        super(AccuracyCompareException, self).__init__()
         self.error_info = error_info
 
 
