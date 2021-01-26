@@ -33,8 +33,7 @@ class AccuracyCompareException(Exception):
     """
 
     def __init__(self, error_info):
-        super(self).__init__(error_info)
-        self.error_info = error_info
+        super(error_info).__init__()
 
 
 def _print_log(level, msg):
@@ -220,3 +219,4 @@ def print_open_file_error(path, io_error):
         none
     """
     print_error_log('Failed to open"' + path + '", ' + str(io_error))
+
