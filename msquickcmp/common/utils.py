@@ -32,8 +32,8 @@ class AccuracyCompareException(Exception):
     Class for Accuracy Compare Exception
     """
 
-    def __init__(self, *args: object, error_info) -> None:
-        super().__init__(*args)
+    def __init__(self, error_info):
+        super(self).__init__(error_info)
         self.error_info = error_info
 
 
