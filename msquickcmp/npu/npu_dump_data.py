@@ -155,7 +155,7 @@ class NpuDumpData(DumpData):
                 try:
                     return json.load(input_file)
                 except(JSONDecodeError, TypeError) as load_input_file_except:
-                    print(load_input_file_except)
+                    print(str(load_input_file_except))
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
         except IOError as input_file_open_except:
             utils.print_open_file_error(json_file_path, input_file_open_except)
@@ -222,7 +222,7 @@ class NpuDumpData(DumpData):
                     try:
                         json.dump(load_dict, write_json)
                     except ValueError as write_json_except:
-                        print(write_json_except)
+                        print(str(write_json_except))
                         raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
             except IOError as acl_json_file_except:
                 utils.print_open_file_error(acl_json_path, acl_json_file_except)
