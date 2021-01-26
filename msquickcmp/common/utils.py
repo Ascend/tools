@@ -27,13 +27,12 @@ ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 
 
-class AccuracyCompareException(Exception):
+class AccuracyCompareException(object):
     """
     Class for Accuracy Compare Exception
     """
 
     def __init__(self, error_info):
-        super().__init__(error_info)
         self.error_info = error_info
 
 
