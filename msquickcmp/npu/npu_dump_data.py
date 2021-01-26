@@ -46,6 +46,7 @@ class NpuDumpData(DumpData):
     """
 
     def __init__(self, arguments, output_json_path):
+        super().__init__()
         self.arguments = arguments
         self.output_json_path = output_json_path
 
@@ -154,7 +155,7 @@ class NpuDumpData(DumpData):
             with open(json_file_path, "r") as input_file:
                 try:
                     return json.load(input_file)
-                except(JSONDecodeError, TypeError) as load_input_file_except:
+                except Exception as load_input_file_except:
                     print(str(load_input_file_except))
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
         except IOError as input_file_open_except:
