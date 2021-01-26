@@ -9,7 +9,6 @@ HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 import json
 import os
 import re
-from json.decoder import JSONDecodeError
 
 import numpy as np
 
