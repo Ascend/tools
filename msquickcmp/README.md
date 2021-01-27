@@ -45,7 +45,7 @@ cd $HOME/AscendProjects/tools/msquickcmp/
       ```
 
 2. 
-   设置Ascend 的ACLlib安装包的实际安装路径。)
+   设置Ascend 的ACLlib安装包的实际安装路径
 
    ```
    export DDK_PATH=/home/HwHiAiUser/Ascend/acllib
