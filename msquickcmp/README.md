@@ -9,7 +9,9 @@
 1. 已在昇腾AI推理设备上安装开发与运行环境。
    安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 2. 安装python3.7.5环境
-3. 
+3. 通过pip安装环境依赖onnxruntime、onnx、numpy
+4. 安装tensorflow1.15.0的环境
+   1. 安装参考文档：https://bbs.huaweicloud.com/blogs/181055
 
 ### 获取
 
@@ -48,7 +50,6 @@ cd $HOME/AscendProjects/tools/msquickcmp/
       2. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
 
 2. 用户不指定模型输入
-
    1. 参数准备
 
       1. 昇腾AI处理器的离线模型路径（om)
@@ -76,12 +77,11 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
 1. 原始模型获取地址
 
-   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb]
+   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb
 
 2. om模型获取地址
 
-   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om]
-
+   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
 **参考上述使用方法，执行命令运行，如果需要运行指定模型输入，可以先执行第二种用户不指定模型输入命令，用随机生成的bin文件作为输入**
 
 
