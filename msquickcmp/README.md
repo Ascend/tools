@@ -9,7 +9,7 @@
 1. 已在昇腾AI推理设备上安装开发与运行环境。
    安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 2. 安装python3.7.5环境
-3. 通过pip安装环境依赖onnxruntime、onnx、numpy
+3. 通过pip安装环境依赖onnxruntime,onnx,numpy,skl2onnx
 4. 安装tensorflow1.15.0的环境
    1. 安装参考文档：https://bbs.huaweicloud.com/blogs/181055
 
@@ -29,11 +29,30 @@
 
 ### 使用方法
 
-进入msquickcmp目录
+- 进入msquickcmp目录
+
 
 ```
 cd $HOME/AscendProjects/tools/msquickcmp/
 ```
+
+- 设置环境变量
+
+1. 指定PATHPATH路径
+
+   1. ```
+      export PATHONPATH=$HOME/AscendProjects/tools/msquickcmp/
+      ```
+
+2. 
+   设置Ascend 的ACLlib安装包的实际安装路径。)
+
+   ```
+   export DDK_PATH=/home/HwHiAiUser/Ascend/acllib
+   export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub 
+   ```
+
+- 执行命令
 
 1. 用户指定模型输入
    1. 参数准备
@@ -43,11 +62,11 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
    2. 执行命令示例
 
-      1. ```
-         python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
-         ```
+   3. ```
+      python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
+      ```
 
-      2. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
+   4. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
 
 2. 用户不指定模型输入
    1. 参数准备
@@ -57,9 +76,9 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
    2. 执行命令示例
 
-      1. ```
-         python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om  -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
-         ```
+   3. ```
+      python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om  -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
+      ```
 
 ### 参数说明
 
