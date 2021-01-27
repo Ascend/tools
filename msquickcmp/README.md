@@ -41,7 +41,7 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
    2. 执行命令示例
 
-      1. ```python
+      1. ```
          python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
          ```
 
@@ -56,7 +56,7 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
    2. 执行命令示例
 
-      1. ```python
+      1. ```
          python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om  -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
          ```
 
@@ -76,13 +76,13 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
 1. 原始模型获取地址
 
-   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb](https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC Model/painting/AIPainting_v2.pb)
+   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb]
 
 2. om模型获取地址
 
-   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om](https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC Model/painting/AIPainting_v2.om)
+   [https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om]
 
-**参考上述使用方法，执行命令运行**
+**参考上述使用方法，执行命令运行，如果需要运行指定模型输入，可以先执行第二种用户不指定模型输入命令，用随机生成的bin文件作为输入**
 
 
 
