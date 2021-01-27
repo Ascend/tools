@@ -8,8 +8,8 @@ HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 """
 import os
 
-from msquickcmp.common import utils
-from msquickcmp.common.utils import AccuracyCompareException
+from common import utils
+from common.utils import AccuracyCompareException
 
 ATC_FILE_PATH = "atc/bin/atc"
 

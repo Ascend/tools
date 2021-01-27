@@ -12,9 +12,9 @@ import re
 
 import numpy as np
 
-from msquickcmp.common import utils
-from msquickcmp.common.dump_data import DumpData
-from msquickcmp.common.utils import AccuracyCompareException
+from common import utils
+from common.dump_data import DumpData
+from common.utils import AccuracyCompareException
 
 MSAME_DIR = "msame"
 BUILD_SH = "build.sh"

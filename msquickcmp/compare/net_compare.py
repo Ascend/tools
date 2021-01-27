@@ -10,8 +10,8 @@ import csv
 import os
 import subprocess
 
-from msquickcmp.common import utils
-from msquickcmp.common.utils import AccuracyCompareException
+from common import utils
+from common.utils import AccuracyCompareException
 
 MSACCUCMP_PATH = "toolchain/operator_cmp/compare/msaccucmp.pyc"
 

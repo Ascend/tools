@@ -12,14 +12,14 @@ import os
 import sys
 import time
 
-from msquickcmp.atc.atc_utils import AtcUtils
-from msquickcmp.common import utils
-from msquickcmp.common.utils import AccuracyCompareException
+from atc.atc_utils import AtcUtils
+from common import utils
+from common.utils import AccuracyCompareException
 
-from msquickcmp.compare.net_compare import NetCompare
-from msquickcmp.npu.npu_dump_data import NpuDumpData
-from msquickcmp.onnx_model.onnx_dump_data import OnnxDumpData
-from msquickcmp.tf.tf_dump_data import TfDumpData
+from compare.net_compare import NetCompare
+from npu.npu_dump_data import NpuDumpData
+from onnx_model.onnx_dump_data import OnnxDumpData
+from tf.tf_dump_data import TfDumpData
 
 
 def _accuracy_compare_parser(parser):
