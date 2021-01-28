@@ -56,10 +56,10 @@ class NpuDumpData(DumpData):
             npu dump data path
         """
         msame_dir = os.path.join(os.path.realpath(".."), MSAME_DIR)
-        self.compile(msame_dir)
-        return self.run(msame_dir)
+        self.msame_compile(msame_dir)
+        return self.msame_run(msame_dir)
 
-    def compile(self, msame_dir):
+    def msame_compile(self, msame_dir):
         """
         Function Description:
             compile msame project
@@ -75,7 +75,7 @@ class NpuDumpData(DumpData):
         utils.execute_command(build_sh_cmd)
         utils.print_info_log("Finish to compile %s." % msame_dir)
 
-    def run(self, msame_dir):
+    def msame_run(self, msame_dir):
         """
         Function Description:
             run msame project
