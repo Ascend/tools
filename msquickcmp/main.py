@@ -32,7 +32,7 @@ def _accuracy_compare_parser(parser):
                              "with commas (,),like 'input_0,input_1'")
     parser.add_argument("-c", "--cann-path", dest="cann_path", default="/usr/local/Ascend/ascend-toolkit/latest/",
                         help="<Optional> CANN installation path")
-    parser.add_argument("-o", "--out-path", dest="out_path", default="", help="<Optional> output result report path")
+    parser.add_argument("-o", "--out-path", dest="out_path", default="", help="<Optional> output result path")
 
 
 def _generate_cpu_data_model(args):
