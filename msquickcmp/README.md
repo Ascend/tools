@@ -7,7 +7,7 @@
 ### 环境准备
 
 1. 已在昇腾AI推理设备上安装开发与运行环境。
-   安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
+   1. 安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 2. 安装python3环境
 3. 通过pip安装环境依赖onnxruntime,onnx,numpy,skl2onnx
 4. 安装tensorflow1.15.0的环境
