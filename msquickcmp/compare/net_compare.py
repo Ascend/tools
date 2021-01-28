@@ -84,7 +84,7 @@ class NetCompare(object):
                     if float(item.get("CosineSimilarity")) < 0.9:
                         return item
         except IOError as csv_file_except:
-            utils.print_open_file_error(result_file_path, csv_file_except)
+            utils.print_error_log('Failed to open"' + result_file_path + '", ' + str(csv_file_except))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         return None
 

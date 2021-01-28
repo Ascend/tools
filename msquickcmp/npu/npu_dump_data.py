@@ -149,7 +149,7 @@ class NpuDumpData(DumpData):
                     print(str(load_input_file_except))
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
         except IOError as input_file_open_except:
-            utils.print_open_file_error(json_file_path, input_file_open_except)
+            utils.print_error_log('Failed to open"' + json_file_path + '", ' + str(input_file_open_except))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
 
     def _get_op_by_type(self, json_object):
@@ -216,7 +216,7 @@ class NpuDumpData(DumpData):
                         print(str(write_json_except))
                         raise AccuracyCompareException(utils.ACCURACY_COMPARISON_WRITE_JSON_FILE_ERROR)
             except IOError as acl_json_file_except:
-                utils.print_open_file_error(acl_json_path, acl_json_file_except)
+                utils.print_error_log('Failed to open"' + acl_json_path + '", ' + str(acl_json_file_except))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         else:
             utils.print_error_log(

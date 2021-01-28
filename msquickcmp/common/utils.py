@@ -193,17 +193,3 @@ def check_input_bin_file_path(input_path):
     input_bin_files = input_path.split(',')
     for input_item in input_bin_files:
         check_file_or_directory_path(input_item)
-
-
-def print_open_file_error(path, io_error):
-    """
-    Function Description:
-        print error log for open file error
-    Parameter:
-        path: file path
-        io_error: io error info
-    """
-    print_error_log('Failed to open"' + path + '", ' + str(io_error))
-
-
-
