@@ -54,8 +54,8 @@ class NetCompare(object):
         try:
             output_bytes = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             output_text = output_bytes.decode("utf-8")
-            if "Python 3.7.5 " != output_text:
-                utils.print_error_log("The Python version should be 3.7.5: %s" % " ".join(cmd))
+            if "Python 3" in output_text:
+                utils.print_error_log("The Python version supports only Python 3 %s" % " ".join(cmd))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_VERSION_ERROR)
         except subprocess.CalledProcessError as check_output_except:
             print(str(check_output_except))
