@@ -53,15 +53,16 @@ export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub
 
       1. 昇腾AI处理器的离线模型路径（om)
       2. 模型文件路径（.pb或.onnx)
-
-   2. 执行命令示例
-
+   3. 模型的输入数据路径(.bin)
+   
+2. 执行命令示例
+   
    3. ```
       python3 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
-      ```
-
-   4. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
-
+   ```
+   
+4. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
+   
 2. 用户不指定模型输入
    1. 参数准备
 
