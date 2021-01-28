@@ -15,6 +15,18 @@ from operator_cmp.msquickcmp.common.dump_data import DumpData
 from operator_cmp.msquickcmp.common import utils
 from operator_cmp.msquickcmp.common.utils import AccuracyCompareException
 
+DTYPE_MAP = {
+    tf.float32: np.float32,
+    tf.float64: np.float64,
+    tf.int64: np.int64,
+    tf.int32: np.int32,
+    tf.int16: np.int16,
+    tf.int8: np.int8,
+    tf.uint8: np.uint8,
+    tf.bool: np.bool_,
+    tf.complex64: np.complex64
+}
+
 
 class TfDumpData(DumpData):
     """
@@ -22,15 +34,6 @@ class TfDumpData(DumpData):
     """
     def __init__(self, arguments):
         self.args = arguments
-        self.dtype_map[tf.float32] = np.float32
-        self.dtype_map[tf.float64] = np.float64
-        self.dtype_map[tf.int64] = np.int64
-        self.dtype_map[tf.int32] = np.int32
-        self.dtype_map[tf.int16] = np.int16
-        self.dtype_map[tf.int8] = np.int8
-        self.dtype_map[tf.uint8] = np.uint8
-        self.dtype_map[tf.bool] = np.bool_
-        self.dtype_map[tf.complex64] = np.complex64
 
     def _create_dir(self):
         # create input directory
@@ -138,7 +141,7 @@ class TfDumpData(DumpData):
         return tensor_shape_tuple
 
     def _convert_to_numpy_type(self, tensor_type):
-        np_type = self.dtype_map.get(tensor_type)
+        np_type = DTYPE_MAP.get(tensor_type)
         if np_type is not None:
             return np_type
         else:
