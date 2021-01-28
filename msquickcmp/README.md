@@ -8,7 +8,7 @@
 
 1. 已在昇腾AI推理设备上安装开发与运行环境。
    安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
-2. 安装python3.7.5环境
+2. 安装python3环境
 3. 通过pip安装环境依赖onnxruntime,onnx,numpy,skl2onnx
 4. 安装tensorflow1.15.0的环境
    1. 安装参考文档：https://bbs.huaweicloud.com/blogs/181055
@@ -57,7 +57,7 @@ export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub
    2. 执行命令示例
 
    3. ```
-      python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
+      python3 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
       ```
 
    4. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
@@ -71,7 +71,7 @@ export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub
    2. 执行命令示例
 
    3. ```
-      python3.7.5 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om  -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
+      python3 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om  -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
       ```
 
 ### 参数说明
