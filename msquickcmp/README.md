@@ -38,12 +38,6 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
 - 设置环境变量
 
-1. 指定PATHPATH路径
-
-   1. ```
-      export PATHONPATH=$HOME/AscendProjects/tools/msquickcmp/
-      ```
-
 2. 
    设置Ascend 的ACLlib安装包的实际安装路径
 
