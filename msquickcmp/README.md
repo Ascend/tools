@@ -38,13 +38,13 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 
 - 设置环境变量
 
-2. 
-   设置Ascend 的ACLlib安装包的实际安装路径
 
-   ```
-   export DDK_PATH=/home/HwHiAiUser/Ascend/acllib
-   export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub 
-   ```
+设置Ascend 的ACLlib安装包的实际安装路径
+
+```
+export DDK_PATH=/home/HwHiAiUser/Ascend/acllib
+export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub 
+```
 
 - 执行命令
 
