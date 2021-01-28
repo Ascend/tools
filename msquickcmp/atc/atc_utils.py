@@ -2,7 +2,7 @@
 # coding=utf-8
 """
 Function:
-This class mainly involves xxx function.
+This class mainly involves convert model to json function.
 Copyright Information:
 HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 """
@@ -26,8 +26,6 @@ class AtcUtils(object):
         """
         Function Description:
             convert om model to json
-        Parameter:
-            none
         Return Value:
             output json path
         Exception Description:

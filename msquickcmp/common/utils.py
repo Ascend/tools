@@ -50,10 +50,6 @@ def print_info_log(info_msg):
         print info log.
     Parameter:
         info_msg: the info message.
-    Return Value:
-        none
-    Exception Description:
-        none
     """
     _print_log("INFO", info_msg)
 
@@ -63,11 +59,7 @@ def print_error_log(error_msg):
     Function Description:
         print error log.
     Parameter:
-        info_msg: the error message.
-    Return Value:
-        none
-    Exception Description:
-        none
+        error_msg: the error message.
     """
     _print_log("ERROR", error_msg)
 
@@ -77,11 +69,7 @@ def print_warn_log(warn_msg):
     Function Description:
         print warn log.
     Parameter:
-        info_msg: the warn message.
-    Return Value:
-        none
-    Exception Description:
-        none
+        warn_msg: the warn message.
     """
     _print_log("WARNING", warn_msg)
 
@@ -93,8 +81,6 @@ def check_file_or_directory_path(path, isdir=False):
     Parameter:
         path: the path to check
         isdir: the path is dir or file
-    Return Value:
-        none
     Exception Description:
         when invalid data throw exception
     """
@@ -122,7 +108,8 @@ def get_model_name_and_extension(offline_model_path):
     file_name = os.path.basename(offline_model_path)
     model_name, extension = os.path.splitext(file_name)
     if extension not in MODEL_TYPE:
-        print_error_log('{} name extension does not meet requirements.Please check file name'.format(file_name))
+        print_error_log('Only model files whose names end with .pb or .onnx are supported.Please check {}'.format(
+            offline_model_path))
         raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
     return model_name, extension
 
@@ -132,11 +119,9 @@ def get_dump_data_path(dump_dir):
     Function Description:
         traverse directories and obtain the absolute path of dump data
     Parameter:
-        dump_data_dir: dump data directory
+        dump_dir: dump data directory
     Return Value:
         dump data path,file is exist or file is not exist
-    Exception Description:
-        dump data path
     """
     dump_data_dir = os.walk(dump_dir)
     dump_data_path = None
@@ -159,7 +144,7 @@ def execute_command(cmd):
     Return Value:
         command output result
     Exception Description:
-        none
+        when invalid command throw exception
     """
     print_info_log('Execute command:%s' % cmd)
     process = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -179,8 +164,6 @@ def create_directory(dir_path):
         creating a directory with specified permissions
     Parameter:
         dir_path: directory path
-    Return Value:
-        none
     Exception Description:
         when invalid data throw exception
     """
@@ -197,11 +180,7 @@ def check_input_bin_file_path(input_path):
     Function Description:
         check the output bin file
     Parameter:
-        data_path: data path directory
-    Return Value:
-        none
-    Exception Description:
-        none
+        input_path: input path directory
     """
     input_bin_files = input_path.split(',')
     for input_item in input_bin_files:
@@ -214,9 +193,6 @@ def print_open_file_error(path, io_error):
         print error log for open file error
     Parameter:
         path: file path
-    Return Value:
-        none
-    Exception Description:
-        none
+        io_error: io error info
     """
     print_error_log('Failed to open"' + path + '", ' + str(io_error))

@@ -20,11 +20,5 @@ class DumpData(object):
         """
         Function Description:
             generate dump data
-        Parameter:
-            self object
-        Return Value:
-            none
-        Exception Description:
-            none
         """
         pass

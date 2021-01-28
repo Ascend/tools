@@ -31,12 +31,8 @@ class NetCompare(object):
         """
         Function Description:
             invoke the interface for network-wide comparsion
-        Parameter:
-            none
-        Return Value:
-            none
         Exception Description:
-            none
+            when invalid  msaccucmp command throw exception
         """
         cmd = ["python3", "-V"]
         self._check_python_command_valid(cmd)
@@ -69,8 +65,6 @@ class NetCompare(object):
         """
         Function Description:
             get operators whose cosine value is less than 0.9
-        Parameter:
-            none
         Return Value:
             operators object or None
         Exception Description:
@@ -87,7 +81,7 @@ class NetCompare(object):
                 csv_object = csv.DictReader(csv_file)
                 rows = [row for row in csv_object]
                 for item in rows:
-                    if float(item["CosineSimilarity"]) < 0.9:
+                    if float(item.get("CosineSimilarity")) < 0.9:
                         return item
         except IOError as csv_file_except:
             utils.print_open_file_error(result_file_path, csv_file_except)
@@ -99,11 +93,9 @@ class NetCompare(object):
         Function Description:
             run the following command
         Parameter:
-            command
+            cmd: command
         Return Value:
             status code
-        Exception Description:
-            none
         """
         utils.print_info_log('Execute command:%s' % cmd)
         process = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

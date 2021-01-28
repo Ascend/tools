@@ -52,14 +52,10 @@ class NpuDumpData(DumpData):
         """
         Function Description:
             compile and rum msame project
-        Parameter:
-            none
         Return Value:
             npu dump data path
-        Exception Description:
-            none
         """
-        msame_dir = os.path.join(os.path.relpath(".."), MSAME_DIR)
+        msame_dir = os.path.join(os.path.realpath(".."), MSAME_DIR)
         self.compile(msame_dir)
         return self.run(msame_dir)
 
@@ -69,10 +65,6 @@ class NpuDumpData(DumpData):
             compile msame project
         Parameter:
             msame_dir: msame project directory
-        Return Value:
-            none
-        Exception Description:
-            none
         """
         utils.print_info_log("Start to compile %s" % msame_dir)
         out_path = os.path.join(msame_dir, OUT_PATH)
@@ -99,7 +91,7 @@ class NpuDumpData(DumpData):
         npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
         utils.create_directory(npu_data_output_dir)
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
-        acl_json_path = os.path.join(npu_data_output_dir)
+        acl_json_path = os.path.join(msame_dir, ACL_JSON_PATH)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
                      self.arguments.data_path, "--output", npu_data_output_dir]
@@ -143,7 +135,7 @@ class NpuDumpData(DumpData):
         Function Description:
             load json file
         Parameter:
-            json_file: json file path
+            json_file_path: json file path
         Return Value:
             json object
         Exception Description:

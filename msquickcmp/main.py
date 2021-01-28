@@ -28,10 +28,10 @@ def _accuracy_compare_parser(parser):
     parser.add_argument("-om", "--offline-model-path", dest="offline_model_path", default="",
                         help="<Required> offline model(.om) path", required=True)
     parser.add_argument("-i", "--input-path", dest="input_path", default="",
-                        help="<Optional> Input path of the model,If there are multiple input values,separate them "
-                             "with commas (,)")
+                        help="<Optional> Input data path of the model,If there are multiple input values,separate them "
+                             "with commas (,),like 'input_0,input_1'")
     parser.add_argument("-c", "--cann-path", dest="cann_path", default="/usr/local/Ascend/ascend-toolkit/latest/",
-                        help="<Optional> CAAN installation path")
+                        help="<Optional> CANN installation path")
     parser.add_argument("-o", "--out-path", dest="out_path", default="", help="<Optional> output result report path")
 
 
@@ -50,21 +50,17 @@ def main():
     """
    Function Description:
        main process function
-   Parameter:
-       none
-   Return Value:
-       none
    Exception Description:
        exit the program when an AccuracyCompare Exception  occurs
    """
     parser = argparse.ArgumentParser()
     _accuracy_compare_parser(parser)
     args = parser.parse_args(sys.argv[1:])
-    utils.check_file_or_directory_path(os.path.relpath(args.out_path), True)
+    utils.check_file_or_directory_path(os.path.realpath(args.out_path), True)
     time_dir = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    args.out_path = os.path.relpath(os.path.join(args.out_path, time_dir))
-    utils.check_file_or_directory_path(os.path.relpath(args.model_path))
-    utils.check_file_or_directory_path(os.path.relpath(args.offline_path))
+    args.out_path = os.path.realpath(os.path.join(args.out_path, time_dir))
+    utils.check_file_or_directory_path(os.path.realpath(args.model_path))
+    utils.check_file_or_directory_path(os.path.realpath(args.offline_path))
     try:
         # generate dump data by the original model
         cpu_dump_data_path = _generate_cpu_data_model(args).generate_dump_data()
@@ -79,7 +75,8 @@ def main():
         csv_object_item = net_compare.get_csv_object_by_cosine()
         if csv_object_item is not None:
             utils.print_info_log(
-                "{} of the first operator whose cosine similarity is less than o.9".format(csv_object_item["LeftOp"]))
+                "{} of the first operator whose cosine similarity is less than o.9".format(
+                    csv_object_item.get("LeftOp")))
         else:
             utils.print_info_log("No operator whose cosine value is less then 0.9 exists.")
     except utils.AccuracyCompareException as error:
