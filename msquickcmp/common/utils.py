@@ -92,6 +92,7 @@ def check_file_or_directory_path(path, isdir=False):
         if not os.access(path, os.W_OK):
             print_error_log(
                 'The path{} does not have permission to write.Please check the path permission'.format(path))
+            raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
     else:
         if not os.path.isfile(path):
             print_error_log('The path {} is not a file.Please check the path'.format(path))
@@ -99,6 +100,7 @@ def check_file_or_directory_path(path, isdir=False):
         if not os.access(path, os.R_OK):
             print_error_log(
                 'The path{} does not have permission to read.Please check the path permission'.format(path))
+            raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
 
 
 def get_model_name_and_extension(offline_model_path):
