@@ -84,14 +84,21 @@ def check_file_or_directory_path(path, isdir=False):
     Exception Description:
         when invalid data throw exception
     """
+
     if isdir:
         if not os.path.isdir(path):
             print_error_log('The path {} is not a directory.Please check the path'.format(path))
             raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+        if not os.access(path, os.W_OK):
+            print_error_log(
+                'The path{} does not have permission to write.Please check the path permission'.format(path))
     else:
         if not os.path.isfile(path):
             print_error_log('The path {} is not a file.Please check the path'.format(path))
             raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+        if not os.access(path, os.R_OK):
+            print_error_log(
+                'The path{} does not have permission to read.Please check the path permission'.format(path))
 
 
 def get_model_name_and_extension(offline_model_path):
@@ -167,12 +174,13 @@ def create_directory(dir_path):
     Exception Description:
         when invalid data throw exception
     """
-    try:
-        os.makedirs(dir_path, mode=0o700)
-    except OSError as ex:
-        print_error_log(
-            'Failed to create {}.Please check the path permission or disk space .{}'.format(dir_path, str(ex)))
-        raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+    if not os.path.exists(dir_path):
+        try:
+            os.makedirs(dir_path, mode=0o700)
+        except OSError as ex:
+            print_error_log(
+                'Failed to create {}.Please check the path permission or disk space .{}'.format(dir_path, str(ex)))
+            raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PATH_ERROR)
 
 
 def check_input_bin_file_path(input_path):
@@ -196,3 +204,6 @@ def print_open_file_error(path, io_error):
         io_error: io error info
     """
     print_error_log('Failed to open"' + path + '", ' + str(io_error))
+
+
+
