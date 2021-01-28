@@ -22,6 +22,15 @@ class TfDumpData(DumpData):
     """
     def __init__(self, arguments):
         self.args = arguments
+        self.dtype_map[tf.float32] = np.float32
+        self.dtype_map[tf.float64] = np.float64
+        self.dtype_map[tf.int64] = np.int64
+        self.dtype_map[tf.int32] = np.int32
+        self.dtype_map[tf.int16] = np.int16
+        self.dtype_map[tf.int8] = np.int8
+        self.dtype_map[tf.uint8] = np.uint8
+        self.dtype_map[tf.bool] = np.bool_
+        self.dtype_map[tf.complex64] = np.complex64
 
     def _create_dir(self):
         # create input directory
@@ -82,8 +91,7 @@ class TfDumpData(DumpData):
             tensor = global_graph.get_tensor_by_name(name)
             outputs_tensor.append(tensor)
 
-        utils.print_info_log(
-            "model outputs tensor name (including all nodes):\n{}\n".format(outputs_tensor_name))
+        utils.print_info_log("model outputs tensor name (including all nodes):\n{}\n".format(outputs_tensor_name))
         utils.print_info_log("model outputs tensor (including all nodes):\n{}\n".format(outputs_tensor))
 
         return outputs_tensor
@@ -97,8 +105,8 @@ class TfDumpData(DumpData):
                 inputs_map[tensor] = input_data
                 file_name = "input_" + str(index) + ".bin"
                 input_data.tofile(os.path.join(data_dir, file_name))
-                utils.print_info_log("file name: {}, shape: {}, dtype: {}".format(
-                    file_name, input_data.shape, input_data.dtype))
+                utils.print_info_log("file name: {}, shape: {}, dtype: {}".format(file_name, input_data.shape,
+                                                                                  input_data.dtype))
         else:
             input_path = self.args.input_path.split(",")
             if len(inputs_tensor) != len(input_path):
@@ -107,9 +115,8 @@ class TfDumpData(DumpData):
                                           len(inputs_tensor), len(input_path)))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
             for index, tensor in enumerate(inputs_tensor):
-                input_data = np.fromfile(input_path[index],
-                                         self._convert_to_numpy_type(tensor.dtype)).reshape(
-                                             self._convert_tensor_shape(tensor.shape))
+                input_data = np.fromfile(input_path[index], self._convert_to_numpy_type(tensor.dtype)).reshape(
+                    self._convert_tensor_shape(tensor.shape))
                 inputs_map[tensor] = input_data
                 utils.print_info_log("load file name: {}, shape: {}, dtype: {}".format(
                     os.path.basename(input_path[index]), input_data.shape, input_data.dtype))
@@ -127,29 +134,13 @@ class TfDumpData(DumpData):
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_TENSOR_TYPE_ERROR)
 
         tensor_shape_tuple = tuple(tensor_shape_list)
-        utils.print_info_log("old tensor shape: {}, new tensor shape: {}".format(
-            tensor_shape, tensor_shape_tuple))
+        utils.print_info_log("old tensor shape: {}, new tensor shape: {}".format(tensor_shape, tensor_shape_tuple))
         return tensor_shape_tuple
 
     def _convert_to_numpy_type(self, tensor_type):
-        if tf.float32 == tensor_type:
-            return np.float32
-        elif tf.float64 == tensor_type:
-            return np.float64
-        elif tf.int64 == tensor_type:
-            return np.int64
-        elif tf.int32 == tensor_type:
-            return np.int32
-        elif tf.int16 == tensor_type:
-            return np.int16
-        elif tf.int8 == tensor_type:
-            return np.int8
-        elif tf.uint8 == tensor_type:
-            return np.uint8
-        elif tf.bool == tensor_type:
-            return np.bool_
-        elif tf.complex64 == tensor_type:
-            return np.complex64
+        np_type = self.dtype_map.get(tensor_type)
+        if np_type is not None:
+            return np_type
         else:
             utils.print_error_log("unsupported tensor type: {},".format(tensor_type))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_TENSOR_TYPE_ERROR)
@@ -171,8 +162,8 @@ class TfDumpData(DumpData):
             else:
                 tensor_index[tensor_name] = 0
 
-            file_name = tensor_name + "." + str(tensor_index[tensor_name]) + "." + str(
-                round(time.time() * 1000000)) + ".npy"
+            file_name = tensor_name + "." + str(tensor_index[tensor_name]) + "." + str(round(
+                time.time() * 1000000)) + ".npy"
             np.save(os.path.join(tf_dump_data_dir, file_name), dump_bins[i])
 
         utils.print_info_log("dump data success")
@@ -196,4 +187,3 @@ class TfDumpData(DumpData):
         dump_bins = self._run_model(global_graph, inputs_map, outputs_tensor)
         self._save_dump_data(dump_bins, tf_dump_data_dir, outputs_tensor)
         return tf_dump_data_dir
-

@@ -88,8 +88,8 @@ class OnnxDumpData(DumpData):
                                           len(inputs_tensor_info), len(input_path)))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
             for i, tensor_info in enumerate(inputs_tensor_info):
-                input_data = np.fromfile(input_path[i], self._convert_to_numpy_type(
-                    tensor_info["type"])).reshape(tensor_info["shape"])
+                input_data = np.fromfile(input_path[i], self._convert_to_numpy_type(tensor_info["type"])).reshape(
+                    tensor_info["shape"])
                 inputs_map[tensor_info["name"]] = input_data
                 utils.print_info_log("load input file name: {}, shape: {}, dtype: {}".format(
                     os.path.basename(input_path[i]), input_data.shape, input_data.dtype))
@@ -103,8 +103,7 @@ class OnnxDumpData(DumpData):
             return np.float32
         else:
             utils.print_error_log(
-                "unsupported tensor type: {}, current only support: tensor(int), tensor(float)".format(
-                    tensor_type))
+                "unsupported tensor type: {}, current only support: tensor(int), tensor(float)".format(tensor_type))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_TENSOR_TYPE_ERROR)
 
     def _load_session(self, new_onnx_model_path):
