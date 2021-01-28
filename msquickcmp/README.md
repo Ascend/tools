@@ -53,7 +53,7 @@ export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub
 
       1. 昇腾AI处理器的离线模型路径（om)
       2. 模型文件路径（.pb或.onnx)
-   3. 模型的输入数据路径(.bin)
+      3. 模型的输入数据路径(.bin)
    
 2. 执行命令示例
    
