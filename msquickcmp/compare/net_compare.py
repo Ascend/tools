@@ -41,7 +41,7 @@ class NetCompare(object):
         msaccucmp_cmd = ["python3", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
         utils.print_info_log("msaccucmp command line: %s " % " ".join(msaccucmp_cmd))
-        status_code = self.execute_command(msaccucmp_cmd)
+        status_code = self.execute_msaccucmp_command(msaccucmp_cmd)
         if status_code == 2 or status_code == 0:
             utils.print_info_log("Finish compare the files in directory %s with those in directory %s." % (
                 self.npu_dump_data_path, self.cpu_dump_data_path))
@@ -84,11 +84,11 @@ class NetCompare(object):
                     if float(item.get("CosineSimilarity")) < 0.9:
                         return item
         except IOError as csv_file_except:
-            utils.print_open_file_error(result_file_path, csv_file_except)
+            utils.print_error_log('Failed to open"' + result_file_path + '", ' + str(csv_file_except))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_OPEN_FILE_ERROR)
         return None
 
-    def execute_command(self, cmd):
+    def execute_msaccucmp_command(self, cmd):
         """
         Function Description:
             run the following command
