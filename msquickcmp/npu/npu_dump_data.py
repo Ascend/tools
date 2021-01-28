@@ -89,9 +89,11 @@ class NpuDumpData(DumpData):
         self._check_input_path_param()
         self._compare_shape_vs_bin_file()
         npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
+        utils.check_file_or_directory_path(npu_data_output_dir, True)
         utils.create_directory(npu_data_output_dir)
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
         acl_json_path = os.path.join(msame_dir, ACL_JSON_PATH)
+        utils.check_file_or_directory_path(acl_json_path)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
                      self.arguments.data_path, "--output", npu_data_output_dir]
@@ -154,9 +156,9 @@ class NpuDumpData(DumpData):
 
     def _get_op_by_type(self, json_object):
         op_array = []
-        for graph in json_object[GRAPH_OBJECT]:
-            for operator in graph[OP_OBJECT]:
-                if DATA_OBJECT == operator[TYPE_OBJECT]:
+        for graph in json_object.get(GRAPH_OBJECT):
+            for operator in graph.get(OP_OBJECT):
+                if DATA_OBJECT == operator.get(TYPE_OBJECT):
                     self._get_op_by_type(operator)
                     op_array.append(operator)
         return op_array
@@ -165,8 +167,8 @@ class NpuDumpData(DumpData):
     def _get_input_desc_list(op_array):
         input_desc_list = []
         for operator in op_array:
-            if len(operator[INPUT_DESC_OBJECT] != 0):
-                for item in operator[INPUT_DESC_OBJECT]:
+            if len(operator.get(INPUT_DESC_OBJECT) != 0):
+                for item in operator.get(INPUT_DESC_OBJECT):
                     input_desc_list.append(item)
         return input_desc_list
 
@@ -175,9 +177,9 @@ class NpuDumpData(DumpData):
         value = []
         for input_object in input_desc_array:
             item_sum = 1
-            for num in input_object[SHAPE_OBJECT][DIM_OBJECT]:
+            for num in input_object.get(SHAPE_OBJECT).get(DIM_OBJECT):
                 item_sum *= num
-            data_type = DTYPE_MAP.get(input_object[DTYPE_OBJECT])
+            data_type = DTYPE_MAP.get(input_object.get(DTYPE_OBJECT))
             if not data_type:
                 utils.print_error_log(
                     "The dtype attribute does not support {} value.".format(input_object[DTYPE_OBJECT]))
