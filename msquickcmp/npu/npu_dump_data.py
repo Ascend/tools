@@ -89,27 +89,27 @@ class NpuDumpData(DumpData):
         self._check_input_path_param()
         self._compare_shape_vs_bin_file()
         npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
-        utils.check_file_or_directory_path(npu_data_output_dir, True)
         utils.create_directory(npu_data_output_dir)
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
         acl_json_path = os.path.join(msame_dir, ACL_JSON_PATH)
         utils.check_file_or_directory_path(acl_json_path)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
-                     self.arguments.input_path, "--output", npu_data_output_dir]
+                     self.arguments.input_path, "--output", npu_data_output_dir, "--dump", "true"]
         os.chdir(msame_dir)
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
         utils.execute_command(msame_cmd)
-        npu_dump_data_path = utils.get_dump_data_path(npu_data_output_dir)
-        if npu_dump_data_path is None:
+        npu_dump_data_path, file_is_exist = utils.get_dump_data_path(npu_data_output_dir)
+        if not file_is_exist:
             utils.print_error_log("The path {} dump data is not exist.".format(npu_dump_data_path))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
         return npu_dump_data_path
 
     def _check_input_path_param(self):
-        if self.arguments.input.path == "":
+        if self.arguments.input_path == "":
             input_path = os.path.join(self.arguments.out_path, INPUT)
+            utils.check_file_or_directory_path(os.path.realpath(input_path))
             input_bin_files = os.listdir(input_path)
             input_bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
             bin_file_path_array = []
@@ -201,7 +201,7 @@ class NpuDumpData(DumpData):
         for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):
             if shape_size != bin_file_size:
                 utils.print_error_log("The shape value is different from the size of the bin file.")
-            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
 
     @staticmethod
     def _write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir):

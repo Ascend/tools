@@ -7,10 +7,29 @@
 ### 环境准备
 
 1. 已在昇腾AI推理设备上安装开发与运行环境。
+   
    1. 安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
-2. 安装python3环境
-3. 通过pip安装环境依赖onnxruntime,onnx,numpy,skl2onnx
+   
+2. 安装python3.7.5环境
+
+   1. 将python3软连接到python3.7.5
+
+   2. 软连接命令示例：
+
+      ```
+      ln -s /usr/local/bin/python3 /usr/local/bin/python3.7.5
+      ```
+
+3. 通过pip3安装环境依赖onnxruntime,onnx,numpy,skl2onnx
+
+   1. pip安装依赖命令示例：
+
+      ```
+      pip3 install onnxruntime
+      ```
+
 4. 安装tensorflow1.15.0的环境
+
    1. 安装参考文档：https://bbs.huaweicloud.com/blogs/181055
 
 ### 获取
@@ -37,13 +56,11 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 ```
 
 - 设置环境变量
-
-
-设置Ascend 的ACLlib安装包的实际安装路径
+  (如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。)
 
 ```
-export DDK_PATH=/home/HwHiAiUser/Ascend/acllib
-export NPU_HOST_LIB=/home/HwHiAiUser/acllib/lib64/stub 
+export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest
+export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub
 ```
 
 - 执行命令
