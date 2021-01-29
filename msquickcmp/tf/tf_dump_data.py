@@ -11,9 +11,9 @@ import time
 import os
 import numpy as np
 import tensorflow as tf
-from operator_cmp.msquickcmp.common.dump_data import DumpData
-from operator_cmp.msquickcmp.common import utils
-from operator_cmp.msquickcmp.common.utils import AccuracyCompareException
+from common.dump_data import DumpData
+from common import utils
+from common.utils import AccuracyCompareException
 
 DTYPE_MAP = {
     tf.float32: np.float32,

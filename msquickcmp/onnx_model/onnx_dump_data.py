@@ -13,12 +13,12 @@ import numpy as np
 import time
 import os
 
-from operator_cmp.msquickcmp.common.dump_data import DumpData
+from common.dump_data import DumpData
 from skl2onnx.helpers.onnx_helper import enumerate_model_node_outputs
 from skl2onnx.helpers.onnx_helper import select_model_inputs_outputs
 from skl2onnx.helpers.onnx_helper import save_onnx_model
-from operator_cmp.msquickcmp.common import utils
-from operator_cmp.msquickcmp.common.utils import AccuracyCompareException
+from common import utils
+from common.utils import AccuracyCompareException
 
 
 class OnnxDumpData(DumpData):
