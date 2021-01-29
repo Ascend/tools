@@ -109,7 +109,7 @@ class NpuDumpData(DumpData):
     def _check_input_path_param(self):
         if self.arguments.input_path == "":
             input_path = os.path.join(self.arguments.out_path, INPUT)
-            utils.check_file_or_directory_path(os.path.realpath(input_path))
+            utils.check_file_or_directory_path(os.path.realpath(input_path), True)
             input_bin_files = os.listdir(input_path)
             input_bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
             bin_file_path_array = []

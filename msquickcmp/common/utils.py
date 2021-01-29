@@ -134,11 +134,11 @@ def get_dump_data_path(dump_dir):
     """
     dump_data_dir = os.walk(dump_dir)
     dump_data_path = None
-    file_is_exist = True
+    file_is_exist = False
     for dir_path, sub_paths, files in dump_data_dir:
         if len(files) != 0:
             dump_data_path = dir_path
-            file_is_exist = False
+            file_is_exist = True
             break
         dump_data_path = dir_path
     return dump_data_path, file_is_exist
