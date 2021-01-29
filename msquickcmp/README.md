@@ -12,20 +12,12 @@
    
 2. 安装python3.7.5环境
 
-   1. 将python3软连接到python3.7.5
-
-   2. 软连接命令示例：
-
-      ```
-      ln -s /usr/local/bin/python3 /usr/local/bin/python3.7.5
-      ```
-
-3. 通过pip3安装环境依赖onnxruntime,onnx,numpy,skl2onnx
+3. 通过pip3.7.5安装环境依赖onnxruntime,onnx,numpy,skl2onnx
 
    1. pip安装依赖命令示例：
 
       ```
-      pip3 install onnxruntime
+      pip3.7.5 install onnxruntime
       ```
 
 4. 安装tensorflow1.15.0的环境
