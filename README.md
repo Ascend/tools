@@ -35,7 +35,11 @@ Ascend tools，昇腾工具仓库。
 
 7. [dnmetis](https://gitee.com/ascend/tools/tree/master/dnmetis)  
 
-   **NPU推理精度和性能测试工具**：使用Python封装ACL的C++接口，输入om模型和原始数据集图片、标签，即可执行模型推理，输出精度数据和性能数据
+   **NPU推理精度和性能测试工具**：使用Python封装ACL的C++接口，输入om模型和原始数据集图片、标签，即可执行模型推理，输出精度数据和性能数据  
+
+8. [msquickcmp](https://gitee.com/ascend/tools/tree/master/msquickcmp)    
+
+   **一键式全流程精度比对工具**：该工具适用于tensorflow和onnx模型，输入原始模型和对应的离线om模型，输出精度比对结果。
 
 #### 贡献
 
