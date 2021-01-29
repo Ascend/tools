@@ -68,7 +68,7 @@ class NpuDumpData(DumpData):
         """
         utils.print_info_log("Start to compile %s" % msame_dir)
         out_path = os.path.join(msame_dir, OUT_PATH)
-        build_sh_cmd = ["sh" + BUILD_SH, "g++", out_path]
+        build_sh_cmd = ["sh", BUILD_SH, "g++", out_path]
         os.chdir(msame_dir)
         # do build.sh command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(build_sh_cmd)))
