@@ -42,8 +42,8 @@ class AtcUtils(object):
         output_json_path = os.path.join(self.arguments.out_path, "model", model_name + ".json")
         # do the atc command to convert om to json
         utils.print_info_log('Start to converting the model to json')
-        atc_cmd = [atc_command_file_path, "--mode=1", "--om" + self.arguments.offline_model_path,
-                   "--json" + output_json_path]
+        atc_cmd = [atc_command_file_path, "--mode=1", "--om=" + self.arguments.offline_model_path,
+                   "--json=" + output_json_path]
         utils.print_info_log("ATC command line %s" % " ".join(atc_cmd))
         utils.execute_command(atc_cmd)
         utils.print_info_log("Complete model conversion to json %s." % output_json_path)

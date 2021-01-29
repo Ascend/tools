@@ -96,7 +96,7 @@ class NpuDumpData(DumpData):
         utils.check_file_or_directory_path(acl_json_path)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
-                     self.arguments.data_path, "--output", npu_data_output_dir]
+                     self.arguments.input_path, "--output", npu_data_output_dir]
         os.chdir(msame_dir)
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
@@ -109,15 +109,15 @@ class NpuDumpData(DumpData):
 
     def _check_input_path_param(self):
         if self.arguments.input.path == "":
-            data_path = os.path.join(self.arguments.out_path, INPUT)
-            input_bin_files = os.listdir(data_path)
+            input_path = os.path.join(self.arguments.out_path, INPUT)
+            input_bin_files = os.listdir(input_path)
             input_bin_files.sort(key=lambda file: int((re.findall("\\d+", file))[0]))
             bin_file_path_array = []
             for item in input_bin_files:
-                bin_file_path_array.append(os.path.join(data_path, item))
+                bin_file_path_array.append(os.path.join(input_path, item))
             self.arguments.input_path = ",".join(bin_file_path_array)
         else:
-            utils.check_file_or_directory_path(self.arguments.data_path)
+            utils.check_file_or_directory_path(self.arguments.input_path)
 
     def _compare_shape_vs_bin_file(self):
         shape_size_array = self._get_shape_size()
@@ -159,7 +159,6 @@ class NpuDumpData(DumpData):
         for graph in json_object.get(GRAPH_OBJECT):
             for operator in graph.get(OP_OBJECT):
                 if DATA_OBJECT == operator.get(TYPE_OBJECT):
-                    self._get_op_by_type(operator)
                     op_array.append(operator)
         return op_array
 
@@ -167,7 +166,7 @@ class NpuDumpData(DumpData):
     def _get_input_desc_list(op_array):
         input_desc_list = []
         for operator in op_array:
-            if len(operator.get(INPUT_DESC_OBJECT) != 0):
+            if len(operator.get(INPUT_DESC_OBJECT)) != 0:
                 for item in operator.get(INPUT_DESC_OBJECT):
                     input_desc_list.append(item)
         return input_desc_list
@@ -189,7 +188,7 @@ class NpuDumpData(DumpData):
 
     def _get_bin_file_size(self):
         bin_file_size = []
-        bin_files = self.arguments.data_path.split(",")
+        bin_files = self.arguments.input_path.split(",")
         for item in bin_files:
             bin_file_size.append(os.path.getsize(item))
         return bin_file_size
