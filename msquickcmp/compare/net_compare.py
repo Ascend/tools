@@ -34,11 +34,11 @@ class NetCompare(object):
         Exception Description:
             when invalid  msaccucmp command throw exception
         """
-        cmd = ["python3", "-V"]
+        cmd = ["python3.7", "-V"]
         self._check_python_command_valid(cmd)
         msaccucmp_command_file_path = os.path.join(self.arguments.cann_path, MSACCUCMP_PATH)
         utils.check_file_or_directory_path(msaccucmp_command_file_path)
-        msaccucmp_cmd = ["python3", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
+        msaccucmp_cmd = ["python3.7.5", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
         utils.print_info_log("msaccucmp command line: %s " % " ".join(msaccucmp_cmd))
         status_code = self.execute_msaccucmp_command(msaccucmp_cmd)
