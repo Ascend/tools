@@ -193,7 +193,7 @@ function checkAscendPackage()
 
     echo "8b1a34f59ca04e8e78b5efee1b755d92  Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip" | md5sum --status -c
     if [[ $? -ne 0 ]];then
-        echo "8b1a34f59ca04e8e78b5efee1b755d92  Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip is incomplete. please re-download this package."
+        echo "Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip is incomplete. please re-download this package."
         return 1
     fi
 
