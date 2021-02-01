@@ -1,0 +1,11 @@
+<application>
+  <component name="PropertiesComponent">
+    <property name="LAST_DDK_PKG_PATH_KEY" value="$USER_HOME$/Ascend_DDK-1.32.0.B080-1.1.1-x86_64.ubuntu16.04.tar.gz" />
+    <property name="ddk_version" value="1.32.0.B080" />
+    <property name="defaultJdkConfigured" value="true" />
+    <property name="file.chooser.recent.files" value="$USER_HOME$/Ascend_DDK-1.32.0.B080-1.1.1-x86_64.ubuntu16.04.tar.gz" />
+    <property name="fileTypeChangedCounter" value="1" />
+    <property name="project.wizard.group" value="com.huawei.mindstudio.ascend.projectmgmt.wizard.NewOperatorModuleBuilder" />
+    <property name="tasks.pass.word.conversion.enforced" value="true" />
+  </component>
+</application>

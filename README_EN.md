@@ -34,7 +34,14 @@ Ascend tools
 
 7. [dnmetis](https://gitee.com/ascend/tools/tree/master/dnmetis)  
 
-   **Test tool for NPU inference precision and performance**：Using Python to encapsulate the C++ interface of ACL, inputting om model and original dataset images and tags, we can execute model inference and give out precision and performance of the om model
+   **Test tool for NPU inference precision and performance**：Using Python to encapsulate the C++ interface of ACL, inputting om model and original dataset images and tags, we can execute model inference and give out precision and performance of the om model   
+
+8. [msquickcmp](https://gitee.com/ascend/tools/tree/master/msquickcmp)    
+
+   **One-button precision comparison tool for the whole process**：The tool works with TensorFlow and OnNX models, input the original model and the corresponding offline OM model and output precision comparison results。    
+
+9. [dockerimages](./dockerimages)    
+   **docker images**：Docker images for developing on Atlas products (Atlas200DK/Atlas300)。
 
    
 
