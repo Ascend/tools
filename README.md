@@ -39,7 +39,10 @@ Ascend tools，昇腾工具仓库。
 
 8. [msquickcmp](https://gitee.com/ascend/tools/tree/master/msquickcmp)    
 
-   **一键式全流程精度比对工具**：该工具适用于tensorflow和onnx模型，输入原始模型和对应的离线om模型，输出精度比对结果。
+   **一键式全流程精度比对工具**：该工具适用于tensorflow和onnx模型，输入原始模型和对应的离线om模型，输出精度比对结果。    
+
+9. [dockerimages](./dockerimages)    
+   **docker 镜像**：1.32.0.0和20.0.0及以上版本Atlas200DK/Atlas300开发环境的docker镜像。
 
 #### 贡献
 
