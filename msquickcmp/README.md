@@ -13,13 +13,12 @@
 2. 安装python3.7.5环境
 
 3. 通过pip3.7.5安装环境依赖onnxruntime,onnx,numpy,skl2onnx
-
+   
    1. pip安装依赖命令示例：
 
       ```
       pip3.7.5 install onnxruntime
       ```
-
 4. 安装tensorflow1.15.0的环境
 
    1. 安装参考文档：https://bbs.huaweicloud.com/blogs/181055
@@ -60,7 +59,6 @@ export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/s
   参考文档：https://support.huaweicloud.com/ti-atc-A200_3000/altasatc_16_004.html
 
 - 执行命令
-
 1. 用户指定模型输入
    1. 参数准备
 
