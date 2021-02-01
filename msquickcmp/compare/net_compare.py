@@ -13,7 +13,7 @@ import subprocess
 from common import utils
 from common.utils import AccuracyCompareException
 
-MSACCUCMP_PATH = "toolchain/operator_cmp/compare/msaccucmp.pyc"
+MSACCUCMP_PATH = "toolkit/tools/operator_cmp/compare/msaccucmp.pyc"
 
 
 class NetCompare(object):

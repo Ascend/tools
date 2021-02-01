@@ -55,6 +55,10 @@ export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest
 export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub
 ```
 
+- 配置ATC工具环境变量
+
+  参考文档：https://support.huaweicloud.com/ti-atc-A200_3000/altasatc_16_004.html
+
 - 执行命令
 
 1. 用户指定模型输入
