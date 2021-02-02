@@ -179,7 +179,7 @@ function checkAscendPackage()
         return 1
     fi
 
-    echo "7802b6b70bb7a785e264b8cb4e9b9bcd  A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz" | md5sum --status -c
+    echo "5956ac2d3cdbcd54241ba07f7efe6662  A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz" | md5sum --status -c
     if [[ $? -ne 0 ]];then
         echo "A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz is incomplete. please re-download this package."
         return 1
