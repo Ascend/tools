@@ -1,6 +1,6 @@
 中文|[英文](README_EN.md)
 
-# for_20.1
+# for_20.2
 
 ## 文件列表
 
@@ -10,9 +10,9 @@
 
 - 开发者板操作系统镜像包：ubuntu-18.04.xxserver-arm64.iso，[点击跳转](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- 固件与驱动包：A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
+- 固件与驱动包：A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
-- 加速模块包：Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
+- 加速模块包：Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
 
 
 ## 制卡步骤
@@ -31,22 +31,22 @@
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
 
-	执行以下命令，进入20.1制卡目录。  
-	**cd $HOME/tools/makesd/for_20.1/**  
+	执行以下命令，进入20.2制卡目录。  
+	**cd $HOME/tools/makesd/for_20.2/**  
 	```powershell  
 	HwHiAiUser@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
-	Cloning into 'tools'...
-	remote: Enumerating objects: 273, done.
-	remote: Counting objects: 100% (273/273), done.
-	remote: Compressing objects: 100% (263/263), done.
-	remote: Total 273 (delta 128), reused 0 (delta 0), pack-reused 0
-	Receiving objects: 100% (273/273), 533.57 KiB | 877.00 KiB/s, done.
-	Resolving deltas: 100% (128/128), done.
-	HwHiAiUser@ubuntu:~$ cd tools/
-	amexec/  .git/    img2bin/ makesd/  
-	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.1/
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ls
-	make_sd_card.py  make_ubuntu_sd.sh  README.md
+        Cloning into 'tools'...
+        remote: Enumerating objects: 327, done.
+        remote: Counting objects: 100% (327/327), done.
+        remote: Compressing objects: 100% (47/47), done.
+        remote: Total 3938 (delta 293), reused 291 (delta 276), pack-reused 3611
+        Receiving objects: 100% (3938/3938), 56.64 MiB | 1.64 MiB/s, done.
+        Resolving deltas: 100% (1691/1691), done.
+        Checking connectivity... done.
+        Checking out files: 100% (590/590), done.
+	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.2/
+	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ls
+	make_sd_card.py  make_ubuntu_sd.sh  README.md README_EN.md
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
@@ -55,31 +55,32 @@
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_20.1）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_20.2）下。  
 	```powershell  
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
-	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 56942841 Jul 28 04:32 A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz
-	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 41414016 Jul 28 04:33 Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 56942841 Jul 28 04:32 A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 41414016 Jul 28 04:33 Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    17633 Jul 28 04:23 make_sd_card.py*
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
+        -rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README_EN.md
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ 
+	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
 
 	执行以下命令，切换root用户，准备制卡。  
 	**su - root**    
-        **cd /home/HwHiAiUser/tools/makesd/for_20.1/
+        **cd /home/HwHiAiUser/tools/makesd/for_20.2/
 
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![mksd](https://images.gitee.com/uploads/images/2021/0204/113420_accdf3cd_5408865.png "123456.png")
 	如图，制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
