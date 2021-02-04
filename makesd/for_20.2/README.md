@@ -10,9 +10,9 @@
 
 - 开发者板操作系统镜像包：ubuntu-18.04.xxserver-arm64.iso，[点击跳转](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- 固件与驱动包：A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
+- 固件与驱动包：A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
-- 加速模块包：Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
+- 加速模块包：Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
 
 
 ## 制卡步骤
