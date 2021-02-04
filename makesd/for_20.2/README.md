@@ -80,7 +80,7 @@
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![mksd](https://images.gitee.com/uploads/images/2021/0204/113420_accdf3cd_5408865.png "123456.png")
 	如图，制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
