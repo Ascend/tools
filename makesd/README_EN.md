@@ -15,7 +15,10 @@ Select the software packages for SD card making based on the version used, or cl
 2. [for_20.1](https://gitee.com/ascend/tools/tree/master/makesd/for_20.1)
 
    **20.1**: software packages required for card making.
+3. [for_20.2](https://gitee.com/ascend/tools/tree/master/makesd/for_20.2)
 
-3. [for_1.3x.0.0](https://gitee.com/ascend/tools/tree/master/makesd/for_1.3x.0.0)
+   **20.2**: software packages required for card making.
+
+4. [for_1.3x.0.0](https://gitee.com/ascend/tools/tree/master/makesd/for_1.3x.0.0)
 
    **1.3x.0.0**: software packages required for card making.
