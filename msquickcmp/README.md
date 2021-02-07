@@ -94,7 +94,7 @@ export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/s
 
 ### 输出结果说明
 
-```css
+```
 output-path/timestamp
 ├── input
 │	└── input_0.bin(随机生成的，若用户指定了数据，该文件不存在)
