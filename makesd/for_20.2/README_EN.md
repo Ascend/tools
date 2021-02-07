@@ -69,7 +69,7 @@ EN|[CH](README.md)
 
 	Switch to the root user and prepare for card making:  
 	**su - root**    
-        **cd /home/HwHiAiUser/tools/makesd/for_20.2/
+        **cd ${HOME}/tools/makesd/for_20.2/**
 
 	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
