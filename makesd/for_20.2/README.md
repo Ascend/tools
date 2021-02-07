@@ -75,7 +75,7 @@
 
 	执行以下命令，切换root用户，准备制卡。  
 	**su - root**    
-        **cd /home/HwHiAiUser/tools/makesd/for_20.2/
+        **cd ${HOME}/tools/makesd/for_20.2/**
 
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
