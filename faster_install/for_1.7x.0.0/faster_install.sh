@@ -1,326 +1,201 @@
 #!/bin/bash 
-function check_python3_lib() {
-	echo "Check python3 libs ......"
 
-	attrs_flag=`pip3.7.5 show attrs 2>/dev/null`
-	if [[ ! $attrs_flag ]];then
-		pip3.7.5 install attrs --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install attrs faild ,Please manually attrs"
-			return 1
+package_dir="${HOME}/faster_install_packages"
+script_path="$( cd "$(dirname $BASH_SOURCE)" ; pwd -P)"
+
+AscendToolkitInstallDir="${HOME}/Ascend/ascend-toolkit/"
+MindStudioDir="${HOME}/MindStudio-ubuntu/"
+
+
+
+function check_package()
+{
+	echo "start to check ascend package"
+	case ${1} in
+	"20.0.0") 
+		#  check 20.0 toolkit arm package 
+		if [[ ! -f $(find ${package_dir} -name "Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run" 2>/dev/null) ]];then 
+			toolkit_20_0_arm=`cat ${script_path}/param.conf | grep "toolkit_20_0_arm" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${toolkit_20_0_arm}"x" = "x" ]];then
+				echo "ERROR: invalid toolkit_20_0_arm url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run"  ${toolkit_20_0_arm}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	psutil_flag=`pip3.7.5 show psutil 2>/dev/null`
-	if [[ ! $psutil_flag ]];then
-		pip3.7.5 install psutil --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install psutil faild ,Please manually psutil"
-			return 1
+		#  check 20.0 toolkit x86 package 
+		if [[ ! -f $(find ${package_dir} -name "Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run" 2>/dev/null) ]];then 
+			toolkit_20_0_x86=`cat ${script_path}/param.conf | grep "toolkit_20_0_x86" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${toolkit_20_0_x86}"x" = "x" ]];then
+				echo "ERROR: invalid toolkit_20_0_x86 url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run"  ${toolkit_20_0_x86}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	decorator_flag=`pip3.7.5 show decorator 2>/dev/null`
-	if [[ ! $decorator_flag ]];then
-		pip3.7.5 install decorator --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install decorator faild ,Please manually decorator"
-			return 1
+		# check mindstudio package 
+		if [[ ! -f $(find ${package_dir} -name "mindstudio.tar.gz" 2>/dev/null) ]];then 
+			MindStudio_20_0=`cat ${script_path}/param.conf | grep "MindStudio_20_0" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${MindStudio_20_0}"x" = "x" ]];then
+				echo "ERROR: invalid MindStudio package  url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"mindstudio.tar.gz"  ${MindStudio_20_0}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download mindstudio.tar.gz failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	numpy_flag=`pip3.7.5 show numpy 2>/dev/null`
-	if [[ ! $numpy_flag ]];then
-		pip3.7.5 install numpy --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install numpy faild ,Please manually numpy"
-			return 1
+		;;
+	"20.1") 
+		#  check 20.1 toolkit arm package 
+		if [[ ! -f $(find ${package_dir} -name "Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run" 2>/dev/null) ]];then 
+			toolkit_20_1_arm=`cat ${script_path}/param.conf | grep "toolkit_20_1_arm" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${toolkit_20_1_arm}"x" = "x" ]];then
+				echo "ERROR: invalid toolkit_20_1_arm url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run"  ${toolkit_20_1_arm}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	protobuf_version=`pip3.7.5 show protobuf | grep Version| awk -F'[: ]+' '{print $2}' 2>/dev/null`
-	if [[ ! $protobuf_version ]] || [ $protobuf_version != "3.11.3" ];then
-		pip3.7.5 install protobuf==3.11.3 --user -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install  protobuf==3.11.3 faild ,Please manually protobuf"
-			return 1
+		#  check 20.1 toolkit x86 package 
+		if [[ ! -f $(find ${package_dir} -name "Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run" 2>/dev/null) ]];then 
+			toolkit_20_1_x86=`cat ${script_path}/param.conf | grep "toolkit_20_1_x86" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${toolkit_20_1_x86}"x" = "x" ]];then
+				echo "ERROR: invalid toolkit_20_1_x86 url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run"  ${toolkit_20_1_x86}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	scipy_flag=`pip3.7.5 show scipy 2>/dev/null`
-	if [[ ! $scipy_flag ]];then
-		pip3.7.5 install scipy --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install scipy faild ,Please manually scipy"
-			return 1
+		# check mindstudio package 
+		if [[ ! -f $(find ${package_dir} -name "MindStudio_2.0.0-beta2_ubuntu18.04-x86_64.tar.gz" 2>/dev/null) ]];then 
+			MindStudio_20_1=`cat ${script_path}/param.conf | grep "MindStudio_20_1" | awk -F'[ =]+' '{print $2}'`
+			if [[ ${MindStudio_20_1}"x" = "x" ]];then
+				echo "ERROR: invalid MindStudio package  url, please check param.conf "
+				return 1
+			fi
+			wget -O ${package_dir}/"MindStudio_2.0.0-beta2_ubuntu18.04-x86_64.tar.gz"  ${MindStudio_20_1}  --no-check-certificate
+			if [ $? -ne 0 ];then
+				echo "download MindStudio_2.0.0-beta2_ubuntu18.04-x86_64.tar.gz failed, please check Network."
+				return 1
+			fi
 		fi
-	fi
-
-	sympy_flag=`pip3.7.5 show sympy 2>/dev/null`
-	if [[ ! $sympy_flag ]];then
-		pip3.7.5 install sympy --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install sympy faild ,Please manually sympy"
-			return 1
-		fi
-	fi
-
-	cffi_flag=`pip3.7.5 show cffi 2>/dev/null`
-	if [[ ! $cffi_flag ]];then
-		pip3.7.5 install cffi --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install cffi faild ,Please manually cffi"
-			return 1
-		fi
-	fi
-
-	grpcio_flag=`pip3.7.5 show grpcio 2>/dev/null`
-	if [[ ! $grpcio_flag ]];then
-		pip3.7.5 install grpcio --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install grpcio faild ,Please manually grpcio"
-			return 1
-		fi
-	fi
-
-	grpcio_tools_flag=`pip3.7.5 show grpcio-tools 2>/dev/null`
-	if [[ ! $grpcio_tools_flag ]];then
-		pip3.7.5 install grpcio-tools --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install grpcio-tools faild ,Please manually grpcio-tools"
-			return 1
-		fi
-	fi
-
-	requests_flag=`pip3.7.5 show requests 2>/dev/null`
-	if [[ ! $requests_flag ]];then
-		pip3.7.5 install requests --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install requests faild ,Please manually requests"
-			return 1
-		fi
-	fi
-
-	gnureadline_flag=`pip3.7.5 show gnureadline 2>/dev/null`
-	if [[ ! $gnureadline_flag ]];then
-		pip3.7.5 install gnureadline --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install gnureadline faild ,Please manually gnureadline"
-			return 1
-		fi
-	fi
-
-	coverage_flag=`pip3.7.5 show coverage 2>/dev/null`
-	if [[ ! $coverage_flag ]];then
-		pip3.7.5 install coverage --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install coverage faild ,Please manually coverage"
-			return 1
-		fi
-	fi
-
-	matplotlib_flag=`pip3.7.5 show matplotlib 2>/dev/null`
-	if [[ ! $matplotlib_flag ]];then
-		pip3.7.5 install matplotlib --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install matplotlib faild ,Please manually matplotlib"
-			return 1
-		fi
-	fi
-
-	PyQt5_version=`pip3.7.5 show PyQt5 | grep Version| awk -F'[: ]+' '{print $2}' 2>/dev/null`
-	if [[ ! $PyQt5_version ]] || [ $PyQt5_version != "5.14.0" ];then
-		pip3.7.5 install PyQt5==5.14.0 --user -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install  PyQt5==5.14.0 faild ,Please manually PyQt5"
-			return 1
-		fi
-	fi
-
-	tensorflow_version=`pip3.7.5 show tensorflow | grep Version| awk -F'[: ]+' '{print $2}' 2>/dev/null`
-	if [[ ! $tensorflow_version ]] || [ $tensorflow_version != "1.15" ];then
-		pip3.7.5 install tensorflow==1.15 --user -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install  tensorflow==1.15 faild ,Please manually tensorflow"
-			return 1
-		fi
-	fi
-
-	pylint_flag=`pip3.7.5 show pylint 2>/dev/null`
-	if [[ ! $pylint_flag ]];then
-		pip3.7.5 install pylint --user  -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install pylint faild ,Please manually pylint"
-			return 1
-		fi
-	fi
-
-	tornado_version=`pip3.7.5 show tornado | grep Version| awk -F'[: ]+' '{print $2}' 2>/dev/null`
-	if [[ ! $tornado_version ]] || [ $tornado_version != "5.1.0" ];then
-		pip3.7.5 install tornado==5.1.0 --user -i http://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-		if [[ $? -ne 0 ]];then
-			echo "[ERROR] pip3.7.5 install tornado==5.1.0 faild ,Please manually tornado"
-			return 1
-		fi
-	fi
-
-	return 0
-	echo "python3 libs have benn prepared."
-}
-
-function install_python3.7.5() {
-	sudo rm -rf  /usr/bin/python3.7.5
-	sudo rm -rf  /usr/bin/pip3.7.5
-	sudo rm -rf  /usr/bin/python3.7
-	sudo rm -rf  /usr/bin/pip3.7
-
-	echo "python3.7.5 and pip3.7.5 are about to install."
-	cd $HOME		
-	find  ~/Python-3.7.5.tgz -exec rm -rf {} +
-	find  ~/Python-3.7.5 -exec sudo rm -rf {} +
-
-	wget https://www.python.org/ftp/python/3.7.5/Python-3.7.5.tgz
-	if [ $? -ne 0 ];then
-		echo "[ERROR]: install failed, please check Network."
+		;;
+	*) 
+		echo "[ERROR] Invalid Ascend Version."
 		return 1
-	fi
-
-	tar -zxvf Python-3.7.5.tgz
-	cd Python-3.7.5
-	./configure --prefix=/usr/local/python3.7.5 --enable-shared
-	make
-	sudo make install
-
-	sudo cp /usr/local/python3.7.5/lib/libpython3.7m.so.1.0 /usr/lib
-	sudo ln -s /usr/local/python3.7.5/bin/python3 /usr/bin/python3.7
-	sudo ln -s /usr/local/python3.7.5/bin/pip3 /usr/bin/pip3.7
-	sudo ln -s /usr/local/python3.7.5/bin/python3 /usr/bin/python3.7.5
-	sudo ln -s /usr/local/python3.7.5/bin/pip3 /usr/bin/pip3.7.5
+		;;
+	esac 
 	return 0
 }
 
 function install_toolkit() {
-	TOOLKIT_flag_arm64=`find $HOME -maxdepth 1 -name "Ascend-*-arm64-*.run" 2> /dev/null`
-	TOOLKIT_flag_x86_64=`find $HOME -maxdepth 1 -name "Ascend-*-x86_64-*.run" 2> /dev/null`
-	if [[ ! $TOOLKIT_flag_arm64 ]] && [[ ! $TOOLKIT_flag_x86_64 ]];then
-		echo "[Error]:Can not find the Ascend-Toolkit-[version]-arm64-linux_gcc7.3.0.run package and Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package "
-		echo "please go to the official website to download the Toolkit installation package you need."
-		echo "Exit installation."
+	echo "begin to install Ascend Toolkit"
+	case ${1} in
+	"20.0.0")
+		cd ${package_dir}
+		chmod 750 Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run 
+		./Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run --install
+		if [ $? -ne 0 ];then
+			echo "install Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run failed"
+			return 1
+		fi 	
+		echo "install success, the 20.0 toolkit-arm64-linux package is installed."
+
+		chmod 750 Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run
+		./Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run --install
+		if [ $? -ne 0 ];then
+			echo "install Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run failed"
+			return 1
+		fi 	
+		echo "install success, the 20.0 toolkit-x86_64 package is installed."
+
+		;;
+	"20.1")
+		cd ${package_dir}
+		chmod 750 Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run
+		./Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run --install
+		if [ $? -ne 0 ];then
+			echo "install Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run failed"
+			return 1
+		fi 	
+
+		echo "install success, the 20.1 toolkit-arm64-linux package is installed."
+
+		chmod 750 Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run
+		./Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run --install
+		if [ $? -ne 0 ];then
+			echo "install Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run failed"
+			return 1
+		fi 	
+
+		echo "install success, the 20.1 toolkit-x86_64 package is installed."
+		;;	
+	*)
+		echo "[ERROR] Invalid Ascend Version."
 		return 1
-	elif [ $TOOLKIT_flag_arm64 ] && [ $TOOLKIT_flag_x86_64 ];then
-		echo "find the Ascend-Toolkit-[version]-arm64-linux_gcc7.3.0.run package and Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package "
-		TOOLKIT_arm64="YES"
-		TOOLKIT_x86_64="YES"
-	elif [ $TOOLKIT_flag_arm64 ];then
-		echo "only find Ascend-Toolkit-[version]-arm64-linux_gcc7.3.0.run package"
-		echo "please go to the official website to download Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package."
-		return 1;
-	elif [ $TOOLKIT_flag_x86_64 ];then
-		echo "only find Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package"
-		echo "please go to the official website to download Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run package."
-		return 1;
-	fi
+		;;
+	esac
+
 	return 0
 }
 
-main()
-{
+
+function check_hardware_environment() {
+	# 检查当前ubuntu的版本
 	Ubuntu_version=`cat /etc/issue | grep Ubuntu |awk -F'[ ]+' '{print $2}'`
 	if [ ! $Ubuntu_version ] || [ ${Ubuntu_version%.*} != "18.04" ]; then
 		echo "This script is only available for Ubuntu18.04. If not, please change the script or Ubuntu version. Exit installation"
 		return 1
 	fi
 
-	mt=`free | tr [:blank:] \\\n | grep [0-9] | sed -n '1p'`
+	# 检查当前ubuntu系统的剩余的内存,内存小于4G 返回失败报错
+	mt=`free | tr [:blank:] \\\n | grep [0-9] | sed -n '3p'`
 	mx=`expr $mt \/ 1024 \/ 1024`
 	echo "linux memory is $mx G"
 	if [ $mx -lt 4 ]; then
-		echo "Linux Mem < 4G, please add mem for using MindStudio."
+		echo "Linux Mem ${mx} < 4G, please add mem for using MindStudio."
 		echo "Exit installation"
 		return 1
 	else
 		echo "Memory is enough. To be continue."
 	fi
 
+	# 检查当前ubuntu系统剩余的硬盘空间,硬盘空间小于4G 返回失败报错
 	max_num=4
 	df_num=`df -h | awk -F' ' '$6 ~ /^\/$/ {print $4}'|awk -F'[ Gg]+' '{print $1}'`
 	echo "linux space is $df_num G"
-	if [ $df_num -le $max_num ]; then
-		echo "Space is not enough, please manually release space to download mindstudio and toolkit."
+	if [ $df_num -lt $max_num ]; then
+		echo "Linux Space is ${df_num}G < 4G. is not enough, please manually release space to download mindstudio and toolkit."
 		echo "Exit installation"
 		return 1
 	else
 		echo "Space is enough. To be continue."
 	fi
 
-	echo "The C73 development environment is about to be installed."
-	echo "ubuntu : 18.04"
-	echo "MindStudio: 2.3.3"
+	return 0
+}
 
-	echo "The next step is system update"
+
+function install_dependencies() {
+	echo "The next step is system update and install Necessary dependent software"
 	sudo apt update
 	if [[ $? -ne 0 ]];then
 		echo "Update failed.Please check the network"
 		return 1
-	fi
-
-	C73_flag=`find $HOME -maxdepth 1 -name "MindStudio-ubuntu" 2> /dev/null`
-	if [[ $C73_flag ]];then
-		read -p "[INFO] The Mind Studio is existence. Do you want to re-install ? [Y/N]. default option is Y: " response
-		if [ $response"z" = "Nz" ] || [ $response"z" = "nz" ]; then
-			echo "MindStudio is about to open."
-			bash $C73_flag/bin/MindStudio.sh &
-			return 0
-		elif [ $response"z" = "Yz" ] || [ $response"z" = "yz" ] || [ $response"z" = "z" ]; then
-			rm -rf $C73_flag
-			rm -rf .mindstudio
-			rm -rf .MindStudioMS-2.3
-		else
-			echo "[ERROR] Please input Y/N!"
-			return 1
-		fi
-	fi
-
-
-	package_flag=`find $HOME -maxdepth 1 -name "mindstudio.tar.gz" 2> /dev/null`
-	if [[ ! $package_flag ]];then
-		read -p "[INFO] Can not find mindstudio.tar.gz in $HOME,do you want download ? [Y/N]. default option is Y: " response
-		if [ $response"z" = "Nz" ] || [ $response"z" = "nz" ]; then
-			echo "Exit installation"
-			return 1
-		elif [ $response"z" = "Yz" ] || [ $response"z" = "yz" ] || [ $response"z" = "z" ]; then
-			MIN_Download="YES"
-		else
-			echo "[ERROR] Please input Y/N!"
-			return 1
-		fi
-	else
-		echo "tar zxvf $package_flag" 
-		tar zxvf $package_flag
-	fi
-
-
-	TOOLKIT_flag=`find ~/Ascend/ascend-toolkit/ -name "20.0.*" 2> /dev/null`
-	if [ $TOOLKIT_flag ]; then
-		read -p "ascend-toolkit have been installed , do you want to reinstall ascend-toolkit ? [Y/N]. default option is N: " response
-		if [ $response"z" = "Nz" ] || [ $response"z" = "nz" ]|| [ $response"z" = "z" ]; then
-			echo "To be continue."
-		elif [ $response"z" = "Yz" ] || [ $response"z" = "yz" ]; then
-			sudo rm -rf ~/Ascend
-			echo "To be continue."
-			install_toolkit
-			if [ $? -ne 0 ];then
-				return 1
-			fi 
-		else
-			echo "[ERROR] Please input Y/N!"
-			return 1
-		fi
-	else
-		install_toolkit
-		if [ $? -ne 0 ];then
-			return 1
-		fi 
 	fi
 
 	sudo apt-get install -y gcc g++ make cmake unzip wget zlib1g zlib1g-dev libsqlite3-dev openssl libssl-dev libffi-dev pciutils net-tools 2>/dev/null
@@ -353,92 +228,183 @@ main()
 		return 1
 	fi
 
-	pip_flag=`pip3.7.5  --version 2>/dev/null`
-	python_flag=`python3.7.5  --version 2>/dev/null`
-	if [[ $pip_flag ]] && [[ $python_flag ]];then
-		read -p "python3.7.5 and pip3.7.5 have been installed , do you want to reinstall python3.7.5 ?. [Y/N]. default option is N: " response
-		if [ $response"z" = "Nz" ] || [ $response"z" = "nz" ] || [ $response"z" = "z" ]; then
-			check_python3_lib
-			if [ $? -ne 0 ];then
-				echo "python3.7.5 libs install failed! "
-				echo "Now reinstalling python3.7.5 "
-				install_python3.7.5
-				if [ $? -ne 0 ];then
-					echo "reinstall python3.7.5 failed"
-					return 1
-				fi
-				check_python3_lib
-				if [ $? -ne 0 ];then
-					echo "installing python libs failed"
-					return 1
-				fi
-			fi
-		elif [ $response"z" = "Yz" ] || [ $response"z" = "yz" ]; then
-			install_python3.7.5
-			if [ $? -ne 0 ];then
-				echo "reinstall python3.7.5 failed"
-				return 1
-			fi
-			check_python3_lib
-			if [ $? -ne 0 ];then
-				echo "installing python libs failed"
-				return 1
-			fi
-		else
-			echo "[ERROR] Please input Y/N!"
-			return 1
-		fi
-	else
-		install_python3.7.5
-		if [ $? -ne 0 ];then
-			echo "install python3.7.5 failed"
-			return 1
-		fi
-		check_python3_lib
-		if [ $? -ne 0 ];then
-			echo "install python libs failed"
-			return 1
-		fi
-	fi
+    return 0
+}
 
-	if [[ $MIN_Download ]];then
-		wget -O $HOME/mindstudio.tar.gz "https://mindstudio--ddk.obs.cn-north-1.myhuaweicloud.com/C73B050/mindstudio.tar.gz" --no-check-certificate
-		if [ $? -ne 0 ];then
-			echo "ERROR: download failed, please check Network."
-			rm -rf $HOME/mindstudio.tar.gz
-			return 1
-		else
-			cd $HOME
-			tar zxvf mindstudio.tar.gz
-		fi
-	fi
+function uninstallMindStudio() {
+	# uninstall 20.0 20.1
+	echo "uninstall MindStudio"
+	rm -rf ${MindStudioDir}
+	rm -rf ${HOME}/.cache/Huawei/MindStudioMS-*.*
+	rm -rf ${HOME}/.config/Huawei/MindStudioMS-*.*
+	rm -rf ${HOME}/.mindstudio
+	rm -rf ${HOME}/.MindStudioMS-*
+	return 0
+}
 
-	cd $HOME
-	if [[ $TOOLKIT_arm64 ]];then
-		find Ascend-*-arm64-*.run -exec chmod 777 {} +
-		find Ascend-*-arm64-*.run -exec ./{} --install \;
-		if [ $? -ne 0 ];then
-			echo "ERROR: install failed, please verify that the toolkit-arm64 package is installed."
-			return 1
-		else 
-			echo "install success, the toolkit-arm64 package is installed."
-		fi
-	fi
+function uninstallToolkit() {
+	# uninstall 20.0 20.1
+	sudo rm -rf ${AscendToolkitInstallDir}
+	return 0
+}
 
-	if [[ $TOOLKIT_x86_64 ]];then
-		find Ascend-*-x86_64-*.run -exec chmod 777 {} +
-		find Ascend-*-x86_64-*.run -exec ./{} --install \;
+function install_mindstudio() {
+	echo "begin to install Mind Studio"
+	case ${1} in
+	"20.0.0")
+		tar -zxvf ${package_dir}/mindstudio.tar.gz -C ${HOME}
 		if [ $? -ne 0 ];then
-			echo "ERROR: install failed, please verify that the toolkit-x86_64 package is installed."
+			echo "tar -zxvf ${package_dir}/mindstudio.tar.gz -C ${HOME} failed"
 			return 1
-		else 
-			echo "install success, the toolkit-x86_64 package is installed."
-		fi
-    fi
-
-	echo "The C73 environment was successfully deployed, with MindStudio version 2.3.3"
-	
+		fi 
+		;;
+	"20.1")
+		tar -zxvf ${package_dir}/MindStudio_2.0.0-beta2_ubuntu18.04-x86_64.tar.gz -C ${HOME}
+		if [ $? -ne 0 ];then
+			echo "tar -zxvf ${package_dir}/MindStudio_2.0.0-beta2_ubuntu18.04-x86_64.tar.gz -C ${HOME} failed"
+			return 1
+		fi 	
+		;;	
+	*)
+		echo "[ERROR] Invalid Ascend Version."
+		return 1
+		;;
+	esac
 	echo "MindStudio is about to open."
-	bash $HOME/MindStudio-ubuntu/bin/MindStudio.sh &
+	bash ${HOME}/MindStudio-ubuntu/bin/MindStudio.sh &
+	return 0
+}
+
+main()
+{
+    check_hardware_environment
+	if [ $? -ne 0 ];then
+		return 1
+	fi 
+
+	declare -i toolkit_flag=0
+	declare -i mindstudio_flag=0
+	declare -i uninstall_mode=0
+	if [[ -d "${AscendToolkitInstallDir}" ]] || [[ -d "${MindStudioDir}" ]];then
+		if [[ -d "${AscendToolkitInstallDir}" ]];then 
+			toolkit_flag=1
+			echo "Tookit package has been found in current environment"
+			toolkitVersion=$(cat ${HOME}/Ascend/ascend-toolkit/latest/toolkit/version.info 2>/dev/null)
+			if [[ ${toolkitVersion}"x" != "x" ]];then
+				if [[ "${toolkitVersion}" =~ "1.75" ]];then
+					echo "surent toolkit version is 20.1"
+				elif [[ "${toolkitVersion}" =~ "1.73" ]];then
+					echo "current toolkit version is 20.0.0"
+				fi
+			fi
+		fi
+
+		if [[ -d "${MindStudioDir}" ]];then 
+			mindstudio_flag=1
+			echo "MindStudio has been found in current environment"
+		fi
+
+		if [[ ${toolkit_flag} -eq 1 ]] && [[ ${mindstudio_flag} -eq 1 ]];then
+			uninstall_mode=1
+			confirm_tips="Do you want to uninstall the current Ascend toolkit and Mind Studio ?. default option is Y: "
+		elif [[ ${toolkit_flag} -eq 0 ]] && [[ ${mindstudio_flag} -eq 1 ]];then
+			uninstall_mode=2
+			confirm_tips="Do you want to uninstall the current Mind Studio?. default option is Y: "
+		elif [[ ${toolkit_flag} -eq 1 ]] && [[ ${mindstudio_flag} -eq 0 ]];then
+			uninstall_mode=3
+			confirm_tips="Do you want to uninstall the current Ascend toolkit?. default option is Y: "
+		fi
+
+		response=""
+		declare -i choiceTimes=0
+		while [[ ${response}"x" = "x" ]];do
+			[[ ${choiceTimes} -ge 3 ]] && exit 1 || ((choiceTimes++))
+			read -p "${confirm_tips}" response
+			if [ $response"z" = "Nz" ] || [ $response"z" = "nz" ]; then
+				echo "exit this script"
+        		return 0
+			elif [ $response"z" = "Yz" ] || [ $response"z" = "yz" ] || [ $response"z" = "z" ]; then
+				echo "begin to uninstall..."
+				break
+			else
+				echo "[ERROR] Please input Y/N!"
+       	 		response=""
+			fi
+		done 
+
+		case ${uninstall_mode} in 
+		1)
+			uninstallMindStudio
+			uninstallToolkit
+			;;
+		2)
+			uninstallMindStudio
+			;;
+		3)
+			uninstallToolkit
+			;;
+		*)
+			;;
+		esac
+	fi
+
+cat << EOF
+"Current Ascend-version list:"
+    "1 : 20.0.0"
+    "2 : 20.1"
+EOF
+	response=""
+	declare -i choiceTimes=0
+	while [[ ${response}"x" = "x" ]];do
+		[[ ${choiceTimes} -ge 3 ]] && exit 1 || ((choiceTimes++))
+		read -p "please input your Ascend-verison in this list(eg:1):" response
+		case ${response} in
+		"1") 
+			Ascend_version="20.0.0"
+			;;
+		"2") 
+			Ascend_version="20.1"
+			;;
+		*) 
+			response=""
+			echo "[ERROR] Input Ascend-version Error,Please check your input"
+			;;
+		esac 
+	done 
+	
+	check_package "${Ascend_version}"
+	if [[ $? -ne 0 ]];then
+		echo "failed to prepare necessary software package "
+		return 1
+	fi
+
+	echo "finished preparing necessary software package"
+
+    install_dependencies
+	if [[ $? -ne 0 ]];then
+		echo "install dependent software failed.Please check the network"
+		return 1
+	fi
+
+    bash ${script_path}/python_install.sh
+	if [[ $? -ne 0 ]];then
+		echo "prepare python environment failed"
+		return 1
+	fi
+
+	install_toolkit "${Ascend_version}"
+	if [[ $? -ne 0 ]];then
+		echo "failed to install ${Ascend_version} Ascend Toolkit."
+		return 1
+	fi
+
+	install_mindstudio "${Ascend_version}"
+	if [[ $? -ne 0 ]];then
+		echo "failed to install ${Ascend_version} Mind Studio."
+		return 1
+	fi
+
+	echo "The ${Ascend_version} environment was successfully deployed"
+	return 0
 }
 main
