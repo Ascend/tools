@@ -55,6 +55,7 @@ class NpuDumpData(DumpData):
         Return Value:
             npu dump data path
         """
+        self._check_input_path_param()
         msame_dir = os.path.join(os.path.realpath(".."), MSAME_DIR)
         self.msame_compile(msame_dir)
         return self.msame_run(msame_dir)
@@ -86,7 +87,6 @@ class NpuDumpData(DumpData):
         Exception Description:
             when invalid npu dump data path throw exception
         """
-        self._check_input_path_param()
         self._compare_shape_vs_bin_file()
         npu_data_output_dir = os.path.join(self.arguments.out_path, NPU_DUMP_DATA_BASE_PATH)
         utils.create_directory(npu_data_output_dir)
@@ -117,7 +117,9 @@ class NpuDumpData(DumpData):
                 bin_file_path_array.append(os.path.join(input_path, item))
             self.arguments.input_path = ",".join(bin_file_path_array)
         else:
-            utils.check_file_or_directory_path(self.arguments.input_path)
+            input_path = os.path.realpath(self.arguments.input_path)
+            utils.check_file_or_directory_path(input_path)
+            self.arguments.input_path = input_path
 
     def _compare_shape_vs_bin_file(self):
         shape_size_array = self._get_shape_size()
