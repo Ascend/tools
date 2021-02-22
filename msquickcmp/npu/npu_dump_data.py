@@ -19,8 +19,8 @@ from common.utils import AccuracyCompareException
 MSAME_DIR = "msame"
 BUILD_SH = "build.sh"
 OUT_PATH = "out"
-MSAME_COMMAND_PATH = "out/msame"
-ACL_JSON_PATH = "src/acl.json"
+MSAME_COMMAND_PATH = "msame"
+ACL_JSON_PATH = "out/acl.json"
 NPU_DUMP_DATA_BASE_PATH = "dump_data/npu"
 RESULT_DIR = "result"
 INPUT = "input"
@@ -92,11 +92,15 @@ class NpuDumpData(DumpData):
         utils.create_directory(npu_data_output_dir)
         model_name, extension = utils.get_model_name_and_extension(self.arguments.offline_model_path)
         acl_json_path = os.path.join(msame_dir, ACL_JSON_PATH)
-        utils.check_file_or_directory_path(acl_json_path)
+        if not os.path.exists(acl_json_path):
+            os.mknod(acl_json_path, mode=0o600)
+        if oct(os.stat(acl_json_path).st_mode[-3:]) != 600:
+            utils.print_warn_log(
+                "The dump data mode is output beacause the {} permission is not 600".format(acl_json_path))
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
-                     self.arguments.input_path, "--output", npu_data_output_dir, "--dump", "true"]
-        os.chdir(msame_dir)
+                     self.arguments.input_path, "--output", npu_data_output_dir]
+        os.chdir(os.path.join(msame_dir, OUT_PATH))
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (msame_dir, " ".join(msame_cmd)))
         utils.execute_command(msame_cmd)
