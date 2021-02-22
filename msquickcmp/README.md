@@ -106,7 +106,6 @@ output-path/timestamp
 │   ├── npu(npu的dump数据目录)
 		│   ├── timestamp
 				└── resnet50_output_0.bin
-		│   ├── dump
 			│   ├── 20210206030403 
 				│   ├── 0
                     │   ├── resnet50
