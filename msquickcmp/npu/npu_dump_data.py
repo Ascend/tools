@@ -94,9 +94,6 @@ class NpuDumpData(DumpData):
         acl_json_path = os.path.join(msame_dir, ACL_JSON_PATH)
         if not os.path.exists(acl_json_path):
             os.mknod(acl_json_path, mode=0o600)
-        if oct(os.stat(acl_json_path).st_mode)[-3:] != "600":
-            utils.print_warn_log(
-                "The dump data mode is output beacause the {} permission is not 600".format(acl_json_path))
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
                      self.arguments.input_path, "--output", npu_data_output_dir]
