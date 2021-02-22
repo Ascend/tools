@@ -528,7 +528,7 @@ function formatSDcard()
 
 
 
-+5G
++8G
 n
 
 
