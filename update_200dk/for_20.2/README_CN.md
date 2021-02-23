@@ -28,7 +28,7 @@
 
 3. 登录开发板并进入升级文件夹。  
 
-    **ssh HwHiAiUserr@XXXX**    
+    **ssh HwHiAiUser@XXXX**    
     **cd /home/HwHiAiUser/update**    
     **su root**   
     (注：登录和root用户密码默认都为Mind@123)     
