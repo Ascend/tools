@@ -88,7 +88,7 @@ function CheckPackage()
     ./${CANN_PACKAGE} --extract=${ScriptPath}/nnrt --noexec
     if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" = "x" ]] || \
             [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
-        echo "[ERROR] extract Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run failed. please check this package."
+        echo "[ERROR] extract Ascend-cann-nnrt_20.2.*_linux-aarch64.run failed. please check this package."
         return 1
     fi
 
@@ -103,7 +103,7 @@ function CheckPackage()
 function UpgradeAicpu()
 {
     aicpu_old=`cat /var/davinci/aicpu_kernels/version.info |head -n 1|cut -d '.' -f 2`
-    if [[ ${aicpu_old} -eq '' ]] || [[ ${aicpu_old} -eq 75 ]];then
+    if [[ ${aicpu_old} -eq '' ]] || [[ ${aicpu_old} -eq 75 ]] || [[ ${aicpu_old} -eq 76 ]] || [[ ${aicpu_old} -eq 77 ]];then
         echo "[INFO] start the installation"
         tar zxvf ${AICPU_KERNELS_PACKAGE}
         ./aicpu_kernels_device/scripts/install.sh --run
@@ -126,7 +126,7 @@ function UpgradeAcllib()
         " | su HwHiAiUser -c "${ACLLIB_PACKAGE} --run"
         rm -f ${ACLLIB_PACKAGE}
         return 0
-    elif [[ ${acllib_old} -eq 75 ]];then
+    elif [[ ${acllib_old} -eq 75 ]] || [[ ${acllib_old} -eq 76 ]] || [[ ${acllib_old} -eq 77 ]];then
         echo "[INFO] start upgrade Acllib"
         chown HwHiAiUser:HwHiAiUser ${ACLLIB_PACKAGE}
         echo "y
@@ -149,7 +149,7 @@ function UpgradePyacl()
         su HwHiAiUser -c "${PYACL_PACKAGE} --run"
         rm -f ${PYACL_PACKAGE}
         return 0
-    elif [[ ${pyacl_old} -eq 1 ]];then
+    elif [[ ${pyacl_old} -eq 1 ]] || [[ ${pyacl_old} -eq 2 ]];then
         echo "[INFO] start upgrade pyacl"
         chown HwHiAiUser:HwHiAiUser ${PYACL_PACKAGE}
         su HwHiAiUser -c "${PYACL_PACKAGE} --upgrade"
