@@ -1,23 +1,29 @@
 中文|[EN](README_EN.md)
 
 # 昇腾开发环境，适用于Atlas200DK，Atlas300
-# 版本：20.0.0.RC1 （1.73）
+# 版本：目前可以安装20.0.0.RC1 （1.73） 20.1（1.75）
 #### 介绍
 该脚本适用于Ubuntu18.04操作系统，可以快速安装C7x的开发环境，包括Python环境与MindStudio。
 
 #### 使用前准备
 1、Ubuntu18.04 （x86）
 
-2、到网站（https://www.huaweicloud.com/ascend/resource/Software ）下载用于安装MindStudio的Toolkit包，名字为Ascend-Toolkit-[version]-x86_64-linux_gcc7.3.0.run、Ascend-Toolkit-[version]-arm-linux_gcc7.3.0.run，将两个包放于$HOME目录下。
+2、快速安装脚本支持在线下载和本地读取python3.7.5的源码包、各个版本的开发套件包以及版本匹配的MindStudio安装包 进行快速安装这两种方式。
 
-由于有些样例（指一些需要用到摄像头的样例）需要用到以下包：Ascend310-driver-[version]-ubuntu18.04.aarch64-minirc.tar.gz，故也可以下载下来并自行解压即可（在上面的网站链接中即可下载）。
+如果选择使用脚本中的在线下载功能，可以跳过本节。如果选择自行下载安装所需的包，可以将包放到**${HOME}/faster_install_packages**目录下，脚本会自动读取安装包并进行校验安装。
+
+|                       |                    arm版本开发套件包                     |                 x86版本开发套件包                 |                      MindStudio安装包                       |                         Python 3.7.5                         |
+| :-------------------: | :------------------------------------------------------: | :-----------------------------------------------: | :---------------------------------------------------------: | :----------------------------------------------------------: |
+| **获取地址/安装命令** | https://ascend.huawei.com/zh/#/hardware/firmware-drivers | https://www.huaweicloud.com/ascend/cann-download  | https://ascend.huawei.com/zh/#/software/mindstudio/download | wget https://www.python.org/ftp/python/3.7.5/Python-3.7.5.tgz |
+|     **20.0版本**      |     Ascend-Toolkit-20.0.RC1-arm64-linux_gcc7.3.0.run     | Ascend-Toolkit-20.0.RC1-x86_64-linux_gcc7.3.0.run |                        2.0.0 (beta1)                        |                       Python-3.7.5.tgz                       |
+|     **20.1版本**      |      Ascend-cann-toolkit_20.1.rc1_linux-aarch64.run      |   Ascend-cann-toolkit_20.1.rc1_linux-x86_64.run   |                        2.0.0 (beta2)                        |                       Python-3.7.5.tgz                       |
 
 3、自行配置下载源。（可选，如果已经配置过源，请跳过，以下给出一种配置源的方法）
 
 我们是在普通用户下安装的，首先确保当前环境中有一个普通用户和一个root用户，如果是新建的虚拟机需要先给root用户配置密码后才可以正常登录root用户（sudo passwd root）。以下安装普通用户以ascend举例  
 
 &emsp;&emsp;（a）用户权限配置。
-  
+
 &emsp;&emsp;普通用户安装开发套件，需要有sudo权限，所以首先需要给普通用户配置权限。  
 &emsp;&emsp;切换为root用户。  
 &emsp;&emsp;**su root**   
@@ -35,7 +41,7 @@
 
 &emsp;&emsp;**chmod u-w /etc/sudoers** 
 
-    
+
 &emsp;&emsp;（b）源配置。
 
 &emsp;&emsp;由于安装过程中涉及很多apt依赖的安装，所以配置一个国内源是一个加快进度的好办法。  
@@ -90,8 +96,7 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted
 
 ![](img/pic5.png "界面2")
 
-4、选择下图中的选项，点OK即可。
+4、选择下图中的选项，点OK即可, 下图中以20.0 为例举例说明
 
 ![](img/pic6.png "界面3")
 
-5、此时会自动关闭MindStudio，重新启动MindStudio即可。到此C7x开发环境安装完成。

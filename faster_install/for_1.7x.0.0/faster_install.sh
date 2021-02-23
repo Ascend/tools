@@ -11,6 +11,7 @@ MindStudioDir="${HOME}/MindStudio-ubuntu/"
 function check_package()
 {
 	echo "start to check ascend package"
+	mkdir -p ${package_dir}
 	case ${1} in
 	"20.0.0") 
 		#  check 20.0 toolkit arm package 
@@ -155,14 +156,14 @@ function install_toolkit() {
 
 
 function check_hardware_environment() {
-	# 检查当前ubuntu的版本
+
 	Ubuntu_version=`cat /etc/issue | grep Ubuntu |awk -F'[ ]+' '{print $2}'`
 	if [ ! $Ubuntu_version ] || [ ${Ubuntu_version%.*} != "18.04" ]; then
 		echo "This script is only available for Ubuntu18.04. If not, please change the script or Ubuntu version. Exit installation"
 		return 1
 	fi
 
-	# 检查当前ubuntu系统的剩余的内存,内存小于4G 返回失败报错
+
 	mt=`free | tr [:blank:] \\\n | grep [0-9] | sed -n '3p'`
 	mx=`expr $mt \/ 1024 \/ 1024`
 	echo "linux memory is $mx G"
@@ -174,7 +175,7 @@ function check_hardware_environment() {
 		echo "Memory is enough. To be continue."
 	fi
 
-	# 检查当前ubuntu系统剩余的硬盘空间,硬盘空间小于4G 返回失败报错
+
 	max_num=4
 	df_num=`df -h | awk -F' ' '$6 ~ /^\/$/ {print $4}'|awk -F'[ Gg]+' '{print $1}'`
 	echo "linux space is $df_num G"
