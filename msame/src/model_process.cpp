@@ -433,10 +433,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
         }
         if (f_isTXT) {
             ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
-	        int amount_onebatch = 1;
-	        for (int j = 1; j < dim->dimCount; j++) {
-                    amount_onebatch *= dim->dims[j];
-		    }
+            int amount_onebatch = 1;
+            for (int j = 1; j < dim->dimCount; j++) {
+                amount_onebatch *= dim->dims[j];
+            }
             switch (datatype) {
             case 0:
                 for (int i = 0; i < len / sizeof(float); i++) {
