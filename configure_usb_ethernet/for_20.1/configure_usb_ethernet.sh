@@ -68,7 +68,7 @@ network:
   ethernets:
      ${name}: 
        dhcp4: no 
-       addresses: [${address}/8] 
+       addresses: [${address}/24] 
        gateway4: 255.255.255.0 
        nameservers:
          addresses: [114.114.114.114]
@@ -184,8 +184,6 @@ function main()
         sed -i "s/managed=false/managed=true/g" /etc/NetworkManager/NetworkManager.conf
         ifconfig ${usb_ethernet} down 1>/dev/null 2>&1
         ifconfig ${usb_ethernet} up 1>/dev/null 2>&1
-        echo "Restart NetworkManager service..."
-        service NetworkManager restart
         echo "Configure usb ip successfully."
 		netplan apply
 		echo "netplan apply successfully."
