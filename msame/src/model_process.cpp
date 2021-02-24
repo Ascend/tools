@@ -342,19 +342,6 @@ Result ModelProcess::CreateOutput()
 
 void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
 {
-    const char* temp_s = s.c_str();
-    if (NULL == opendir(temp_s)) {
-        mkdir(temp_s, 0775);
-    }
-    std::string T = Utils::TimeLine();
-    string times = s + "/" + T;
-    const char* time = times.c_str();
-    cout << time << endl;
-    mkdir(time, 0775);
-    if (NULL == opendir(time)) {
-        ERROR_LOG("current user does not have permission");
-        exit(0);
-    }
 
     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(output_); ++i) {
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
@@ -445,11 +432,11 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
             outData = reinterpret_cast<float*>(data);
         }
         if (f_isTXT) {
-            ofstream outstr(times + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
-	        int amount_onebatch = 1;
-	        for (int j = 1; j < dim->dimCount; j++) {
-                    amount_onebatch *= dim->dims[j];
-		    }
+            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
+            int amount_onebatch = 1;
+            for (int j = 1; j < dim->dimCount; j++) {
+                amount_onebatch *= dim->dims[j];
+            }
             switch (datatype) {
             case 0:
                 for (int i = 0; i < len / sizeof(float); i++) {
@@ -614,7 +601,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
             }
             outstr.close();
         } else {
-            ofstream outstr(times + "/" + modelName + "_output_" + to_string(i) + ".bin", ios::out | ios::binary);
+            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".bin", ios::out | ios::binary);
 
             outstr.write((char*)outData, len);
             outstr.close();

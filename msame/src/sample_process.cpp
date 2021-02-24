@@ -135,6 +135,22 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         ERROR_LOG("create model output failed");
         return FAILED;
     }
+
+    const char* temp_s = output_path.c_str();
+    if (NULL == opendir(temp_s)) {
+        mkdir(temp_s, 0775);
+    }
+
+    std::string T = Utils::TimeLine();
+    string times = output_path + "/" + T;
+    const char* time = times.c_str();
+    cout << time << endl;
+    mkdir(time, 0775);
+    if (NULL == opendir(time)) {
+        ERROR_LOG("current user does not have permission");
+        exit(0);
+    }
+
     if ((input_files.empty() != 1) && (input_files[0].find(".bin") == string::npos)){
         std::vector<std::string> fileName_vec;
         Utils::ScanFiles(fileName_vec, input_files[0]);
@@ -181,7 +197,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
             size_t dex = (framename).find_last_of(".");
             modelName = (framename).erase(dex);
             
-            processModel.OutputModelResult(output_path, modelName);
+            processModel.OutputModelResult(times, modelName);
             for (size_t index = 0; index < picDevBuffer.size(); ++index) {
                 aclrtFree(picDevBuffer[index]);
             }
@@ -235,7 +251,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                 return FAILED;
             }
         }
-        processModel.OutputModelResult(output_path, modelName);
+        processModel.OutputModelResult(times, modelName);
         double infer_time_ave = Utils::InferenceTimeAverage(inference_time, loop);
         printf("Inference average time: %f ms\n", infer_time_ave);
         if (loop > 1) {
