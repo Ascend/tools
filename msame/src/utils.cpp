@@ -238,9 +238,9 @@ void Utils::ProfilerJson(bool isprof, map<char, string>& params)
         std::string out_path = params['o'].c_str();
         std::string out_profiler_path = out_path + "/profiler";
         ofstream outstr("acl.json", ios::out);
-        outstr << "{\n\"profiler\": {\n    \"switch\": \"on\",\n    \"device_id\": \"";
-        outstr << device << "\",\n    \"result_path\": \"" << out_profiler_path << "\",\n    ";
-        outstr << "\"ai_core_metrics\": \"\"}\n}";
+        outstr << "{\n\"profiler\": {\n    \"switch\": \"on\",\n";
+        outstr << "\"output\": \"" << out_profiler_path << "\",\n    ";
+        outstr << "\"aic_metrics\": \"\"}\n}";
         outstr.close();
 
         //mkdir profiler output dir
