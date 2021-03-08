@@ -108,7 +108,7 @@ def execute(cmd, timeout=3600, cwd=None):
 
 def print_process(string, is_finished=False):
     if string == "" or string is None or is_finished:
-        print("........... 100%", end='\r')
+        print("100%", end='\r')
         print("")
     else:
         string = string.split(".......... ", 1)[1]
