@@ -113,7 +113,7 @@ def print_process(string, is_finished=False):
     else:
         string = string.split(".......... ", 1)[1]
         string = string.split("%")[0] + "%"
-        print(string, end='\r')
+        print(string)
 
 def execute_wget(cmd, timeout=86400, cwd=None):
     '''execute os command'''
