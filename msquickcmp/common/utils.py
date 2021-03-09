@@ -24,6 +24,7 @@ ACCURACY_COMPARISON_BIN_FILE_ERROR = 10
 ACCURACY_COMPARISON_INVALID_KEY_ERROR = 11
 ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR = 12
 ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
+ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR = 14
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 
 
@@ -132,10 +133,17 @@ def get_dump_data_path(dump_dir):
     Return Value:
         dump data path,file is exist or file is not exist
     """
-    dump_data_dir = os.walk(dump_dir)
     dump_data_path = None
     file_is_exist = False
-    for dir_path, sub_paths, files in dump_data_dir:
+    dump_data_dir = None
+    for i in os.listdir(dump_dir):
+        if i.isdigit():
+            dump_data_dir = os.path.join(dump_dir, i)
+            break
+    if not dump_data_dir:
+        print_error_log("The directory \"{}\" does not contain dump data".format(dump_dir))
+        raise AccuracyCompareException(ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR)
+    for dir_path, sub_paths, files in os.walk(dump_data_dir):
         if len(files) != 0:
             dump_data_path = dir_path
             file_is_exist = True
