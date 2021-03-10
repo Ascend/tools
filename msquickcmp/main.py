@@ -59,8 +59,11 @@ def main():
     utils.check_file_or_directory_path(os.path.realpath(args.out_path), True)
     time_dir = time.strftime("%Y%m%d%H%M%S", time.localtime())
     args.out_path = os.path.realpath(os.path.join(args.out_path, time_dir))
-    utils.check_file_or_directory_path(os.path.realpath(args.model_path))
-    utils.check_file_or_directory_path(os.path.realpath(args.offline_model_path))
+    args.model_path = os.path.realpath(args.model_path)
+    args.offline_model_path = os.path.realpath(args.offline_model_path)
+    args.cann_path = os.path.realpath(args.cann_path)
+    utils.check_file_or_directory_path(args.model_path)
+    utils.check_file_or_directory_path(args.offline_model_path)
     try:
         # generate dump data by the original model
         cpu_dump_data_path = _generate_cpu_data_model(args).generate_dump_data()
