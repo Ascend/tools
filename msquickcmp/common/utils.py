@@ -137,6 +137,7 @@ def get_dump_data_path(dump_dir):
     file_is_exist = False
     dump_data_dir = None
     for i in os.listdir(dump_dir):
+        # Contains the dump file directory, whose name is a pure digital timestamp
         if i.isdigit():
             dump_data_dir = os.path.join(dump_dir, i)
             break
