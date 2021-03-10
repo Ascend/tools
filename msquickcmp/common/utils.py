@@ -141,9 +141,11 @@ def get_dump_data_path(dump_dir):
         if i.isdigit():
             dump_data_dir = os.path.join(dump_dir, i)
             break
+
     if not dump_data_dir:
         print_error_log("The directory \"{}\" does not contain dump data".format(dump_dir))
         raise AccuracyCompareException(ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR)
+
     for dir_path, sub_paths, files in os.walk(dump_data_dir):
         if len(files) != 0:
             dump_data_path = dir_path
