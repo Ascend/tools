@@ -62,7 +62,7 @@ USB_CARD_DEFAULT_IP=$6
 sectorEnd=$7
 sectorSize=$8
 
-PACKAGE_VERSION="20.2"
+PACKAGE_VERSION="3.3.0"
 
 
 LogPath=${ScriptPath}"sd_card_making_log/"
