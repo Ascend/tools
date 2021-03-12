@@ -41,7 +41,7 @@ import sys
 
 NETWORK_CARD_DEFAULT_IP="192.168.0.2"
 USB_CARD_DEFAULT_IP="192.168.1.2"
-CANN_VERSION="20.2"
+CANN_VERSION="3.3.0"
 
 VERSION_INFO_URL = "https://raw.githubusercontent.com/Ascend/tools/master/versioninfo.yaml"
 
