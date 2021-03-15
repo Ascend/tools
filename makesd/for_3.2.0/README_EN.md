@@ -1,6 +1,6 @@
 EN|[CH](README.md)
 
-# for_20.2
+# for_3.2.0
 
 ## File List
 
@@ -10,7 +10,7 @@ EN|[CH](README.md)
 
 - Entry script for SD card making: **ubuntu-18.04.xxserver-arm64.iso**.[click jump](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- Entry script for SD card making: **A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz**, **Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run**.[click jump](https://www.huaweicloud.com/ascend/resource/Software)
+- Entry script for SD card making: **A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz**, **Ascend-cann-nnrt_xxx_linux-aarch64.run**.[click jump](https://www.huaweicloud.com/ascend/resource/Software)
 
 ## Procedure
 
@@ -26,7 +26,7 @@ EN|[CH](README.md)
 	(If Git is not installed, run the sudo apt-get install git command to install it.)  
 
 	Go to the C76 card making directory:  
-	**cd $HOME/tools/makesd/for_20.2/**  
+	**cd $HOME/tools/makesd/for_3.2.0/**  
 	```powershell  
 	HwHiAiUser@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
         Cloning into 'tools'...
@@ -38,8 +38,8 @@ EN|[CH](README.md)
         Resolving deltas: 100% (1691/1691), done.
         Checking connectivity... done.
         Checking out files: 100% (590/590), done.
-	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.2/
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ls
+	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_3.2.0/
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md README_EN.md
 	```  
 	Download the ubuntu18.04-arm.iso image:  
@@ -49,9 +49,9 @@ EN|[CH](README.md)
 	After the download is complete, grant 755 permission to the script and image:  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. Save the downloaded card making package to the $HOME/tools/makesd/for_20.2 directory of the common user.  
+3. Save the downloaded card making package to the $HOME/tools/makesd/for_3.2.0 directory of the common user.  
 	```powershell  
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
@@ -62,14 +62,14 @@ EN|[CH](README.md)
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
         -rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README_EN.md
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ 
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ 
 	```  
 
 4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
 
 	Switch to the root user and prepare for card making:  
 	**su - root**    
-        **cd ${HOME}/tools/makesd/for_20.2/**
+        **cd ${HOME}/tools/makesd/for_3.2.0/**
 
 	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
