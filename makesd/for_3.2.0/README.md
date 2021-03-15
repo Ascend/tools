@@ -1,6 +1,6 @@
 中文|[英文](README_EN.md)
 
-# for_20.2
+# for_3.2.0
 
 ## 文件列表
 
@@ -12,7 +12,7 @@
 
 - 固件与驱动包：A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
 
-- 加速模块包：Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
+- 加速模块包：Ascend-cann-nnrt_xxx_linux-aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
 
 
 ## 制卡步骤
@@ -31,8 +31,8 @@
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
 
-	执行以下命令，进入20.2制卡目录。  
-	**cd $HOME/tools/makesd/for_20.2/**  
+	执行以下命令，进入3.2.0制卡目录。  
+	**cd $HOME/tools/makesd/for_3.2.0/**  
 	```powershell  
 	HwHiAiUser@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
         Cloning into 'tools'...
@@ -44,8 +44,8 @@
         Resolving deltas: 100% (1691/1691), done.
         Checking connectivity... done.
         Checking out files: 100% (590/590), done.
-	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.2/
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ls
+	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_3.2.0/
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md README_EN.md
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
@@ -55,9 +55,9 @@
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_20.2）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_3.2.0）下。  
 	```powershell  
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
@@ -68,14 +68,14 @@
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
         -rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README_EN.md
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.2$ 
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
 
 	执行以下命令，切换root用户，准备制卡。  
 	**su - root**    
-        **cd ${HOME}/tools/makesd/for_20.2/**
+        **cd ${HOME}/tools/makesd/for_3.2.0/**
 
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
