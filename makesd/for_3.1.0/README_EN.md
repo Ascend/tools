@@ -6,11 +6,13 @@ EN|[CH](README.md)
 
 - Entry script for SD card making: **make_sd_card.py**
 
-- Entry script for SD card making: **make_ubuntu_sd.sh**
+- Make SD card operating system script: **make_ubuntu_sd.sh**
 
-- Entry script for SD card making: **ubuntu-18.04.xxserver-arm64.iso**.[click jump](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
+- Developer board operating system image package: **ubuntu-18.04.xxserver-arm64.iso**.[click jump](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- Entry script for SD card making: **Ascend310-firmware-xxx-minirc.run**, **Ascend310-aicpu_kernels-xxx-minirc.tar.gz**, **Ascend-acllib-xxx-ubuntu18.04.aarch64-minirc.run**.[click jump](https://www.huaweicloud.com/ascend/resource/Software)
+- Firmware and driver package: **A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz**.[click jump](https://www.huaweicloud.com/ascend/resource/Software)
+
+- Acceleration module package: **Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip**.[click jump](https://www.huaweicloud.com/ascend/cann-download)
 
 ## Procedure
 
