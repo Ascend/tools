@@ -1,6 +1,6 @@
 中文|[英文](README_EN.md)
 
-# for_20.1
+# for_3.1.0
 
 ## 文件列表
 
@@ -31,8 +31,8 @@
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
 
-	执行以下命令，进入20.1制卡目录。  
-	**cd $HOME/tools/makesd/for_20.1/**  
+	执行以下命令，进入3.1.0制卡目录。  
+	**cd $HOME/tools/makesd/for_3.1.0/**  
 	```powershell  
 	HwHiAiUser@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
 	Cloning into 'tools'...
@@ -44,8 +44,8 @@
 	Resolving deltas: 100% (128/128), done.
 	HwHiAiUser@ubuntu:~$ cd tools/
 	amexec/  .git/    img2bin/ makesd/  
-	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_20.1/
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ls
+	HwHiAiUser@ubuntu:~$ cd tools/makesd/for_3.1.0/
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
@@ -55,9 +55,9 @@
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_20.1）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_3.1.0）下。  
 	```powershell  
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
@@ -67,14 +67,14 @@
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	HwHiAiUser@ubuntu:~/tools/makesd/for_20.1$ 
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
 
 	执行以下命令，切换root用户，准备制卡。  
 	**su - root**    
-        **cd ${HOME}/tools/makesd/for_20.1/**
+        **cd ${HOME}/tools/makesd/for_3.1.0/**
 
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
