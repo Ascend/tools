@@ -18,7 +18,7 @@ EN|[CH](README.md)
 
 1. Download the software packages required for SD card making from  
 	**https://www.huaweicloud.com/intl/en-us/ascend/resource/Software**  
-        ![下载制卡包](https://images.gitee.com/uploads/images/2020/0810/100322_a78ef230_5395865.png "屏幕截图.png")
+        ![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/101723_500639e8_7985487.png "屏幕截图.png")
 
 2. Download the SD card making script and ubuntu18.04-arm.iso。  
 	Run the following command in the $HOME directory of a common user (for example, the ascend user) in the local environment to download code from the tools repository:  
@@ -76,7 +76,7 @@ EN|[CH](README.md)
 	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
 	(Note: /dev/sdb is the device name of the SD card. You can run the fdisk -l command as the root user to query the device name.)  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/101754_677eb7c2_7985487.png "屏幕截图.png") 
 	When a message is displayed, asking you whether to continue the installation, enter **Y**.  
 	Wait for about 7 minutes. The message "Make SD Card successfully!" is displayed, indicating that the SD card has been made successfully.  
 	

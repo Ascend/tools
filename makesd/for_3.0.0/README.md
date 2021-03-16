@@ -20,7 +20,7 @@
 
 1. 如下图下载制卡需要的软件包  
 	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**  
-	![](https://images.gitee.com/uploads/images/2020/1205/162945_e7c3bea4_5400693.png "package.png")
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/095437_f17a6526_7985487.png "屏幕截图.png")
 
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
 	在本地环境普通用户（以ascend用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
@@ -76,7 +76,7 @@
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/101600_471c2450_7985487.png "屏幕截图.png") 
 	如图，制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
