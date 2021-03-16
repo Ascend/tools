@@ -22,7 +22,7 @@
    
 2. 将脚本和加速模块包上传到开发板上任意目录，如：/home/HwHiAiUser/update。   
 
-    **scp update_200dk_3.1.0.sh HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
+    **scp update_200dk.sh HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
     **scp Ascend-acllib-*-linux.aarch64.run HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
     (注：XXXX代表开发板登录ip，请根据情况自行替换)
 
