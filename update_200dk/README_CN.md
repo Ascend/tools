@@ -1,10 +1,10 @@
-# for_20.2
-**注意：该脚本是将aicpu，pyacl，acllob从20.1及以上版本升级至20.2版本的工具脚本。**   
+# update_200dk
+**注意：该脚本是将aicpu，pyacl，acllib从3.1.0及以上版本升级至3.2.0及以上版本的工具脚本。**   
 
 ## 文件列表
 
-- 加速模块包：Ascend-acllib-*-linux.aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
-- 升级脚本：update_200dk_20.2.sh
+- 加速模块包：Ascend-cann-nnrt*_linux.aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
+- 升级脚本：update_200dk.sh
 
 ## 制卡步骤
 
@@ -17,12 +17,12 @@
     **git clone https://gitee.com/ascend/tools.git**    
     （注：如果没有安装git，执行sudo apt-get install git 安装git）   
     执行以下命令进入升级目录。    
-    **cd tools/update_200dk/for20.2**    
+    **cd tools/update_200dk**    
     下载加速模块包，并上传到该目录下。  
    
 2. 将脚本和加速模块包上传到开发板上任意目录，如：/home/HwHiAiUser/update。   
 
-    **scp update_200dk_20.2.sh HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
+    **scp update_200dk.sh HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
     **scp Ascend-acllib-*-linux.aarch64.run HwHiAiUser@XXXX:/home/HwHiAiUser/update**    
     (注：XXXX代表开发板登录ip，请根据情况自行替换)
 
@@ -35,4 +35,4 @@
 
 4. 执行升级脚本  
 
-	**bash update_200dk_20.2.sh**      
+	**bash update_200dk.sh**      

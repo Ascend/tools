@@ -42,6 +42,10 @@ function CheckPackage()
     for i in $(ls Ascend-cann-nnrt_20.2.*.run 2>/dev/null);do
         cann_array[$((cann_array_item++))]=${i}
     done
+    for i in $(ls Ascend-cann-nnrt_3.3.0.*.run 2>/dev/null);do
+        cann_array[$((cann_array_item++))]=${i}
+    done
+
 
     length=${#cann_array[@]}
     if [[ ${length} -gt 1 ]];then
@@ -77,7 +81,7 @@ function CheckPackage()
         fi
         CANN_PACKAGE=${cann_array[$(expr ${CANN_CHOICE} - 1)]}
     elif [[ ${length} -eq 0 ]];then
-        echo "[ERROR] find Ascend-cann-nnrt_20.2.*.run failed. please put this package in this folder."
+        echo "[ERROR] find Ascend-cann-nnrt.*.run failed. please put this package in this folder."
         return 1
     elif [[ ${length} -eq 1 ]];then
         CANN_PACKAGE=${cann_array[0]}
@@ -88,7 +92,7 @@ function CheckPackage()
     ./${CANN_PACKAGE} --extract=${ScriptPath}/nnrt --noexec
     if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" = "x" ]] || \
             [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
-        echo "[ERROR] extract Ascend-cann-nnrt_20.2.*_linux-aarch64.run failed. please check this package."
+        echo "[ERROR] extract Ascend-cann-nnrt.*_linux-aarch64.run failed. please check this package."
         return 1
     fi
 
