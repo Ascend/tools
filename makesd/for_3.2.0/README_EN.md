@@ -54,8 +54,8 @@ EN|[CH](README.md)
 	After the download is complete, grant 755 permission to the script and image:  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. Save the downloaded card making package to the $HOME/tools/makesd/for_3.2.0 directory of the common user.  
-```powershell  
+3. Save the downloaded card making package to the $HOME/tools/makesd/for_3.2.0 directory of the common user.     
+	```powershell  
 	HwHiAiUser@ubuntu:~/tools/makesd/for_3.2.0$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
