@@ -10,9 +10,9 @@
 
 - 开发者板操作系统镜像包：ubuntu-18.04.xxserver-arm64.iso，[点击跳转](http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/)
 
-- 固件与驱动包：A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://www.huaweicloud.com/ascend/resource/Software)
+- 固件与驱动包：A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz，[点击跳转](https://ascend.huawei.com/#/hardware/firmware-drivers)
 
-- 加速模块包：Ascend-cann-nnrt_xxx_linux-aarch64.run，[点击跳转](https://www.huaweicloud.com/ascend/cann-download)
+- 加速模块包：Ascend-cann-nnrt_xxx_linux-aarch64.run，[点击跳转](https://ascend.huawei.com/#/software/cann/community)
 
 
 ## 制卡步骤
@@ -21,11 +21,11 @@
 
 1. 如下图下载制卡需要的软件包  
     - 下载驱动包。   
-	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**   
-	![](https://images.gitee.com/uploads/images/2020/1205/163803_ad86c6e4_5400693.png "driver.png") 
-    - 下载加速模块包。   
-        下载地址：**https://www.huaweicloud.com/ascend/cann-download**    
-        ![](https://images.gitee.com/uploads/images/2020/1205/163636_d1778bd2_5400693.png "cann.png")   
+	下载地址：**https://ascend.huawei.com/#/hardware/firmware-drivers**   
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/115015_adf679f7_7985487.png "屏幕截图.png") 
+    - 下载加速模块包。    
+        下载地址：**https://ascend.huawei.com/#/software/cann/community**（历史版本中的3.2.0.alpha001）      
+        ![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/134749_e7061f53_7985487.png "屏幕截图.png")  
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
 	在本地环境普通用户（以HwHiAiUser用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
 	**git clone https://gitee.com/ascend/tools.git**  
@@ -61,8 +61,8 @@
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
-	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 56942841 Jul 28 04:32 A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz
-	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 41414016 Jul 28 04:33 Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 51804744 Jul 28 04:32 A200dk-npu-driver-20.2.0-ubuntu18.04-aarch64-minirc.tar.gz
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 100064987 Jul 28 04:33 Ascend-cann-nnrt_20.2.alpha001_linux-aarch64.run
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    17633 Jul 28 04:23 make_sd_card.py*
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
@@ -80,7 +80,7 @@
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![mksd](https://images.gitee.com/uploads/images/2021/0204/113420_accdf3cd_5408865.png "123456.png")
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/134724_dd47fe7a_7985487.png "屏幕截图.png")
 	如图，制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
