@@ -24,7 +24,7 @@
 	下载地址：**https://ascend.huawei.com/#/hardware/firmware-drivers**   
 	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/115015_adf679f7_7985487.png "屏幕截图.png") 
     - 下载加速模块包。    
-        下载地址：**https://ascend.huawei.com/#/software/cann/community**（历史版本中的3.2.0.alpha001）      
+        下载地址：**https://ascend.huawei.com/#/software/cann/community**  （历史版本中的3.2.0.alpha001）      
         ![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/134749_e7061f53_7985487.png "屏幕截图.png")  
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
 	在本地环境普通用户（以HwHiAiUser用户为例）的$HOME目录下执行以下命令，下载tools仓代码。  
