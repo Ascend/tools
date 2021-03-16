@@ -18,9 +18,13 @@ EN|[CH](README.md)
 
 **Before starting SD card making, prepare the environment as follows.**
 
-1. Download the software packages required for SD card making from  
+1. Download the software packages required for SD card    
+   -Download the driver package 
 	**https://www.huaweicloud.com/intl/en-us/ascend/resource/Software**  
-        ![下载制卡包](https://images.gitee.com/uploads/images/2020/0810/100322_a78ef230_5395865.png "屏幕截图.png")
+        ![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/135625_c2a3fe90_7985487.png "屏幕截图.png")     
+   - Download the acceleration module package    
+        **https://www.huaweicloud.com/ascend/cann-download**    
+        ![](https://images.gitee.com/uploads/images/2020/1205/163636_d1778bd2_5400693.png "cann.png")   
 
 2. Download the SD card making script and ubuntu18.04-arm.iso。  
 	Run the following command in the $HOME directory of a common user (for example, the ascend user) in the local environment to download code from the tools repository:  
@@ -55,18 +59,17 @@ EN|[CH](README.md)
 	
 3. Save the downloaded card making package to the $HOME/tools/makesd/for_3.1.0 directory of the common user.  
 	```powershell  
-	ascend@ubuntu:~/tools/makesd/for_3.1.0$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ ll
 	total 80920
-	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
-	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
-	-rw-r--r-- 1 ascend ascend   173441 Jul 28 04:32 Ascend310-aicpu_kernels-1.73.5.1.b050-minirc.tar.gz
-	-rw-r--r-- 1 ascend ascend   449942 Jul 28 04:32 Ascend310-firmware-1.73.5.1.b050-minirc.run
-	-rw-r--r-- 1 ascend ascend  4457767 Jul 28 04:33 Ascend-acllib-1.73.5.1.b050-ubuntu18.04.aarch64-minirc.run
-	-rwxr-xr-x 1 ascend ascend    17633 Jul 28 04:23 make_sd_card.py*
-	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
-	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
-	-rwxr-xr-x 1 ascend ascend 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	ascend@ubuntu:~/tools/makesd/for_3.1.0$ 
+	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
+	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 56942841 Jul 28 04:32 A200dk-npu-driver-20.1.0-ubuntu18.04-aarch64-minirc.tar.gz
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser 41414016 Jul 28 04:33 Ascend-cann-minirc_20.1.rc1_ubuntu18.04-aarch64.zip
+	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    17633 Jul 28 04:23 make_sd_card.py*
+	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    23797 Jul 28 04:23 make_ubuntu_sd.sh*
+	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
+	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
+	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ 
 	```  
 
 4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
@@ -78,7 +81,7 @@ EN|[CH](README.md)
 	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
 	(Note: /dev/sdb is the device name of the SD card. You can run the fdisk -l command as the root user to query the device name.)  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/104227_e8b3784d_7985487.png "屏幕截图.png")
 	When a message is displayed, asking you whether to continue the installation, enter **Y**.  
 	Wait for about 7 minutes. The message "Make SD Card successfully!" is displayed, indicating that the SD card has been made successfully.  
 	
