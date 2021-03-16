@@ -41,7 +41,7 @@ import sys
 
 NETWORK_CARD_DEFAULT_IP="192.168.0.2"
 USB_CARD_DEFAULT_IP="192.168.1.2"
-CANN_VERSION="3.3.0"
+CANN_VERSION_LIST = ["20.2", "3.3.0"]
 
 VERSION_INFO_URL = "https://raw.githubusercontent.com/Ascend/tools/master/versioninfo.yaml"
 
@@ -309,9 +309,14 @@ def process_local_installation(dev_name,sector_num,sector_size):
     execute("rm -rf {path}_log/*".format(path=SD_CARD_MAKING_PATH))
     execute("mkdir -p {path}_log".format(path=SD_CARD_MAKING_PATH))
     log_path = "{path}_log".format(path=SD_CARD_MAKING_PATH)
-
-    ret, cann_package_list = execute(
-        "find {path} -maxdepth 1 -name 'Ascend-cann-nnrt_{version}.*.run'".format(path=CURRENT_PATH, version=CANN_VERSION))
+    
+    cann_package_list = []
+    for CANN_VERSION in CANN_VERSION_LIST:
+        ret, cann_package_list_tmp = execute(
+            "find {path} -maxdepth 1 -name 'Ascend-cann-nnrt_{version}.*.run'".format(path=CURRENT_PATH, version=CANN_VERSION))
+        cann_package_list_tmp = list(filter(None, cann_package_list_tmp))
+        if cann_package_list_tmp != []:
+            cann_package_list += cann_package_list_tmp
     if not ret or len(cann_package_list[0]) == 0:
         print("[ERROR] Can not find cann nnrt in current path")
         return False

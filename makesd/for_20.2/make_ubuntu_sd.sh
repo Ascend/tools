@@ -61,8 +61,8 @@ NETWORK_CARD_DEFAULT_IP=$5
 USB_CARD_DEFAULT_IP=$6
 sectorEnd=$7
 sectorSize=$8
-
-PACKAGE_VERSION="3.3.0"
+tmp_package_version=${CANN_PACKAGE##*Ascend-cann-nnrt_}
+PACKAGE_VERSION=${tmp_package_version%*_linux-aarch64.run}
 
 
 LogPath=${ScriptPath}"sd_card_making_log/"
@@ -191,7 +191,7 @@ function checkAscendPackage()
     ./${CANN_PACKAGE##*/} --extract=${ScriptPath}/nnrt --noexec
     if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" = "x" ]] || \
             [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
-        echo "extract Ascend-cann-nnrt_20.2.rc1_linux-aarch64.run failed. please check this package."
+        echo "extract Ascend-cann-nnrt_"${PACKAGE_VERSION}"_linux-aarch64.run failed. please check this package."
         return 1
     fi
 
@@ -1064,4 +1064,5 @@ fi
 echo "Success" > ${LogPath}/make_ubuntu_sd.result
 exit 0
 # end
+
 
