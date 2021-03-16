@@ -22,7 +22,7 @@
 1. 如下图下载制卡需要的软件包  
     - 下载驱动包。   
 	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**   
-	![](https://images.gitee.com/uploads/images/2020/1205/163803_ad86c6e4_5400693.png "driver.png") 
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/102103_ec24c702_7985487.png "屏幕截图.png")    
     - 下载加速模块包。   
         下载地址：**https://www.huaweicloud.com/ascend/cann-download**    
         ![](https://images.gitee.com/uploads/images/2020/1205/163636_d1778bd2_5400693.png "cann.png")   
@@ -79,7 +79,7 @@
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![mksd2](https://images.gitee.com/uploads/images/2020/0729/140246_f7c541a0_5395865.png)  
+	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/104227_e8b3784d_7985487.png "屏幕截图.png")
 	如图，制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
