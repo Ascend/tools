@@ -129,7 +129,7 @@ Result ModelProcess::PrintDesc()
         cout << endl;
         DEBUG_LOG("the name of %zu input: %s", i, aclmdlGetInputNameByIndex(modelDesc_, i));
         DEBUG_LOG("the Format of %zu input: %u", i, aclmdlGetInputFormat(modelDesc_, i));
-        DEBUG_LOG("the DataType of %zu input: %u", i, aclmdlGetInputFormat(modelDesc_, i));
+        DEBUG_LOG("the DataType of %zu input: %u", i, aclmdlGetInputDataType(modelDesc_, i));
     }
     for (size_t i = 0; i < numOutputs; i++) {
         DEBUG_LOG("the size of %zu output: %zu", i, aclmdlGetOutputSizeByIndex(modelDesc_, i));
@@ -147,7 +147,7 @@ Result ModelProcess::PrintDesc()
         cout << endl;
         DEBUG_LOG("the name of %zu output: %s", i, aclmdlGetOutputNameByIndex(modelDesc_, i));
         DEBUG_LOG("the Format of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
-        DEBUG_LOG("the DataType of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
+        DEBUG_LOG("the DataType of %zu output: %u", i, aclmdlGetOutputDataType(modelDesc_, i));
     }
     aclmdlBatch batch_info;
     ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
