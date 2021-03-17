@@ -1,6 +1,6 @@
 中文|[英文](README_EN.md)
 
-# for_3.0.0
+# for_1.0.7.alpha
 
 **本文档只提供读卡器制卡方式指导，更多详细指导可以参考[官方制卡文档](https://support.huaweicloud.com/usermanual-A200dk_3000/atlas200dk_02_0010.html)**
 
@@ -19,7 +19,7 @@
 **制卡之前需要先将环境准备好**
 
 1. 如下图下载制卡需要的软件包  
-	下载地址：**https://www.huaweicloud.com/ascend/resource/Software**  
+	下载地址：**https://ascend.huawei.com/#/hardware/firmware-drivers**  
 	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/095437_f17a6526_7985487.png "屏幕截图.png")
 
 2. 下载制卡脚本和ubuntu18.04-arm.iso。  
@@ -27,8 +27,8 @@
 	**git clone https://gitee.com/ascend/tools.git**  
 	（注：如果没有安装git，执行sudo apt-get install git 安装git）  
 
-	执行以下命令，进入3.0.0制卡目录。  
-	**cd $HOME/tools/makesd/for_3.0.0/**  
+	执行以下命令，进入1.0.7.alpha制卡目录。  
+	**cd $HOME/tools/makesd/for_1.0.7.alpha/**  
 	```powershell  
 	ascend@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
 	Cloning into 'tools'...
@@ -40,8 +40,8 @@
 	Resolving deltas: 100% (128/128), done.
 	ascend@ubuntu:~$ cd tools/
 	amexec/  .git/    img2bin/ makesd/  
-	ascend@ubuntu:~$ cd tools/makesd/for_3.0.0/
-	ascend@ubuntu:~/tools/makesd/for_3.0.0$ ls
+	ascend@ubuntu:~$ cd tools/makesd/for_1.0.7.alpha/
+	ascend@ubuntu:~/tools/makesd/for_1.0.7.alpha$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
 	```  
 	执行以下命令下载ubuntu18.04-arm.iso镜像。  
@@ -51,9 +51,9 @@
 	下载完成后，执行以下命令，给脚本和iso镜像加权限。  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_3.0.0）下。  
+3. 将之前下载的制卡所需包放置到该目录（普通用户的 $HOME/tools/makesd/for_1.0.7.alpha）下。  
 	```powershell  
-	ascend@ubuntu:~/tools/makesd/for_3.0.0$ ll
+	ascend@ubuntu:~/tools/makesd/for_1.0.7.alpha$ ll
 	total 80920
 	drwxr-xr-x 2 ascend ascend     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 ascend ascend     4096 Jul 28 04:23 ../
@@ -64,20 +64,20 @@
 	-rwxr-xr-x 1 ascend ascend    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 ascend ascend      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 ascend ascend 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	ascend@ubuntu:~/tools/makesd/for_3.0.0$ 
+	ascend@ubuntu:~/tools/makesd/for_1.0.7.alpha$ 
 	```  
 
 4. 将插有SD卡的读卡器连接Ubuntu服务器，制作SD卡：  
 
 	执行以下命令，切换root用户，准备制卡。  
 	**su - root**    
-        **cd ${HOME}/tools/makesd/for_3.0.0/**
+        **cd ${HOME}/tools/makesd/for_1.0.7.alpha/**
 
 	执行以下命令，执行脚本准备制卡  
 	**python3 make_sd_card.py local /dev/sdb**  
 	（说明：/dev/sdb 是SD卡的设备名，可以在root用户下执行fdisk -l查看。）  
-	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/101600_471c2450_7985487.png "屏幕截图.png") 
-	如图，制卡过程中，提示是否继续安装，输入**Y**。  
+        
+        制卡过程中，提示是否继续安装，输入**Y**。  
 	等待约7min，提示**Make SD Card successfully!**,则制卡成功。  
 	
 5. 上电Atlas 200DK开发板。  
