@@ -1,6 +1,16 @@
 EN|[CH](README.md)
 
-# for_3.1.0
+# for_1.0.8.alpha
+
+## Supporting relationship
+
+The business card requires the firmware and driver package and the community version cann_minirc package, which have corresponding firmware and driver version numbers and CANN version numbers respectively.
+The following table shows the matching table of **hardware version and CANN version**. Please select the corresponding CANN version package for card making according to the hardware version.
+
+| Firmware and driver version | CANN version |
+|---|---|
+|  1.0.8.alpha |  3.1.0.alpha001 |
+|  1.0.9.alpha |  3.2.0.alpha001/3.3.0.alpha001 |
 
 ## File List
 
@@ -31,8 +41,8 @@ EN|[CH](README.md)
 	**git clone https://gitee.com/ascend/tools.git**  
 	(If Git is not installed, run the sudo apt-get install git command to install it.)  
 
-	Go to the 3.1.0 card making directory:  
-	**cd $HOME/tools/makesd/for_3.1.0/**  
+	Go to the 1.0.8.alpha card making directory:  
+	**cd $HOME/tools/makesd/for_1.0.8.alpha/**  
 	```powershell  
 	ascend@ubuntu:~$ git clone https://gitee.com/ascend/tools.git
 	Cloning into 'tools'...
@@ -44,11 +54,11 @@ EN|[CH](README.md)
 	Resolving deltas: 100% (128/128), done.
 	ascend@ubuntu:~$ cd tools/
 	amexec/  .git/    img2bin/ makesd/  
-	ascend@ubuntu:~$ cd tools/makesd/for_3.1.0/
-	ascend@ubuntu:~/tools/makesd/for_3.1.0$ ls
+	ascend@ubuntu:~$ cd tools/makesd/for_1.0.8.alpha/
+	ascend@ubuntu:~/tools/makesd/for_1.0.8.alpha$ ls
 	make_sd_card.py  make_ubuntu_sd.sh  README.md
-	ascend@ubuntu:~/tools/makesd/for_3.1.0$ ^C
-	ascend@ubuntu:~/tools/makesd/for_3.1.0$ 
+	ascend@ubuntu:~/tools/makesd/for_1.0.8.alpha$ ^C
+	ascend@ubuntu:~/tools/makesd/for_1.0.8.alpha$ 
 	```  
 	Download the ubuntu18.04-arm.iso image:  
 	**wget http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.4-server-arm64.iso**  
@@ -57,9 +67,9 @@ EN|[CH](README.md)
 	After the download is complete, grant 755 permission to the script and image:  
 	**chmod 755 make_sd_card.py make_ubuntu_sd.sh ubuntu-18.04.4-server-arm64.iso**  
 	
-3. Save the downloaded card making package to the $HOME/tools/makesd/for_3.1.0 directory of the common user.  
+3. Save the downloaded card making package to the $HOME/tools/makesd/for_1.0.8.alpha directory of the common user.  
 	```powershell  
-	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ ll
+	HwHiAiUser@ubuntu:~/tools/makesd/for_1.0.8.alpha$ ll
 	total 80920
 	drwxr-xr-x 2 HwHiAiUser HwHiAiUser     4096 Jul 28 04:33 ./
 	drwxr-xr-x 4 HwHiAiUser HwHiAiUser     4096 Jul 28 04:23 ../
@@ -69,20 +79,20 @@ EN|[CH](README.md)
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser    23797 Jul 28 04:23 make_ubuntu_sd.sh*
 	-rw-r--r-- 1 HwHiAiUser HwHiAiUser      438 Jul 28 04:23 README.md
 	-rwxr-xr-x 1 HwHiAiUser HwHiAiUser 82800726 Jul 28 04:27 ubuntu-18.04.4-server-arm64.iso*
-	HwHiAiUser@ubuntu:~/tools/makesd/for_3.1.0$ 
+	HwHiAiUser@ubuntu:~/tools/makesd/for_1.0.8.alpha$ 
 	```  
 
 4. Connect the card reader inserted with an SD card to the Ubuntu server to make a bootable SD card.  
 
 	Switch to the root user and prepare for card making:  
 	**su - root**    
-        **cd ${HOME}/tools/makesd/for_3.1.0/**
+        **cd ${HOME}/tools/makesd/for_1.0.8.alpha/**
 
 	Run the SD card making script:  
 	**python3 make_sd_card.py local /dev/sdb**  
 	(Note: /dev/sdb is the device name of the SD card. You can run the fdisk -l command as the root user to query the device name.)  
-	![输入图片说明](https://images.gitee.com/uploads/images/2021/0316/104227_e8b3784d_7985487.png "屏幕截图.png")
-	When a message is displayed, asking you whether to continue the installation, enter **Y**.  
+
+	Asking you whether to continue the installation, enter **Y**.  
 	Wait for about 7 minutes. The message "Make SD Card successfully!" is displayed, indicating that the SD card has been made successfully.  
 	
 5. Power on the Atlas 200 DK.  
