@@ -36,15 +36,16 @@ class Overflow(ToolObject):
     overflow_dump_parent_dirs = {}
 
     def __init__(self):
+        """Init"""
         super(Overflow, self).__init__()
 
     def prepare(self):
-        """"""
+        """Prepare"""
         self.overflow_dump_files, self.overflow_dump_parent_dirs = util.list_dump_files(cfg.DUMP_FILES_OVERFLOW)
         self._parse_overflow_files()
 
     def check(self):
-        """ Check overflow info"""
+        """Check overflow info"""
         if len(self.overflow_ops) == 0:
             LOG.info("[Overflow] Checked success. find [0] overflow node!")
             return
@@ -54,7 +55,7 @@ class Overflow(ToolObject):
             file_info = file_infos[first_timestamp]
             self._decode_overflow_info(file_info)
             self._parse_overflow_info(file_info)
-        LOG.info("[Overflow] Checked success. find [%d] overflow node!" % len(self.overflow_ops))
+        LOG.info("[Overflow] Checked success. find [%d] overflow node!", len(self.overflow_ops))
 
     def _parse_overflow_files(self):
         # make relationship between dump_file and debug_file
@@ -78,7 +79,8 @@ class Overflow(ToolObject):
                 self.overflow_ops[op_name] = {}
             self.overflow_ops[op_name][timestamp] = file_info
 
-    def _decode_overflow_info(self, file_info):
+    @staticmethod
+    def _decode_overflow_info(file_info):
         debug_file = file_info['debug_file']
         file_path = file_info['path']
         # do not convert again
@@ -130,7 +132,7 @@ class Overflow(ToolObject):
             return error_code
         bin_status = ''.join(reversed(bin(status)))
         prefix = ''
-        LOG.debug('Decode AI Core Overflow status:[%s]' % hex(status))
+        LOG.debug('Decode AI Core Overflow status:[%s]', hex(status))
         for i in range(len(bin_status)):
             if bin_status[i] == '1':
                 error_code.append(AI_CORE_OVERFLOW_STATUS[hex(int('1' + prefix, 2))])

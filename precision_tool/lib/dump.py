@@ -14,15 +14,18 @@ class Dump(ToolObject):
     npu_parent_dirs = None
 
     def __init__(self):
+        """Init"""
         super(Dump, self).__init__()
         self._init_dirs()
 
     def preapre(self):
+        """Prepare npu/cpu dump files"""
         self._parse_npu_dump_files()
         self._parse_cpu_dump_files()
 
     @staticmethod
     def _init_dirs():
+        """Create dump file dirs"""
         LOG.debug('Init dump dirs.')
         util.create_dir(cfg.DUMP_FILES_NPU)
         util.create_dir(cfg.DUMP_FILES_DECODE)
@@ -31,27 +34,32 @@ class Dump(ToolObject):
         util.create_dir(cfg.DUMP_FILES_CPU)
 
     def npu_dump_files(self):
+        """Get npu dump files"""
         if self.npu_files is None:
             self._parse_npu_dump_files()
         return self.npu_files
 
     def cpu_dump_files(self):
+        """Get cpu dump files"""
         if self.cpu_files is None:
             self._parse_cpu_dump_files()
         return self.cpu_files
 
-    def print_data(self, file_name):
+    @staticmethod
+    def print_data(file_name):
+        """Print numpy data file"""
         if os.path.isfile(os.path.join(cfg.DUMP_FILES_DECODE, file_name)):
-            LOG.debug("Print data in %s" % cfg.DUMP_FILES_DECODE)
+            LOG.debug("Print data in %s", cfg.DUMP_FILES_DECODE)
             util.print_npy_summary(cfg.DUMP_FILES_DECODE, file_name)
         if os.path.isfile(os.path.join(cfg.DUMP_FILES_CPU, file_name)):
-            LOG.debug("Print data in %s" % cfg.DUMP_FILES_CPU)
+            LOG.debug("Print data in %s", cfg.DUMP_FILES_CPU)
             util.print_npy_summary(cfg.DUMP_FILES_CPU, file_name)
         if os.path.isfile(os.path.join(cfg.DUMP_FILES_OVERFLOW_DECODE, file_name)):
-            LOG.debug("Print data in %s" % cfg.DUMP_FILES_OVERFLOW_DECODE)
+            LOG.debug("Print data in %s", cfg.DUMP_FILES_OVERFLOW_DECODE)
             util.print_npy_summary(cfg.DUMP_FILES_OVERFLOW_DECODE, file_name)
 
     def get_npu_dump_files_by_op(self, op):
+        """Get npu dump files by Op"""
         npu_files = {}
         match_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '\\.'
         for f in self.npu_dump_files():
@@ -60,6 +68,7 @@ class Dump(ToolObject):
         return npu_files
 
     def get_npu_dump_decode_files_by_op(self, op):
+        """Get npu dump decode files by op"""
         match_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '\\.'
         dump_decode_files = util.list_npu_dump_decode_files(cfg.DUMP_FILES_DECODE, match_name)
         if len(dump_decode_files) == 0:
@@ -68,12 +77,22 @@ class Dump(ToolObject):
         return dump_decode_files
 
     def get_cpu_dump_files_by_op(self, op):
+        """Get cpu dump files by op"""
         cpu_files = {}
         match_name = op.name().replace('/', '_').replace('.', '_') + '\\.'
         for f in self.cpu_dump_files():
             if re.match(match_name, f):
                 cpu_files[f] = self.cpu_dump_files()[f]
         return cpu_files
+
+    def decode_all_npu_dump(self):
+        """Decode all npu dump files"""
+        with Progress() as process:
+            task = process.add_task('[green]Decode Dump files...', total=len(self.npu_files))
+            for file_name in self.npu_files:
+                file_info = self.npu_files[file_name]
+                util.convert_dump_to_npy(file_info['path'], cfg.DUMP_FILES_DECODE)
+                process.update(task)
 
     def _parse_npu_dump_files(self):
         self.npu_files, self.npu_parent_dirs = util.list_dump_files(cfg.DUMP_FILES_NPU)
@@ -85,11 +104,3 @@ class Dump(ToolObject):
         dump_files = self.get_npu_dump_files_by_op(op)
         for dump_file in dump_files.values():
             util.convert_dump_to_npy(dump_file['path'], cfg.DUMP_FILES_DECODE)
-
-    def decode_all_dump(self):
-        with Progress() as process:
-            task = process.add_task('[green]Decode Dump files...', total=len(self.npu_files))
-            for file_name in self.npu_files:
-                file_info = self.npu_files[file_name]
-                util.convert_dump_to_npy(file_info['path'], cfg.DUMP_FILES_DECODE)
-                process.update(task)

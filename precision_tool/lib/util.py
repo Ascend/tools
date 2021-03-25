@@ -1,3 +1,4 @@
+# coding=utf-8
 import csv
 import re
 import os
@@ -9,12 +10,14 @@ import subprocess
 from rich.panel import Panel
 from rich.traceback import install
 from rich import print as rich_print
+from .file_desc import FileDesc
 
 import config as cfg
 
 install()
 try:
     import readline
+
     readline.parse_and_bind('tab: complete')
 except ImportError as import_error:
     print("[cli] Unable to import module: readline.")
@@ -26,7 +29,7 @@ LOG = logging.getLogger()
 # patterns
 GE_GRAPH_BUILD_PROTO_PATTERN = '^ge_proto.*_Build.*txt$'
 OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})"
-OFFLINE_DUMP_DECODE_PATTERN =\
+OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.npy$"
 OFFLINE_FILE_NAME = 'op_type.op_name.task_id(.stream_id).timestamp'
 OP_DEBUG_NAME = 'OpDebug.Node_OpDebug.taskid.timestamp'
@@ -354,6 +357,9 @@ class Util(object):
 
     @staticmethod
     def _gen_overflow_decode_file_info(name, match, dir_path):
+        # return FileDesc(file_name=name, task_id=int(match.group(1)), anchor_type=match.groups()[-2],
+        #                idx=int(match.groups()[-1]), dir_path=dir_path, path=os.path.join(dir_path, name),
+        #                timestamp=int(match.groups()[-3]))
         return {
             "file_name": name,
             "dir_path": dir_path,
@@ -366,6 +372,8 @@ class Util(object):
 
     @staticmethod
     def _gen_vector_compare_result_file_info(name, match, dir_path):
+        # return FileDesc(file_name=name, dir_path=dir_path, path=os.path.join(dir_path, name),
+        #                timestamp=int(match.group(1)))
         return {
             "file_name": name,
             "dir_path": dir_path,

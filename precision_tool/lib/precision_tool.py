@@ -39,26 +39,30 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--name', dest='vector_compare', help='auto check', action='store_true')
         args = parser.parse_args(argv)
-
-        self.fusion.check()
-        self.overflow.check()
         # vector compare
         if args.vector_compare:
-            self.compare.vector_compare()
+            self.do_vector_compare()
+        self.do_check_fusion()
+        self.do_check_overflow()
+        self.do_check_cast()
         # self._check_graph_similarity()
-        # self._check_cast_op()
 
     def do_check_overflow(self):
         """check overflow"""
         self.overflow.check()
 
-    def do_fusion(self, argv):
+    def do_check_cast(self):
+        self.graph.check_cast()
+
+    def do_check_dtype(self):
+        """Check input/output dtype"""
+        self.graph.check_dtype()
+
+    def do_check_fusion(self, argv=None):
         """print fusion info summary"""
-        print(argv)
         self.fusion.check()
 
-    def do_vector_compare(self, argv):
-        print(argv)
+    def do_vector_compare(self, argv=None):
         """do vector compare"""
         self.compare.vector_compare()
 
@@ -81,14 +85,12 @@ class PrecisionTool(object):
         """print op node info"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
-        # parser.add_argument('-d', '--data', dest='data', help='show data detail', action='store_true')
         args = parser.parse_args(argv)
         self.graph.print_op(args.name)
 
     def do_convert_npu_dump(self, argv):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', help='op name')
-        # parser.add_argument('-n', '--name', dest='name', type=list, default=[], help='op name', nargs='+')
         args = parser.parse_args(argv)
         self.graph.print_op(args.name)
 
@@ -106,7 +108,7 @@ class PrecisionTool(object):
         self.compare.compare_data(args.names[0], args.names[1], print_n=args.print)
 
     @staticmethod
-    def auto_run_with_debug_envs(line):
+    def auto_run_with_debug_envs(cmd):
         """ auto run """
         if FLAG_DUMP_GE_GRAPH in os.environ:
             del os.environ[FLAG_DUMP_GE_GRAPH]
@@ -116,7 +118,7 @@ class PrecisionTool(object):
         # set check overflow flag
         os.environ[FLAG_CHECK_OVERFLOW] = "True"
         LOG.info("Run NPU script with overflow check....")
-        util.execute_command(line)
+        util.execute_command(cmd)
         LOG.info("Finish run NPU script with overflow check.")
 
         # set dump ge flag
@@ -124,7 +126,7 @@ class PrecisionTool(object):
         os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
         os.environ[FLAG_CHECK_OVERFLOW] = "False"
         LOG.info("Run NPU script with dump data....")
-        util.execute_command(line)
+        util.execute_command(cmd)
         LOG.info("Finish run NPU script with dump data.")
 
     @staticmethod
@@ -157,6 +159,3 @@ class PrecisionTool(object):
 
     def check_graph_similarity(self):
         """ Check graph similarity """
-
-    def check_cast_op(self):
-        """ Check if there is low precision cast """

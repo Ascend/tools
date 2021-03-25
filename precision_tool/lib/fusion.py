@@ -21,6 +21,18 @@ class FusionResult(object):
     def __init__(self, fusion_json):
         self.fusion_json = fusion_json
 
+    def get_effect_graph_fusion(self):
+        """Get effect graph fusion rule"""
+        return self._get_effect_fusion(self.fusion_json[GRAPH_FUSION_KEY])
+
+    def get_effect_ub_fusion(self):
+        """Get effect UB fusion rule"""
+        return self._get_effect_fusion(self.fusion_json[UB_FUSION_KEY])
+
+    def graph_id(self):
+        """Get graph id"""
+        return self.fusion_json[GRAPH_ID_KEY]
+
     @staticmethod
     def _get_effect_fusion(fusion):
         res = {}
@@ -29,15 +41,6 @@ class FusionResult(object):
             if effect_times > 0:
                 res[fusion_name] = effect_times
         return res
-
-    def get_effect_graph_fusion(self):
-        return self._get_effect_fusion(self.fusion_json[GRAPH_FUSION_KEY])
-
-    def get_effect_ub_fusion(self):
-        return self._get_effect_fusion(self.fusion_json[UB_FUSION_KEY])
-
-    def graph_id(self):
-        return self.fusion_json[GRAPH_ID_KEY]
 
 
 class Fusion(ToolObject):
@@ -66,7 +69,7 @@ class Fusion(ToolObject):
 
     def check(self):
         """Check fusion rules
-        :return:
+        :return: None
         """
         LOG.info("Check effect fusion rule list.")
         for fusion in self.fusion_result:

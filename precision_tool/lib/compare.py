@@ -32,18 +32,16 @@ ROW_MAP = {
 
 
 class Compare(ToolObject):
-    """
-    """
     vector_compare_result = None
 
     def __init__(self):
-        """__init__"""
+        """Init"""
         super(Compare, self).__init__()
 
     def vector_compare(self):
-        """ compare all ops """
+        """Compare all ops"""
         if util.empty_dir(cfg.DUMP_FILES_CPU):
-            LOG.warning("No valid dump file in %s" % cfg.DUMP_FILES_CPU)
+            LOG.warning("No valid dump file in %s", cfg.DUMP_FILES_CPU)
             return
         LOG.info("[VectorCompare] Running...")
         util.clear_dir(cfg.VECTOR_COMPARE_PATH)
@@ -55,12 +53,12 @@ class Compare(ToolObject):
                     continue
                 count += 1
                 util.compare_vector(dump_dir, cfg.DUMP_FILES_CPU, graph_json, cfg.VECTOR_COMPARE_PATH)
-        LOG.info("[VectorCompare] Done. Process [%d] graphs." % count)
+        LOG.info("[VectorCompare] Done. Process [%d] graphs.", count)
         self._parse_result_files()
         self.vector_summary()
 
     def vector_summary(self):
-        """ Print not NaN result """
+        """Print not NaN result in vector compare result"""
         for file_name in self.vector_compare_result:
             items = self.vector_compare_result[file_name]
             table = self._create_table(file_name, ROW_MAP.keys()[3:])
@@ -76,28 +74,6 @@ class Compare(ToolObject):
                        "[RED: RelativeEuclideanDistance] [KLD: KullbackLeiblerDivergence]")
             rich_print(table)
 
-    def _parse_result_files(self):
-        result_files = util.list_vector_compare_result_files(cfg.VECTOR_COMPARE_PATH)
-        self.vector_compare_result = {}
-        for file in result_files.values():
-            self.vector_compare_result[file['file_name']] = util.read_csv(file['path'])
-
-    @staticmethod
-    def _detect_file(file_name):
-        if os.path.isfile(file_name):
-            return file_name
-        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE]:
-            if os.path.isfile(os.path.join(parent_dir, file_name)):
-                return os.path.join(parent_dir, file_name)
-        return None
-
-    @staticmethod
-    def _create_table(title, columns):
-        table = Table(title=title)
-        for column_name in columns:
-            table.add_column(column_name, overflow='fold')
-        return table
-
     def compare_data(self, left, right, rl=0.001, al=0.001, print_n=20):
         """Compare data"""
         left = self._detect_file(left)
@@ -108,17 +84,24 @@ class Compare(ToolObject):
         # save to txt
         util.save_npy_to_txt(left)
         util.save_npy_to_txt(right)
+        # compare data
+        total_cnt, all_close, cos_sim, err_percent = self._do_compare_data(left, right, rl, al, print_n)
+        content = 'SrcFile: %s \nDstFile: %s\nSrcFile: %s.txt\nDstFile: %s.txt' % (left, right, left, right)
+        content += '\nNumCnt:  %s\nAllClose: %s\nCosSim:   %s\nErrorPer: %s (rl= %s, al= %s)' % (
+            total_cnt, all_close, cos_sim, err_percent, rl, al)
+        util.print_panel(content)
 
+    def _do_compare_data(self, left, right, rl=0.001, al=0.001, print_n=20):
         data_left = np.load(left).astype(np.float32)
         data_right = np.load(right).astype(np.float32)
         shape_left = data_left.shape
         shape_right = data_right.shape
         if shape_left != shape_right:
-            LOG.warning("Data shape not equal: %s vs %s" % (data_left.shape, data_right.shape))
+            LOG.warning("Data shape not equal: %s vs %s", data_left.shape, data_right.shape)
         data_left = data_left.reshape(-1)
         data_right = data_right.reshape(-1)
         if data_left.shape[0] != data_right.shape[0]:
-            LOG.warning("Data size not equal: %s vs %s" % (data_left.shape, data_right.shape))
+            LOG.warning("Data size not equal: %s vs %s", data_left.shape, data_right.shape)
         all_close = np.allclose(data_left, data_right, atol=al, rtol=rl)
         # cos_sim = 1 - spatial.distance.cosine(data_left, data_right)
         cos_sim = np.dot(data_left, data_right) / (
@@ -138,15 +121,27 @@ class Compare(ToolObject):
                 err_cnt += 1
         err_percent = float(err_cnt / total_cnt)
         rich_print(Columns([err_table, top_table]))
-        content = 'SrcFile: %s \nDstFile: %s\nSrcFile: %s.txt\nDstFile: %s.txt' % (left, right, left, right)
-        content += '\nNumCnt:  %s\nAllClose: %s\nCosSim:   %s\nErrorPer: %s (rl= %s, al= %s)' % (
-            total_cnt, all_close, cos_sim, err_percent, rl, al)
-        util.print_panel(content)
+        return total_cnt, all_close, cos_sim, err_percent
 
-    def check_op(self, op_name, op_type):
-        """
-        use dump data to check op precision
-        :param op_name:
-        :param op_type:
-        :return:
-        """
+    def _parse_result_files(self):
+        result_files = util.list_vector_compare_result_files(cfg.VECTOR_COMPARE_PATH)
+        self.vector_compare_result = {}
+        for file in result_files.values():
+            self.vector_compare_result[file['file_name']] = util.read_csv(file['path'])
+
+    @staticmethod
+    def _detect_file(file_name):
+        """Find files in npu/overflow/cpu dump dir"""
+        if os.path.isfile(file_name):
+            return file_name
+        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE]:
+            if os.path.isfile(os.path.join(parent_dir, file_name)):
+                return os.path.join(parent_dir, file_name)
+        return None
+
+    @staticmethod
+    def _create_table(title, columns):
+        table = Table(title=title)
+        for column_name in columns:
+            table.add_column(column_name, overflow='fold')
+        return table

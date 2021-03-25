@@ -74,13 +74,21 @@ class Cli(cmd.Cmd):
     def do_fu(self, line=''):
         """Fusion summary"""
         argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_fusion(argv)
+        self.precision_tool.do_check_fusion(argv)
 
     def do_cp(self, line=''):
-        """ Compare two data file """
+        """Compare two data file """
         argv = line.split(' ') if line != '' else []
         argv.insert(0, '-n')
         self.precision_tool.do_compare_data(argv)
+
+    def do_cc(self, line=''):
+        """Check cast"""
+        self.precision_tool.do_check_cast()
+
+    def do_cd(self, line=''):
+        """Check dtype"""
+        self.precision_tool.do_check_dtype()
 
 
 if __name__ == '__main__':
