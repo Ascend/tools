@@ -78,8 +78,16 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-t', '--type', dest='type', default='', help='list by op type')
         parser.add_argument('-n', '--name', dest='name', default='', help='list by op name')
+        parser.add_argument('-f', '--fusion', dest='fusion', default='', help='list by op fusion pass')
         args = parser.parse_args(argv)
-        self.graph.print_op_list(args.type, args.name)
+        self.graph.print_op_list(args.type, args.name, args.fusion)
+
+    def do_list_dump(self, argv):
+        """List dump files"""
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-d', '--dir', dest='dir')
+        parser.add_argument('-n', '--name', dest='name')
+        self.dump.list_dump(argv.dir, argv.name)
 
     def do_node_info(self, argv):
         """print op node info"""
@@ -91,8 +99,9 @@ class PrecisionTool(object):
     def do_convert_npu_dump(self, argv):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', help='op name')
+        parser.add_argument('-f', '--format', dest='format', help='target format')
         args = parser.parse_args(argv)
-        self.graph.print_op(args.name)
+        self.dump.convert_npu_dump(args.name, args.format)
 
     def do_compare_data(self, argv):
         """compare two tensor"""

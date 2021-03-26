@@ -31,6 +31,9 @@ GE_GRAPH_BUILD_PROTO_PATTERN = '^ge_proto.*_Build.*txt$'
 OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})"
 OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.npy$"
+OFFLINE_DUMP_CONVERT_PATTERN = \
+    r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})" \
+    r"\.([a-z]+)\.([0-9]{1,255})\.([x0-9]+)\.npy$"
 OFFLINE_FILE_NAME = 'op_type.op_name.task_id(.stream_id).timestamp'
 OP_DEBUG_NAME = 'OpDebug.Node_OpDebug.taskid.timestamp'
 CPU_DUMP_DECODE_PATTERN = r"^([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.npy$"
@@ -107,14 +110,16 @@ class Util(object):
             self.execute_command(cmd)
         LOG.info('Finish convert [%d] build graph from proto to json format.', len(proto_file_list))
 
-    def convert_dump_to_npy(self, src_file, dst_path):
+    def convert_dump_to_npy(self, src_file, dst_path, data_format=''):
         """Convert npu dump files to npy format.
-        :param src_file:
-        :param dst_path:
+        :param src_file: src file
+        :param dst_path: dst path
+        :param data_format: target data format
         :return: status code
         """
         self.create_dir(dst_path)
-        cmd = 'python3 %s/msaccucmp.pyc convert -d %s -out %s' % (OPERATOR_CMP_PATH, src_file, dst_path)
+        format_cmd = '' if data_format == '' else '-f %s' % data_format
+        cmd = 'python3 %s/msaccucmp.pyc convert -d %s -out %s %s' % (OPERATOR_CMP_PATH, src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
     def compare_vector(self, npu_dump_dir, cpu_dump_dir, graph_json, result_path):
@@ -167,6 +172,10 @@ class Util(object):
         return self._list_file_with_pattern(path, VECTOR_COMPARE_RESULT_PATTERN, extern_pattern,
                                             self._gen_vector_compare_result_file_info)
 
+    def list_npu_dump_convert_files(self, path, extern_pattern=''):
+        return self._list_file_with_pattern(path, OFFLINE_DUMP_CONVERT_PATTERN, extern_pattern,
+                                            self._gen_npu_dump_convert_file_info)
+
     @staticmethod
     def create_dir(path: str):
         """Create dir if not exist
@@ -213,7 +222,7 @@ class Util(object):
             LOG.error("Npy file [%s] is invalid", path)
             return
         data = np.load(path, allow_pickle=True)
-        return data.shape, data.dtype
+        return data.shape, data.dtype, np.max(data), np.min(data)
 
     def print_npy_summary(self, path, file_name, extern_content=''):
         """Print summary of npy data
@@ -379,6 +388,20 @@ class Util(object):
             "dir_path": dir_path,
             "path": os.path.join(dir_path, name),
             "timestamp": int(match.group(1))
+        }
+
+    @staticmethod
+    def _gen_npu_dump_convert_file_info(name, match, dir_path):
+        return {
+            "file_name": name,
+            "op_type": match.group(1),
+            "op_name": match.group(2),
+            "task_id": int(match.group(3)),
+            "type": match.groups()[-3],
+            "idx": int(match.groups()[-2]),
+            "timestamp": int(match.groups()[-4]),
+            "dir_path": dir_path,
+            "path": os.path.join(dir_path, name)
         }
 
 

@@ -52,23 +52,27 @@ class Graph(ToolObject):
         """Check cast op type"""
         if OP_CAST in self.ops_type_list:
             cast_ops = self.ops_type_list[OP_CAST]
-            for op in cast_ops:
-                input_type = op.inputs()[0].type()
-                output_type = op.outputs()[0].type()
+            for op in cast_ops.values():
+                input_type = ''
+                output_type = ''
+                for input_desc in op.inputs():
+                    input_type = input_desc.dtype() if input_desc.dtype() != '' else ''
+                for output_desc in op.outputs():
+                    output_type = output_desc.dtype() if output_desc.dtype() != '' else ''
                 color = 'red' if self._is_dangerous_cast(input_type, output_type) else 'yellow'
                 rich_print('[green][%s][/green][%s][%s -> %s][/%s] %s' % (
                     op.type(), color, input_type, output_type, color, op.name()))
 
     def check_dtype(self):
         """Check op input/output dtype"""
-        for op in self.ops_list:
-            input_dtype = ' '
+        for op in self.ops_list.values():
+            input_dtype = ''
             for input_desc in op.inputs():
-                input_dtype += input_desc.dtype()
+                input_dtype += ' ' + input_desc.dtype()
             output_dtype = ''
             for output_desc in op.outputs():
-                output_dtype += output_desc.dtype()
-            rich_print('[green][%s][/green] %s\n - Input:  %s\n - Output: %s\n' % (
+                output_dtype += ' ' + output_desc.dtype()
+            rich_print('[green][%s][/green] %s\n - Input:  %s\n - Output: %s' % (
                 op.type(), op.name(), input_dtype, output_dtype))
 
     def print_op(self, op_name):
@@ -91,22 +95,23 @@ class Graph(ToolObject):
         """get op by name"""
         return self.ops_list[name] if name in self.ops_list else None
 
-    def print_op_list(self, op_type='', op_name=''):
+    def print_op_list(self, op_type='', op_name='', pass_name=''):
         """"""
-        if op_type == '' and op_name == '':
+        if op_type == '' and op_name == '' and pass_name == '':
             table = Table(title="Operation Summary")
             table.add_column("OpType")
             table.add_column("Count")
             with Live(table, vertical_overflow='visible'):
                 for op_type in self.ops_type_list.keys():
                     table.add_row(op_type, str(len(self.ops_type_list[op_type])))
-            for op in self.ops_list:
+            for op in self.ops_list.values():
                 # rich_print(Panel(op.summary()))
                 rich_print('[green][%s][/green] %s' % (op.type(), op.name()))
             return
         for op in self.ops_list.values():
-            if op_type in op.type() and op_name in op.name():
-                rich_print('[green][%s][/green] %s' % (op.type(), op.name()))
+            if op_type in op.type() and op_name in op.name() and pass_name in op.pass_name():
+                op_pass_name = '' if op.pass_name() == '' else '[yellow][%s][/yellow]' % op.pass_name()
+                rich_print('[green][%s][/green]%s %s' % (op.type(), op_pass_name, op.name()))
 
     @staticmethod
     def _is_dangerous_cast(input_dtype, output_dtype):
@@ -129,7 +134,6 @@ class Graph(ToolObject):
         """Copy ge graphs to graph dir. """
         # move graphs to precision data dir
         files = os.listdir('./')
-        LOG.info("Prepare GE graphs start")
         num = 0
         for file in files:
             if re.match(GE_GRAPH_PREFIX, file):
@@ -137,7 +141,7 @@ class Graph(ToolObject):
                     shutil.copy(file, cfg.GRAPH_DIR_LAST)
                 shutil.move(file, os.path.join(cfg.GRAPH_DIR_ALL, file))
                 num += 1
-        LOG.info("Prepare GE graphs end. Move [%s] graphs" % num)
+        LOG.info("Prepare GE graphs success. Move [%d] graphs", num)
         # convert build proto files to json files
         util.convert_proto_to_json(os.listdir(cfg.GRAPH_DIR_LAST))
         # list graphs

@@ -43,8 +43,10 @@ class Cli(cmd.Cmd):
         self._prepare()
 
     def do_ls(self, line=''):
-        """List ops: \n usage: ls -n [op_name] -t [op_type]"""
+        """List ops: \n usage: ls (op(default)/dump) -n [op_name] -t [op_type]"""
         argv = line.split(' ') if line != '' else []
+        if len(argv) > 0 and argv[0] == 'dump':
+            return self.precision_tool.do_list_dump(argv[1:])
         self.precision_tool.do_list_nodes(argv)
 
     def do_ni(self, line=''):
@@ -55,8 +57,10 @@ class Cli(cmd.Cmd):
         self.precision_tool.do_node_info(argv)
 
     def do_dc(self, line=''):
-        """ convert npu dump by op names """
+        """Convert npu dump by op names:\n usage: dc (-n) [npu dump file] -f [target format]"""
         argv = line.split(' ') if line != '' else []
+        if len(argv) > 0 and argv[0] != '-n':
+            argv.insert(0, '-n')
         self.precision_tool.do_convert_npu_dump(argv)
 
     def do_vc(self, line=''):
@@ -89,6 +93,10 @@ class Cli(cmd.Cmd):
     def do_cd(self, line=''):
         """Check dtype"""
         self.precision_tool.do_check_dtype()
+
+    def do_help(self, arg: str):
+        # print(arg)
+        super(Cli, self).do_help(arg)
 
 
 if __name__ == '__main__':

@@ -22,3 +22,8 @@ class FileDesc(object):
         self.dir_path = dir_path
         self.path = path
         self.timestamp = timestamp
+
+
+class NumpyFileDesc(FileDesc):
+    def __init__(self):
+        super(NumpyFileDesc, self).__init__()

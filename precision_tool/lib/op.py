@@ -10,6 +10,13 @@ from lib.util import util
 NO_INPUT_NODES = ['Data', 'AtomicAddrClean', 'Recv', 'Constant']
 NO_OUTPUT_NODES = ['Send', 'Recv', 'NetOutput']
 
+JSON_KEY_NAME = 'name'
+JSON_KEY_TYPE = 'type'
+JSON_KEY_ATTR = 'attr'
+JSON_KEY = 'key'
+JSON_VALUE = 'value'
+JSON_KEY_STR = 's'
+JSON_KEY_PASS_NAME = 'pass_name'
 dump_manager = Dump()
 
 
@@ -32,11 +39,11 @@ class Op(object):
 
     def name(self) -> str:
         """Get op name"""
-        return self.op_json['name']
+        return self.op_json[JSON_KEY_NAME]
 
     def type(self) -> str:
         """Get op type"""
-        return self.op_json['type']
+        return self.op_json[JSON_KEY_TYPE]
 
     def inputs(self) -> List[InputDesc]:
         """Get the input list"""
@@ -49,6 +56,13 @@ class Op(object):
         if self.output_list is None:
             self._parse_outputs()
         return self.output_list
+
+    def pass_name(self):
+        if JSON_KEY_ATTR in self.op_json:
+            for attr in self.op_json[JSON_KEY_ATTR]:
+                if JSON_KEY_PASS_NAME == attr[JSON_KEY]:
+                    return attr[JSON_VALUE][JSON_KEY_STR]
+        return ''
 
     def npu_dump_input_files(self) -> dict:
         """Get op input dump decode file info dict"""
@@ -69,7 +83,7 @@ class Op(object):
             cpu_files = dump_manager.get_cpu_dump_files_by_op(self)
             for cpu_file in cpu_files.values():
                 self.cpu_output_files[cpu_file['idx']] = cpu_file
-                cpu_file['shape'], cpu_file['dtype'] = util.npy_info(cpu_file['path'])
+                cpu_file['shape'], cpu_file['dtype'], cpu_file['max'], cpu_file['min'] = util.npy_info(cpu_file['path'])
         return self.cpu_output_files
 
     def summary(self) -> str:
@@ -106,7 +120,8 @@ class Op(object):
         self.npu_input_files = {}
         self.npu_output_files = {}
         for dump_file in dump_decode_files.values():
-            dump_file['shape'], dump_file['dtype'] = util.npy_info(dump_file['path'])
+            dump_file['shape'], dump_file['dtype'], dump_file['max'], dump_file['min'] = \
+                util.npy_info(dump_file['path'])
             if dump_file['type'] == 'input':
                 self.npu_input_files[dump_file['idx']] = dump_file
             else:
