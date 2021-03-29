@@ -21,6 +21,4 @@
 
 ## 制卡步骤
 
-**制卡之前需要先将环境准备好**
-
 **制卡步骤请参见[Atlas 200 DK 开发者套件（1.0.8.alpha）](https://support.huaweicloud.com/dedg-A200dk_3000_c75/atlased_04_0013.html)**
