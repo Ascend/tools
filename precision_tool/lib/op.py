@@ -83,7 +83,8 @@ class Op(object):
             cpu_files = dump_manager.get_cpu_dump_files_by_op(self)
             for cpu_file in cpu_files.values():
                 self.cpu_output_files[cpu_file['idx']] = cpu_file
-                cpu_file['shape'], cpu_file['dtype'], cpu_file['max'], cpu_file['min'] = util.npy_info(cpu_file['path'])
+                cpu_file['shape'], cpu_file['dtype'], cpu_file['max'], cpu_file['min'], _ = \
+                    util.npy_info(cpu_file['path'])
         return self.cpu_output_files
 
     def summary(self) -> str:
@@ -120,7 +121,7 @@ class Op(object):
         self.npu_input_files = {}
         self.npu_output_files = {}
         for dump_file in dump_decode_files.values():
-            dump_file['shape'], dump_file['dtype'], dump_file['max'], dump_file['min'] = \
+            dump_file['shape'], dump_file['dtype'], dump_file['max'], dump_file['min'], _ = \
                 util.npy_info(dump_file['path'])
             if dump_file['type'] == 'input':
                 self.npu_input_files[dump_file['idx']] = dump_file

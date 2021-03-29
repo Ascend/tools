@@ -8,10 +8,68 @@ import config as cfg
 from rich.progress import Progress
 
 
+class NpuDumpDecodeFile(object):
+    def __init__(self):
+        self.input_files = {}
+        self.output_files = {}
+        self.timestamp = -1
+        self.op_name = ''
+        self.op_type = ''
+        self.task_id = -1
+        # self.stream_id = -1
+
+    def update(self, file_info):
+        """Prepare op npu decode file map."""
+        if not self._check(file_info):
+            LOG.warning('Invalid NpuDumpDecodeFile: %s', file_info)
+            return
+        if file_info['type'] == 'input':
+            self.input_files[file_info['idx']] = file_info
+        else:
+            self.output_files[file_info['idx']] = file_info
+
+    def summary(self):
+        txt = '[yellow][%s][TaskID: %d][/yellow][green][%s][/green] %s' % (
+            self.timestamp, self.task_id, self.op_type, self.op_name)
+        if len(self.input_files) > 0:
+            info = self.input_files[0]
+            shape, dtype, max, min, mean = util.npy_info(info['path'])
+            txt += '\n - Input:  [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                shape, dtype, max, min, mean, info['file_name'])
+            for idx in range(1, len(self.input_files)):
+                info = self.input_files[idx]
+                shape, dtype, max, min, mean = util.npy_info(info['path'])
+                txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                    idx, shape, dtype, max, min, mean, info['file_name'])
+        if len(self.output_files) > 0:
+            info = self.output_files[0]
+            shape, dtype, max, min, mean = util.npy_info(info['path'])
+            txt += '\n - Output: [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                shape, dtype, max, min, mean, info['file_name'])
+            for idx in range(1, len(self.output_files)):
+                info = self.output_files[idx]
+                shape, dtype, max, min, mean = util.npy_info(info['path'])
+                txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                    idx, shape, dtype, max, min, mean, info['file_name'])
+        return txt
+
+    def _check(self, file_info):
+        if self.timestamp == -1:
+            self.timestamp = file_info['timestamp']
+            self.op_name = file_info['op_name']
+            self.op_type = file_info['op_type']
+            self.task_id = file_info['task_id']
+            # self.stream_id = file_info['stream']
+            return True
+        return self.timestamp == file_info['timestamp']
+
+
 class Dump(ToolObject):
     npu_files = None
     cpu_files = None
     npu_parent_dirs = None
+    npu_decode_files = None
+    op_npu_decode_files = None
 
     def __init__(self):
         """Init"""
@@ -52,7 +110,7 @@ class Dump(ToolObject):
     def print_data(file_name):
         """Print numpy data file"""
         parent_dirs = []
-        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECOD,
+        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE,
                            cfg.DUMP_FILES_CONVERT]:
             if os.path.isfile(os.path.join(parent_dir, file_name)):
                 LOG.debug("Print data in %s", parent_dir)
@@ -107,12 +165,26 @@ class Dump(ToolObject):
 
     def decode_all_npu_dump(self):
         """Decode all npu dump files"""
+        for parent_dir in self.npu_parent_dirs:
+            util.convert_dump_to_npy(parent_dir, cfg.DUMP_FILES_DECODE)
+        self.npu_decode_files = util.list_npu_dump_decode_files(cfg.DUMP_FILES_DECODE)
+        self.op_npu_decode_files = {}
+        for file_info in self.npu_decode_files.values():
+            if file_info['op_name'] not in self.op_npu_decode_files:
+                self.op_npu_decode_files[file_info['op_name']] = NpuDumpDecodeFile()
+            op_decode_file = self.op_npu_decode_files[file_info['op_name']]
+            op_decode_file.update(file_info)
+        # sorted_list = list
+        for op_decode_file in self.op_npu_decode_files.values():
+            util.print_panel(op_decode_file.summary())
+        '''
         with Progress() as process:
             task = process.add_task('[green]Decode Dump files...', total=len(self.npu_files))
             for file_name in self.npu_files:
                 file_info = self.npu_files[file_name]
                 util.convert_dump_to_npy(file_info['path'], cfg.DUMP_FILES_DECODE)
                 process.update(task)
+        '''
 
     def _get_file_by_op_name(self, op_name):
         """Get dump file info by op name"""

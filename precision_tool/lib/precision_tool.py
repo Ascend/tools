@@ -103,6 +103,9 @@ class PrecisionTool(object):
         args = parser.parse_args(argv)
         self.dump.convert_npu_dump(args.name, args.format)
 
+    def do_convert_all_npu_dump(self):
+        self.dump.decode_all_npu_dump()
+
     def do_compare_data(self, argv):
         """compare two tensor"""
         parser = argparse.ArgumentParser()

@@ -222,7 +222,7 @@ class Util(object):
             LOG.error("Npy file [%s] is invalid", path)
             return
         data = np.load(path, allow_pickle=True)
-        return data.shape, data.dtype, np.max(data), np.min(data)
+        return data.shape, data.dtype, data.max(), data.min(), data.mean()
 
     def print_npy_summary(self, path, file_name, extern_content=''):
         """Print summary of npy data

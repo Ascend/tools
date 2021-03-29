@@ -56,9 +56,9 @@ class Graph(ToolObject):
                 input_type = ''
                 output_type = ''
                 for input_desc in op.inputs():
-                    input_type = input_desc.dtype() if input_desc.dtype() != '' else ''
+                    input_type = input_desc.dtype() if input_desc.dtype() != '' else input_type
                 for output_desc in op.outputs():
-                    output_type = output_desc.dtype() if output_desc.dtype() != '' else ''
+                    output_type = output_desc.dtype() if output_desc.dtype() != '' else output_type
                 color = 'red' if self._is_dangerous_cast(input_type, output_type) else 'yellow'
                 rich_print('[green][%s][/green][%s][%s -> %s][/%s] %s' % (
                     op.type(), color, input_type, output_type, color, op.name()))

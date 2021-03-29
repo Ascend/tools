@@ -64,7 +64,7 @@ class InputDesc(Desc):
         return self.peer_index == -1
 
     def summary(self):
-        return "[green][%d][/green][yellow][%s][%s][/yellow]%s %s:%d" % (
+        return "[green][%d][/green][yellow][%s][%s][%s][/yellow] %s:%d" % (
             self.idx(), self.dtype(), self.format(), self.shape(), self.name(), self.peer_idx())
 
 
@@ -79,5 +79,5 @@ class OutputDesc(Desc):
         return self.op_names
 
     def summary(self):
-        return "[green][%d][/green][yellow][%s][%s][/yellow] %s" % (
-            self.idx(), self.dtype(), self.shape(), self.names())
+        return "[green][%d][/green][yellow][%s][%s][%s][/yellow] %s" % (
+            self.idx(), self.dtype(), self.format(), self.shape(), self.names())
