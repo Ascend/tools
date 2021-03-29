@@ -25,13 +25,13 @@
 
 1. [for_1.0.7.alpha](https://gitee.com/ascend/tools/tree/master/makesd/for_1.0.7.alpha)
 
-   **1.0.7.alpha版本**:适配1.0.7.alpha硬件版本的制卡工具包。
+   **1.0.7.alpha版本**：适配1.0.7.alpha硬件版本的制卡工具包。
 2. [for_1.0.8.alpha](https://gitee.com/ascend/tools/tree/master/makesd/for_1.0.8.alpha)
 
-   **1.0.8.alpha版本**:适配1.0.8.alpha硬件版本的制卡工具包。
+   **1.0.8.alpha版本**：适配1.0.8.alpha硬件版本的制卡工具包。
 3. [for_1.0.9.alpha](https://gitee.com/ascend/tools/tree/master/makesd/for_1.0.9.alpha)
 
-   **1.0.9.alpha版本**:适配1.0.9.alpha硬件版本的制卡工具包。
+   **1.0.9.alpha版本**：适配1.0.9.alpha硬件版本的制卡工具包。
 4. [for_1.3x.0.0](https://gitee.com/ascend/tools/tree/master/makesd/for_1.3x.0.0)
 
-   **1.3x.0.0版本**:1.3x.0.0版本制卡工具包。
+   **1.3x.0.0版本**：适配1.3x.0.0版本的制卡工具包。
