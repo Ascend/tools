@@ -3,6 +3,7 @@ import os
 from npu_bridge.npu_init import DumpConfig
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf.rewriter_config_pb2 import RewriterConfig
+from tensorflow.python import debug as tf_debug
 import tensorflow as tf
 from . import config as cfg
 
@@ -30,6 +31,7 @@ def session_dump_config(session_config=None) -> config_pb2.ConfigProto:
          config.[set your own configs]
          with tf.Session(config=config) as sess:
             sess.run(_)
+            tf_debug.LocalCLIDebugWrapperSession(sess=sess, ui_type="readline")
     :param session_config: original session config
     :return: config_pb2.ConfigProto
     """

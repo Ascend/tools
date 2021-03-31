@@ -148,14 +148,14 @@ class PrecisionTool(object):
         """
         tf_dbg = pexpect.spawn(line)
         tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
-        tf_dbg.expect('tfdbg>')
+        tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
         tf_dbg.getecho()
         tf_dbg.sendline('run')
-        tf_dbg.expect('tfdbg>')
+        tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
         tf_dbg.sendline('lt > %s' % cfg.DUMP_FILES_CPU_NAMES)
         convert_cmd = "timestamp=$[$(date +%s%N)/1000]; cat " + cfg.DUMP_FILES_CPU_NAMES + \
                       " | awk '{print \"pt\",$4,$4}'| awk '{gsub(\"/\", \"_\", $3); gsub(\":\", \".\", $3);" \
-                      "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + \
+                      "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + "/" + \
                       "\"$3\".\"\"'$timestamp'\"\".npy\")}' > " + cfg.DUMP_FILES_CPU_CMDS
         util.execute_command(convert_cmd)
         if not os.path.exists(cfg.DUMP_FILES_CPU_CMDS):
@@ -163,7 +163,7 @@ class PrecisionTool(object):
             return
         for cmd in open(cfg.DUMP_FILES_CPU_CMDS):
             LOG.debug(cmd)
-            tf_dbg.expect('tfdbg>')
+            # tf_dbg.expect('tfdbg>')
             tf_dbg.sendline(cmd)
         tf_dbg.expect('tfdbg>')
         tf_dbg.sendline('exit')

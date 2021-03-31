@@ -106,10 +106,14 @@ class Dump(ToolObject):
     def list_dump(self, dir_path, file_name):
         """"""
 
-    @staticmethod
-    def print_data(file_name):
+    def print_data(self, file_name):
         """Print numpy data file"""
         parent_dirs = []
+        if '/' in file_name:
+            # maybe node name, replace to '_' and detect
+            LOG.warning("Invalid file name[%s]. you may mean the files below.", file_name)
+            self._detect_file_name(file_name)
+            return
         for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE,
                            cfg.DUMP_FILES_CONVERT]:
             if os.path.isfile(os.path.join(parent_dir, file_name)):
@@ -117,6 +121,15 @@ class Dump(ToolObject):
                 util.print_npy_summary(parent_dir, file_name)
                 parent_dirs.append(parent_dir)
         LOG.info("Find file [%s] in [%d] dirs. %s", file_name, len(parent_dirs), str(parent_dirs))
+
+    @staticmethod
+    def _detect_file_name(file_name):
+        match_name = file_name.replace('/', '_').replace('.', '_') + '\\.'
+        cpu_files = util.list_cpu_dump_decode_files(cfg.DUMP_FILES_CPU, match_name)
+        summary = 'CPU_DUMP:'
+        for file_name in cpu_files.keys():
+            summary += '\n - %s' % file_name
+        util.print_panel(summary)
 
     def get_npu_dump_files_by_op(self, op):
         """Get npu dump files by Op"""

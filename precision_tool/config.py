@@ -36,3 +36,6 @@ DUMP_FILES_DECODE = os.path.join(DATA_ROOT_DIR, 'dump/decode/')
 DUMP_FILES_CONVERT = os.path.join(DATA_ROOT_DIR, 'dump/convert/')
 
 VECTOR_COMPARE_PATH = os.path.join(DATA_ROOT_DIR, 'dump/vector/compare')
+
+# TF_DEBUG
+TF_DEBUG_TIMEOUT = 360

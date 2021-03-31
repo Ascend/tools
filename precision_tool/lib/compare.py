@@ -44,6 +44,11 @@ class Compare(ToolObject):
             LOG.warning("No valid dump file in %s", cfg.DUMP_FILES_CPU)
             return
         LOG.info("[VectorCompare] Running...")
+        if not util.empty_dir(cfg.VECTOR_COMPARE_PATH):
+            self._parse_result_files()
+            self.vector_summary()
+            LOG.info("Vector compare path is not empty, show previous result.")
+            return
         util.clear_dir(cfg.VECTOR_COMPARE_PATH)
         count = 0
         for graph_name in graph.sub_graph_json_map:
@@ -61,7 +66,7 @@ class Compare(ToolObject):
         """Print not NaN result in vector compare result"""
         for file_name in self.vector_compare_result:
             items = self.vector_compare_result[file_name]
-            table = self._create_table(file_name, ROW_MAP.keys()[3:])
+            table = self._create_table(file_name, list(ROW_MAP.keys())[3:])
             for item in items:
                 if len(item) == 0 or item[ROW_MAP['TensorIdx']] == 'TensorIndex' or item[ROW_MAP['MaxAbs']] == 'NaN':
                     continue
@@ -134,7 +139,8 @@ class Compare(ToolObject):
         """Find files in npu/overflow/cpu dump dir"""
         if os.path.isfile(file_name):
             return file_name
-        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE]:
+        for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE,
+                           cfg.DUMP_FILES_CONVERT]:
             if os.path.isfile(os.path.join(parent_dir, file_name)):
                 return os.path.join(parent_dir, file_name)
         return None
