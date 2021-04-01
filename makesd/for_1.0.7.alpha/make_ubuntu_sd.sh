@@ -231,6 +231,7 @@ function checkIps()
     if [[ ${USB_CARD_DEFAULT_IP}"X" == "X" ]];then
         USB_CARD_DEFAULT_IP="192.168.1.2"
     fi
+    USB_CARD_GATEWAY=`echo ${USB_CARD_DEFAULT_IP} | sed -r 's/([0-9]+\.[0-9]+\.[0-9]+)\.[0-9]+/\1.1/g'`
 
     checkIpAddr ${USB_CARD_DEFAULT_IP}
     if [ $? -ne 0 ];then
@@ -425,7 +426,6 @@ echo \"config host end\"
 echo \"
 network:
   version: 2
-#  renderer: NetworkManager
   renderer: networkd
   ethernets:
     eth0:
@@ -433,12 +433,14 @@ network:
       addresses: [${NETWORK_CARD_DEFAULT_IP}/24] 
       gateway4: ${NETWORK_CARD_GATEWAY}
       nameservers:
-            addresses: [255.255.0.0]
+            addresses: [114.114.114.114]
    
     usb0:
       dhcp4: no 
       addresses: [${USB_CARD_DEFAULT_IP}/24] 
-      gateway4: ${NETWORK_CARD_GATEWAY}
+      gateway4: ${USB_CARD_GATEWAY}
+      nameservers:
+            addresses: [114.114.114.114]	  
 \" > /etc/netplan/01-netcfg.yaml
 echo \"config network ok\"
 # 5. auto-run minirc_cp.sh and minirc_sys_init.sh when start ubuntu
@@ -551,7 +553,7 @@ $sectorEnd
     echo "y
     " | mkfs.ext3 -L ubuntu_fs ${DEV_NAME}$p1 # updated by aman
     if [[ $? -ne 0 ]];then
-     echo "Failed: Format SDcard1 failed!"
+     echo "Failed: Format ${DEV_NAME}$p1 failed!"
      return 1;
     fi
 
@@ -563,7 +565,7 @@ $sectorEnd
     echo "y
     " | mkfs.ext3 -L ubuntu_fs ${DEV_NAME}$p2 # updated by aman
     if [[ $? -ne 0 ]];then
-     echo "Failed: Format SDcard2 failed!"
+     echo "Failed: Format ${DEV_NAME}$p2 failed!"
      return 1;
     fi
 
@@ -575,7 +577,7 @@ $sectorEnd
     echo "y
     " | mkfs.ext3 -L ubuntu_fs ${DEV_NAME}$p3 # updated by aman
     if [[ $? -ne 0 ]];then
-     echo "Failed: Format SDcard3 failed!"
+     echo "Failed: Format ${DEV_NAME}$p3 failed!"
      return 1;
     fi
     echo "make_sd_process: 45%"
