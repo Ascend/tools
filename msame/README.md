@@ -66,7 +66,7 @@ cd $HOME/AscendProjects/tools/msame/
 
 会构造全为0的假数据送入模型推理
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
+./msame --model /home/HwHiAiUser/msame/colorization.om  --output /home/HwHiAiUser/msame/out/ --outfmt TXT --loop 1
 ```
 
 
@@ -75,12 +75,12 @@ cd $HOME/AscendProjects/tools/msame/
 a.输入数据为一个bin文件  
 
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
+./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data/colorization_input.bin --output /home/HwHiAiUser/msame/out/ --outfmt TXT --loop 1
 ```
 
 b.输入为一个包含bin文件的目录，可推理目录下的所有bin文件，此时loop参数无效
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/data --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
+./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data --output /home/HwHiAiUser/msame/out/ --outfmt TXT
 ```
 
 
@@ -89,12 +89,12 @@ b.输入为一个包含bin文件的目录，可推理目录下的所有bin文件
 a.每个输入的数据为一个bin文件，每个bin文件之间用英文逗号分隔，逗号前后不能有空格
 
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1/a.bin,/home/HwHiAiUser/ljj/input2/a.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT  --loop 1
+./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1/a.bin,/home/HwHiAiUser/ljj/data2/a.bin --output /home/HwHiAiUser/msame/out/ --outfmt TXT  --loop 1
 ```
 
 b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名需保持一致，每个目录之间用英文逗号分隔，逗号前后不能有空格
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1/,/home/HwHiAiUser/ljj/input2/ --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
+./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1,/home/HwHiAiUser/msame/data2 --output /home/HwHiAiUser/msame/out/ --outfmt TXT
 ```
   
 其他参数详情可使用--help查询。
