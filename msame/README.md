@@ -9,7 +9,6 @@
 
 ### 使用环境
 已在昇腾AI推理设备上安装开发与运行环境。  
-安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
 
 ### 获取
 1. 下载压缩包方式获取。
