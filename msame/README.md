@@ -62,26 +62,39 @@ cd $HOME/AscendProjects/tools/msame/
 第二个参数指定工具生成的目录，填相对路径的话，是相对out目录。
 
 ## 运行示例
- **示例一**   
-不加input参数，会构造全为0的假数据送入模型推理
+ **类型一**   不加input参数  
+
+会构造全为0的假数据送入模型推理
 ```
 ./msame --model /home/HwHiAiUser/ljj/colorization.om  --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
 ```
- **示例二**   
-加input参数，输入为bin文件  
-如果有多个输入，需要用**英文逗号**隔开，注意逗号两边不能有空格。
+
+
+ **类型二**  模型是单输入    
+
+a.输入数据为一个bin文件  
+
 ```
 ./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 1
 ```
-  
 
- **示例三**  
-加input参数，输入为目录  
-如果输入为多个目录，每个目录中的bin文件名需保持一致。  
-当输入为目录时，推理目录下的所有bin文件，此时loop参数无效。
+b.输入为一个包含bin文件的目录，可推理目录下的所有bin文件，此时loop参数无效
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/data --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
+```
+
+
+ **类型三**  模型是多输入  
+
+a.每个输入的数据为一个bin文件，每个bin文件之间用英文逗号分隔，逗号前后不能有空格
 
 ```
-./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1,/home/HwHiAiUser/ljj/input2 --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1/a.bin,/home/HwHiAiUser/ljj/input2/a.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT  --loop 1
+```
+
+b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名需保持一致，每个目录之间用英文逗号分隔，逗号前后不能有空格
+```
+./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/input1/,/home/HwHiAiUser/ljj/input2/ --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT
 ```
   
 其他参数详情可使用--help查询。
