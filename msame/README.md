@@ -92,7 +92,7 @@ a.每个输入的数据为一个bin文件，每个bin文件之间用英文逗号
 ./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1/a.bin,/home/HwHiAiUser/ljj/data2/a.bin --output /home/HwHiAiUser/msame/out/ --outfmt TXT  --loop 1
 ```
 
-b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名需保持一致，每个目录之间用英文逗号分隔，逗号前后不能有空格
+b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名需保持一致，每个目录之间用英文逗号分隔，逗号前后不能有空格，此时loop参数无效
 ```
 ./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1,/home/HwHiAiUser/msame/data2 --output /home/HwHiAiUser/msame/out/ --outfmt TXT
 ```
