@@ -70,8 +70,9 @@ class PrecisionTool(object):
         """print tensor data"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='list by op name')
+        parser.add_argument('-c', '--name', dest='convert', help='convert txt', action='store_false')
         args = parser.parse_args(argv)
-        self.dump.print_data(args.name)
+        self.dump.print_data(args.name, argv.convert)
 
     def do_list_nodes(self, argv):
         """list op nodes in graph"""
@@ -120,26 +121,28 @@ class PrecisionTool(object):
         self.compare.compare_data(args.names[0], args.names[1], print_n=args.print)
 
     @staticmethod
-    def auto_run_with_debug_envs(cmd):
+    def auto_run_with_debug_envs(cmd, overflow=True, dump=True):
         """ auto run """
         if FLAG_DUMP_GE_GRAPH in os.environ:
             del os.environ[FLAG_DUMP_GE_GRAPH]
         if FLAG_DUMP_GRAPH_LEVEL in os.environ:
             del os.environ[FLAG_DUMP_GRAPH_LEVEL]
 
-        # set check overflow flag
-        os.environ[FLAG_CHECK_OVERFLOW] = "True"
-        LOG.info("Run NPU script with overflow check....")
-        util.execute_command(cmd)
-        LOG.info("Finish run NPU script with overflow check.")
+        if overflow:
+            # set check overflow flag
+            os.environ[FLAG_CHECK_OVERFLOW] = "True"
+            LOG.info("Run NPU script with overflow check....")
+            util.execute_command(cmd)
+            LOG.info("Finish run NPU script with overflow check.")
 
-        # set dump ge flag
-        os.environ[FLAG_DUMP_GE_GRAPH] = "2"
-        os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
-        os.environ[FLAG_CHECK_OVERFLOW] = "False"
-        LOG.info("Run NPU script with dump data....")
-        util.execute_command(cmd)
-        LOG.info("Finish run NPU script with dump data.")
+        if dump:
+            # set dump ge flag
+            os.environ[FLAG_DUMP_GE_GRAPH] = "2"
+            os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
+            os.environ[FLAG_CHECK_OVERFLOW] = "False"
+            LOG.info("Run NPU script with dump data....")
+            util.execute_command(cmd)
+            LOG.info("Finish run NPU script with dump data.")
 
     @staticmethod
     def run_tf_dbg_dump(line):

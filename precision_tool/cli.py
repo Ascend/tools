@@ -6,6 +6,11 @@ import cmd
 from lib.precision_tool import PrecisionTool
 from lib.util import util
 
+HELP_AC = "Run auto check function, use [-c] to start vector compare process.\n" \
+          "  usage: ac (-c)\n"
+HELP_PT = "Print npy tensor, use [-c] to convert and save to txt file.\n" \
+          "  usage: pt (-c) [tensor_name.npy]\n"
+
 
 class Cli(cmd.Cmd):
     def __init__(self):
@@ -32,8 +37,7 @@ class Cli(cmd.Cmd):
         util.execute_command(line)
 
     def do_npu_run(self, line=''):
-        """Run npu npu script with debug envs(overflow/dump) to generate dump data:\n usage: npu_run [start npu command]
-        """
+        """Run npu npu script with debug envs(overflow/dump):\n usage: npu_run (overflow/dump) [start npu command]"""
         self.precision_tool.auto_run_with_debug_envs(line)
         self._prepare()
 
@@ -71,7 +75,7 @@ class Cli(cmd.Cmd):
         self.precision_tool.do_vector_compare(argv)
 
     def do_pt(self, line=''):
-        """Print data info:\n usage: pt (-n) [*.npy]"""
+        """Print data info:\n usage: pt (-n) [*.npy] (-c)\n   -c: convert and save to txt file"""
         argv = line.split(' ') if line != '' else []
         if len(argv) == 1:
             argv.insert(0, '-n')

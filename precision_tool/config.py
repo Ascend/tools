@@ -4,6 +4,9 @@ import os
 # Dump config '0|5|10'
 TF_DUMP_STEP = '0'
 
+# Fusion switch
+FUSION_SWITCH_FILE = './precision_tool/fusion_switch.cfg'
+
 # path to run package operator cmp compare
 # default may be /usr/local/Ascend/
 CMD_ROOT_PATH = '/usr/local/'
@@ -39,3 +42,6 @@ VECTOR_COMPARE_PATH = os.path.join(DATA_ROOT_DIR, 'dump/vector/compare')
 
 # TF_DEBUG
 TF_DEBUG_TIMEOUT = 360
+
+# MSACCUCMP
+MS_ACCU_CMP = 'msaccucmp.py'

@@ -78,7 +78,7 @@ class Dump(ToolObject):
 
     def preapre(self):
         """Prepare npu/cpu dump files"""
-        self._parse_npu_dump_files()
+        # self._parse_npu_dump_files()
         self._parse_cpu_dump_files()
 
     @staticmethod
@@ -106,7 +106,7 @@ class Dump(ToolObject):
     def list_dump(self, dir_path, file_name):
         """"""
 
-    def print_data(self, file_name):
+    def print_data(self, file_name, is_convert):
         """Print numpy data file"""
         parent_dirs = []
         if '/' in file_name:
@@ -190,14 +190,6 @@ class Dump(ToolObject):
         # sorted_list = list
         for op_decode_file in self.op_npu_decode_files.values():
             util.print_panel(op_decode_file.summary())
-        '''
-        with Progress() as process:
-            task = process.add_task('[green]Decode Dump files...', total=len(self.npu_files))
-            for file_name in self.npu_files:
-                file_info = self.npu_files[file_name]
-                util.convert_dump_to_npy(file_info['path'], cfg.DUMP_FILES_DECODE)
-                process.update(task)
-        '''
 
     def _get_file_by_op_name(self, op_name):
         """Get dump file info by op name"""

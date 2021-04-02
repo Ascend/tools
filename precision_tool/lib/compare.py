@@ -49,6 +49,7 @@ class Compare(ToolObject):
             self.vector_summary()
             LOG.info("Vector compare path is not empty, show previous result.")
             return
+        util.create_dir(cfg.VECTOR_COMPARE_PATH)
         util.clear_dir(cfg.VECTOR_COMPARE_PATH)
         count = 0
         for graph_name in graph.sub_graph_json_map:

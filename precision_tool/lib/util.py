@@ -68,7 +68,7 @@ def detect_file_if_not_exist(target_file):
 
 
 ATC_PATH = detect_file_if_not_exist('atc')
-OPERATOR_CMP_PATH = detect_file_if_not_exist('msaccucmp.pyc')
+OPERATOR_CMP_PATH = detect_file_if_not_exist(cfg.MS_ACCU_CMP)
 os.environ['PATH'] = os.environ['PATH'] + ':' + ATC_PATH
 
 
@@ -119,7 +119,8 @@ class Util(object):
         """
         self.create_dir(dst_path)
         format_cmd = '' if data_format == '' else '-f %s' % data_format
-        cmd = 'python3 %s/msaccucmp.pyc convert -d %s -out %s %s' % (OPERATOR_CMP_PATH, src_file, dst_path, format_cmd)
+        cmd = 'python3 %s/%s convert -d %s -out %s %s' % (OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP,
+                                                          src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
     def compare_vector(self, npu_dump_dir, cpu_dump_dir, graph_json, result_path):
@@ -130,8 +131,8 @@ class Util(object):
         :param result_path: result path
         :return: status code
         """
-        cmd = 'python3 %s/msaccucmp.pyc compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
-            OPERATOR_CMP_PATH, npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
+        cmd = 'python3 %s/%s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
+            OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP, npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -224,7 +225,7 @@ class Util(object):
         data = np.load(path, allow_pickle=True)
         return data.shape, data.dtype, data.max(), data.min(), data.mean()
 
-    def print_npy_summary(self, path, file_name, extern_content=''):
+    def print_npy_summary(self, path, file_name, is_convert=False, extern_content=''):
         """Print summary of npy data
         :param path: file path
         :param file_name: file name
@@ -234,7 +235,6 @@ class Util(object):
         target_file = os.path.join(path, file_name)
         if not os.path.exists(target_file):
             LOG.warning("File [%s] not exist", target_file)
-        self.save_npy_to_txt(target_file)
         data = np.load(target_file)
         content = 'Array: %s' % np.array2string(data)
         content += "\n========\nShape: %s\nDtype: %s\nMax: %s\nMin: %s\nMean: %s\nPath: %s\nTxtFile: %s.txt" % (
@@ -242,6 +242,8 @@ class Util(object):
         if extern_content != '':
             content += '\n %s' % extern_content
         self.print_panel(content)
+        if is_convert:
+            self.save_npy_to_txt(target_file)
 
     @staticmethod
     def save_npy_to_txt(src_file, dst_file='', align=0):

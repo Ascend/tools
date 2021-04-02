@@ -98,15 +98,15 @@ class Graph(ToolObject):
     def print_op_list(self, op_type='', op_name='', pass_name=''):
         """"""
         if op_type == '' and op_name == '' and pass_name == '':
+            for op in self.ops_list.values():
+                # rich_print(Panel(op.summary()))
+                rich_print('[green][%s][/green] %s' % (op.type(), op.name()))
             table = Table(title="Operation Summary")
             table.add_column("OpType")
             table.add_column("Count")
             with Live(table, vertical_overflow='visible'):
                 for op_type in self.ops_type_list.keys():
                     table.add_row(op_type, str(len(self.ops_type_list[op_type])))
-            for op in self.ops_list.values():
-                # rich_print(Panel(op.summary()))
-                rich_print('[green][%s][/green] %s' % (op.type(), op.name()))
             return
         for op in self.ops_list.values():
             if op_type in op.type() and op_name in op.name() and pass_name in op.pass_name():
@@ -150,18 +150,22 @@ class Graph(ToolObject):
 
     def _parse_ops(self):
         """Parse *_Build.txt.json to op objects."""
-        for graph in self.build_list:
-            graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, graph)
-            with open(graph_path, 'r') as f:
-                graph_json = json.load(f)
-                for item in graph_json['graph']:
-                    self.sub_graph_json_map[item['name']] = graph_path
-                    for op_json in item['op']:
-                        op_name = op_json['name']
-                        op_type = op_json['type']
-                        op = Op(op_json, self.ops_list)
-                        if op_type not in self.ops_type_list:
-                            self.ops_type_list[op_type] = {}
-                        # self.ops.append(op_name)
-                        self.ops_list[op_name] = op
-                        self.ops_type_list[op_type][op_name] = op
+        # only parse the last build graph
+        sorted_graphs = sorted(list(self.build_list.keys()))
+        LOG.info("Find [%d] graphs. %s", len(sorted_graphs), sorted_graphs)
+        last_graph = sorted_graphs[-1]
+        LOG.info("Choose the last graph [%s].", last_graph)
+        graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, last_graph)
+        with open(graph_path, 'r') as f:
+            graph_json = json.load(f)
+            for item in graph_json['graph']:
+                LOG.info("Find graph [%s] in %s", item['name'], last_graph)
+                self.sub_graph_json_map[item['name']] = graph_path
+                for op_json in item['op']:
+                    op_name = op_json['name']
+                    op_type = op_json['type']
+                    op = Op(op_json, self.ops_list)
+                    if op_type not in self.ops_type_list:
+                        self.ops_type_list[op_type] = {}
+                    self.ops_list[op_name] = op
+                    self.ops_type_list[op_type][op_name] = op
