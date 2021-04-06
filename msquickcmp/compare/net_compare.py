@@ -35,11 +35,12 @@ class NetCompare(object):
         Exception Description:
             when invalid  msaccucmp command throw exception
         """
-        cmd = ["python3.7", "-V"]
-        self._check_python_command_valid(cmd)
+        cmd = ["python3", "-V"]
+        python_version = self._check_python_command_valid(cmd)
         msaccucmp_command_dir_path = os.path.join(self.arguments.cann_path, MSACCUCMP_DIR_PATH)
         msaccucmp_command_file_path = self._check_msaccucmp_file(msaccucmp_command_dir_path)
-        msaccucmp_cmd = ["python3", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
+        msaccucmp_cmd = ["python" + python_version, msaccucmp_command_file_path, "compare", "-m",
+                         self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
         utils.print_info_log("msaccucmp command line: %s " % " ".join(msaccucmp_cmd))
         status_code = self.execute_msaccucmp_command(msaccucmp_cmd)
@@ -59,6 +60,8 @@ class NetCompare(object):
                 utils.print_error_log(
                     "The python version only supports the python 3 version family, %s" % " ".join(cmd))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_VERSION_ERROR)
+            python_version = output_text.split(" ")[1].strip()
+            return python_version
         except subprocess.CalledProcessError as check_output_except:
             print(str(check_output_except))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR)
