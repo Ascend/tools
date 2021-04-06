@@ -70,8 +70,8 @@ class NetCompare(object):
 
     @staticmethod
     def _check_msaccucmp_file(msaccucmp_command_dir_path):
-        for file in MSACCUCMP_FILE_NAME:
-            msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file)
+        for file_name in MSACCUCMP_FILE_NAME:
+            msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file_name)
             if os.path.exists(msaccucmp_command_file_path):
                 return msaccucmp_command_file_path
             else:
