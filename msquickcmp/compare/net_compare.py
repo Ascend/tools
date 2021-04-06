@@ -70,10 +70,9 @@ class NetCompare(object):
 
     @staticmethod
     def _check_msaccucmp_file(msaccucmp_command_dir_path):
-        dirs = os.listdir(msaccucmp_command_dir_path)
         for file in MSACCUCMP_FILE_NAME:
             msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file)
-            if file in dirs:
+            if os.path.exists(msaccucmp_command_file_path):
                 return msaccucmp_command_file_path
             else:
                 utils.print_warn_log(
@@ -84,7 +83,7 @@ class NetCompare(object):
 
     @staticmethod
     def _check_pyc_to_python_version(msaccucmp_command_file_path, python_version):
-        if MSACCUCMP_FILE_NAME[1] in msaccucmp_command_file_path:
+        if msaccucmp_command_file_path.endswith(".pyc"):
             if python_version != PYC_FILE_TO_PYTHON_VERSION:
                 utils.print_error_log(
                     "The python version for executing {} must be 3.7.5".format(msaccucmp_command_file_path))
