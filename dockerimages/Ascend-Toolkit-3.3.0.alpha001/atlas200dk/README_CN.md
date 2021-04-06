@@ -1,7 +1,7 @@
 # docker镜像使用指导
 
-该使用指导将指导你拉取一个C73 atlas200dk的全量级安装环境。环境内已经安装好了Mindstudio和ADK，用户直接打开Mindsutido即可使用。    
- **docker容器中普通用户用户名：ascend，密码：ascend     
+该使用指导将指导你拉取一个3.3.0.alpha001  atlas200dk的开发运行环境。环境内已经安装好了开发和运行环境，用户直接运行样例。    
+ **docker容器中普通用户用户名：HwHiAiUser，密码：HwHiAiUser     
             root用户用户名：root，密码：root**     
  
 ## 第一步：安装docker（如果已经安装docker可跳过该步骤）
