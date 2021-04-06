@@ -69,13 +69,16 @@ class NetCompare(object):
     @staticmethod
     def _check_msaccucmp_file(msaccucmp_command_dir_path):
         dirs = os.listdir(msaccucmp_command_dir_path)
-        msaccucmp_command_file_path = ""
         for file in MSACCUCMP_FILE_NAME:
+            msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file)
             if file in dirs:
-                msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file)
                 return msaccucmp_command_file_path
             else:
-                utils.check_file_or_directory_path(msaccucmp_command_file_path)
+                utils.print_warn_log(
+                    'The path {} is not exist.Please check the file'.format(msaccucmp_command_file_path))
+        utils.print_error_log(
+            'Does not exist in {} directory msaccucmp.py and msaccucmp.pyc file'.format(msaccucmp_command_dir_path))
+        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
 
     def get_csv_object_by_cosine(self):
         """
