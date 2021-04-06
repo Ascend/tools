@@ -17,7 +17,7 @@
     如[图 命令失败示意](#zh-cn_topic_1_1)所示：
     
     **图 1**  命令失败示意<a name="zh-cn_topic_1_1"></a>  
-    ![](figures/no_curl.png "damon.json失败示意")
+    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153812_1d823792_7985487.png "屏幕截图.png")
     
 2. 执行以下命令进行docker的安装。
 
@@ -26,7 +26,7 @@
     脚本执行成功如[图 执行成功示意](#zh-cn_topic_1_2)所示：
     
     **图 2**  执行成功示意<a name="zh-cn_topic_1_2"></a>  
-    ![](figures/shell_log.png "damon.json执行成功示意")
+    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153835_5da0f78f_7985487.png "屏幕截图.png")
     
     > **说明：**     
     >
@@ -66,7 +66,7 @@
     如[图 damon.json文件示意](#zh-cn_topic_1_3)所示：
 
     **图 3**  damon.json文件示意<a name="zh-cn_topic_1_3"></a>  
-    ![](figures/json_sample.png "damon.json文件示意")
+    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153911_4fae4274_7985487.png "屏幕截图.png")
 
     修改完成后输入:wq!保存退出。
 
@@ -95,22 +95,14 @@
 
 ## 第四步：配置开发环境
 
-1. 用如下命令查看下载的镜像，可以看到你刚才下载的镜像ID.如[图 镜像查看示意](#zh-cn_topic_1_6)所示。
+1. 用如下命令查看下载的镜像，可以看到你刚才下载的镜像ID.。
 
     **docker images**
-
-    **图 6**  镜像查看示意<a name="zh-cn_topic_1_6"></a>  
-    ![](figures/view_images.png "镜像查看示意")
 
 2. 用如下命令创建容器，镜像ID替换为你查到的。
 
     >   docker run -it --privileged --net=host --device=/dev/davinci0 --device=/dev/davinci_manager --device=/dev/svm0 --device=/dev/log_drv --device=/dev/event_sched --device=/dev/upgrade --device=/dev/hi_dvpp --device=/dev/memory_bandwidth --device=/dev/ts_aisle -v /var:/var -v /etc/hdcBasic.cfg:/etc/hdcBasic.cfg -v /etc/rc.local:/etc/rc.local -v /sys:/sys -v /usr/bin/sudo:/usr/bin/sudo -v /usr/lib/sudo/:/usr/lib/sudo/ -v /etc/sudoers:/etc/sudoers/  -v /usr/lib64:/usr/lib64 atlas200dk-catenation:3.3.0.alpha001-full bash
     
-    此指导中镜像image如上图为bde2431b0360，则命令执行示例如下：
-
-    **docker run -t -i --privileged -v /dev:/dev -v /tmp:/tmp --net=host -e DISPLAY=\\$DISPLAY bde2431b0360**
-
-    命令执行后即可进入容器。
 
     > **说明：**     
     >
