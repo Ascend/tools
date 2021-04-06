@@ -13,7 +13,8 @@ import subprocess
 from common import utils
 from common.utils import AccuracyCompareException
 
-MSACCUCMP_PATH = "toolkit/tools/operator_cmp/compare/msaccucmp.pyc"
+MSACCUCMP_DIR_PATH = "toolkit/tools/operator_cmp/compare"
+MSACCUCMP_FILE_NAME = ["msaccucmp.py", "msaccucmp.pyc"]
 
 
 class NetCompare(object):
@@ -36,9 +37,9 @@ class NetCompare(object):
         """
         cmd = ["python3.7", "-V"]
         self._check_python_command_valid(cmd)
-        msaccucmp_command_file_path = os.path.join(self.arguments.cann_path, MSACCUCMP_PATH)
-        utils.check_file_or_directory_path(msaccucmp_command_file_path)
-        msaccucmp_cmd = ["python3.7.5", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
+        msaccucmp_command_dir_path = os.path.join(self.arguments.cann_path, MSACCUCMP_DIR_PATH)
+        msaccucmp_command_file_path = self._check_msaccucmp_file(msaccucmp_command_dir_path)
+        msaccucmp_cmd = ["python3", msaccucmp_command_file_path, "compare", "-m", self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
         utils.print_info_log("msaccucmp command line: %s " % " ".join(msaccucmp_cmd))
         status_code = self.execute_msaccucmp_command(msaccucmp_cmd)
@@ -54,12 +55,24 @@ class NetCompare(object):
         try:
             output_bytes = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
             output_text = output_bytes.decode("utf-8")
-            if "Python 3.7.5" not in output_text:
-                utils.print_error_log("The Python version supports only Python 3.7.5 %s" % " ".join(cmd))
+            if "Python 3" not in output_text:
+                utils.print_error_log(
+                    "The python version only supports the python 3 version family, %s" % " ".join(cmd))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_VERSION_ERROR)
         except subprocess.CalledProcessError as check_output_except:
             print(str(check_output_except))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR)
+
+    @staticmethod
+    def _check_msaccucmp_file(msaccucmp_command_dir_path):
+        dirs = os.listdir(msaccucmp_command_dir_path)
+        msaccucmp_command_file_path = ""
+        for file in MSACCUCMP_FILE_NAME:
+            if file in dirs:
+                msaccucmp_command_file_path = os.path.join(msaccucmp_command_dir_path, file)
+                return msaccucmp_command_file_path
+            else:
+                utils.check_file_or_directory_path(msaccucmp_command_file_path)
 
     def get_csv_object_by_cosine(self):
         """
