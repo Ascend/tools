@@ -38,13 +38,13 @@ apt-get install docker.io
   ![输入图片说明](https://images.gitee.com/uploads/images/2021/0326/113703_0d25732d_7985487.png "屏幕截图.png")   
   安装方法参考下方文档：   
 https://support.huaweicloud.com/instg-cli-cann202/atlasrun_03_0101.html
-## 第三步：直接拉取atlas200dk合设环境镜像
-命令行中执行如下命令拉取镜像：
+### 直接拉取atlas300合设环境镜像
+ 命令行中执行如下命令拉取镜像：
     
 **docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas300-catenation:3.3.0alpha001**
 
 
-## 第四步：配置合设环境
+### 配置合设环境
 
 1. 用如下命令查看下载的镜像，可以看到你刚才下载的镜像ID.。
 
