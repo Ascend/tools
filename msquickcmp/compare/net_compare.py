@@ -15,6 +15,7 @@ from common.utils import AccuracyCompareException
 
 MSACCUCMP_DIR_PATH = "toolkit/tools/operator_cmp/compare"
 MSACCUCMP_FILE_NAME = ["msaccucmp.py", "msaccucmp.pyc"]
+PYC_FILE_TO_PYTHON_VERSION = "3.7.5"
 
 
 class NetCompare(object):
@@ -39,6 +40,7 @@ class NetCompare(object):
         python_version = self._check_python_command_valid(cmd)
         msaccucmp_command_dir_path = os.path.join(self.arguments.cann_path, MSACCUCMP_DIR_PATH)
         msaccucmp_command_file_path = self._check_msaccucmp_file(msaccucmp_command_dir_path)
+        self._check_pyc_to_python_version(msaccucmp_command_file_path, python_version)
         msaccucmp_cmd = ["python" + python_version, msaccucmp_command_file_path, "compare", "-m",
                          self.npu_dump_data_path, "-g",
                          self.cpu_dump_data_path, "-f", self.output_json_path, "-out", self.arguments.out_path]
@@ -79,6 +81,14 @@ class NetCompare(object):
         utils.print_error_log(
             'Does not exist in {} directory msaccucmp.py and msaccucmp.pyc file'.format(msaccucmp_command_dir_path))
         raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+
+    @staticmethod
+    def _check_pyc_to_python_version(msaccucmp_command_file_path, python_version):
+        if MSACCUCMP_FILE_NAME[1] in msaccucmp_command_file_path:
+            if python_version != PYC_FILE_TO_PYTHON_VERSION:
+                utils.print_error_log(
+                    "The python version for executing {} must be 3.7.5".format(msaccucmp_command_file_path))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PYTHON_VERSION_ERROR)
 
     def get_csv_object_by_cosine(self):
         """
