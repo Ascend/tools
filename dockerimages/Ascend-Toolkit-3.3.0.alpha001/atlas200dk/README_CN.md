@@ -87,13 +87,13 @@
 
     **sudo systemctl restart docker**
 
-## 第三步：直接拉取atlas200dk开发环境镜像
+## 第三步：直接拉取atlas200dk合设环境镜像
 命令行中执行如下命令拉取镜像：
     
 **docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-catenation:3.3.0.alpha001-full**
 
 
-## 第四步：配置开发环境
+## 第四步：配置合设环境
 
 1. 用如下命令查看下载的镜像，可以看到你刚才下载的镜像ID.。
 
