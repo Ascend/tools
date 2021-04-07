@@ -66,7 +66,7 @@
 ## 第四步：创建并配置docker环境
 
 1. 查看容器ID。
-    执行如下命令查看下载的镜像ID（即ascenddev_20.1:atlas的IMAGEID）。   
+    执行如下命令查看下载的镜像ID。   
     **docker images**   
 
 2. 创建并进入容器。
@@ -77,7 +77,7 @@
     -   -v /dev:/dev：docker中挂载主机对应目录，也相当于共享文件夹。其余-v参数含义一致。   
     -   -e：传递环境变量，其余-e参数含义一致。   
     
-    此指导中镜像image如上图为b481780952e4，则命令执行示例如下：   
+    此指导中镜像image如为b481780952e4，则命令执行示例如下：   
     **docker run -t -i --privileged -v /dev:/dev -v /tmp:/tmp --net=host -e DISPLAY=\\$DISPLAY b481780952e4**   
     
     命令执行后即可进入容器。   
