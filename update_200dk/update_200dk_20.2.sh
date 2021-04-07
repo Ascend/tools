@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #   =======================================================================
 # ************************Variable*********************************************
-ScriptPath="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )""/"
+ScriptPath="$( cd "$(dirname "$BASH_SOURCE")" ; pwd -P )"
 # ************************check Ascend package********************************
 # Description:  check Ascend package valid or not
 # ******************************************************************************
@@ -45,7 +45,6 @@ function CheckPackage()
     for i in $(ls Ascend-cann-nnrt_3.3.0.*.run 2>/dev/null);do
         cann_array[$((cann_array_item++))]=${i}
     done
-
 
     length=${#cann_array[@]}
     if [[ ${length} -gt 1 ]];then
@@ -81,7 +80,7 @@ function CheckPackage()
         fi
         CANN_PACKAGE=${cann_array[$(expr ${CANN_CHOICE} - 1)]}
     elif [[ ${length} -eq 0 ]];then
-        echo "[ERROR] find Ascend-cann-nnrt.*.run failed. please put this package in this folder."
+        echo "[ERROR] find Ascend-cann-nnrt_*.run failed. please put this package in this folder."
         return 1
     elif [[ ${length} -eq 1 ]];then
         CANN_PACKAGE=${cann_array[0]}
@@ -90,13 +89,22 @@ function CheckPackage()
     chmod 750 ${CANN_PACKAGE}
 
     ./${CANN_PACKAGE} --extract=${ScriptPath}/nnrt --noexec
-    if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" = "x" ]] || \
-            [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
-        echo "[ERROR] extract Ascend-cann-nnrt.*_linux-aarch64.run failed. please check this package."
+    if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
+        echo "[ERROR] extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
         return 1
     fi
+    if [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)"x" != "x" ]];then
+        AICPU_KERNELS_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)
+	    AICPU_FLAG=0
+    elif [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" != "x" ]];then
+        AICPU_KERNELS_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
+        AICPU_FLAG=1
+    else
+        echo "[ERROR] extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
+        return 1
+    fi
+    echo "AICPU_FLAG is ${AICPU_FLAG}"
 
-    AICPU_KERNELS_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
     ACLLIB_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)
     PYACL_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)
     echo ${AICPU_KERNELS_PACKAGE}
@@ -117,6 +125,30 @@ function UpgradeAicpu()
         echo "[ERROR] Not eligible for acllib upgrade"
         return 1
     fi
+}
+
+function UpgradeAicpu_run()
+{
+    aicpu_old=`cat /var/davinci/aicpu_kernels/version.info |head -n 1|cut -d '.' -f 2`
+    if [[ ${aicpu_old} -eq '' ]];then
+        echo "[INFO] Aicpu is not installed, start the installation"
+        chown HwHiAiUser:HwHiAiUser ${AICPU_KERNELS_PACKAGE}
+        echo "y
+        " | su HwHiAiUser -c "${AICPU_KERNELS_PACKAGE} --run"
+        rm -f ${AICPU_KERNELS_PACKAGE}
+        return 0
+    elif [[ ${aicpu_old} -eq 75 ]] || [[ ${aicpu_old} -eq 76 ]] || [[ ${aicpu_old} -eq 77 ]];then
+        echo "[INFO] start upgrade Aicpu"
+        chown HwHiAiUser:HwHiAiUser ${AICPU_KERNELS_PACKAGE}
+        echo "y
+        " | su HwHiAiUser -c "${AICPU_KERNELS_PACKAGE} --run"
+        rm -f ${AICPU_KERNELS_PACKAGE}
+        return 0
+    else
+        echo "[ERROR] Not eligible for aicpu upgrade"
+        return 1
+    fi
+
 }
 
 # ************************upgrade Acllib package********************************
@@ -191,10 +223,18 @@ function main()
     fi
 
     # ***************upgrade AICPU package**********************************
-    UpgradeAicpu
-    if [ $? -ne 0 ];then
-	rm -rf ./nnrt
-        return 1
+    if [ ${AICPU_FLAG} -eq 1 ];then
+        UpgradeAicpu
+        if [ $? -ne 0 ];then
+	    rm -rf ./nnrt
+            return 1
+        fi
+    else
+        UpgradeAicpu_run
+        if [ $? -ne 0 ];then
+            rm -rf ./nnrt
+            return 1
+        fi
     fi
     rm -rf ./nnrt
     echo "update success"
