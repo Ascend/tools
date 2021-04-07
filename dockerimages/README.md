@@ -15,6 +15,6 @@
     3.1.0.alpha001版本开发环境docker镜像，按照readme操作即可使用。   
 3. [**Ascend-Toolkit-3.2.0.alpha001**](./Ascend-Toolkit-3.2.0.alpha001)
 
-    3.1.0.alpha001版本开发环境docker镜像，按照readme操作即可使用。 
+    3.2.0.alpha001版本开发环境docker镜像，按照readme操作即可使用。 
 4. [**Ascend-Toolkit-3.3.0.alpha001**](./Ascend-Toolkit-3.3.0.alpha001)    
     3.3.0.alpha001版本开发运行合设docker镜像，按照readme操作即可使用。 
