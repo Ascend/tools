@@ -136,19 +136,22 @@ function UpgradeAicpu_run()
         echo "y
         " | su HwHiAiUser -c "${AICPU_KERNELS_PACKAGE} --run"
         rm -f ${AICPU_KERNELS_PACKAGE}
-        return 0
     elif [[ ${aicpu_old} -eq 75 ]] || [[ ${aicpu_old} -eq 76 ]] || [[ ${aicpu_old} -eq 77 ]];then
         echo "[INFO] start upgrade Aicpu"
         chown HwHiAiUser:HwHiAiUser ${AICPU_KERNELS_PACKAGE}
         echo "y
         " | su HwHiAiUser -c "${AICPU_KERNELS_PACKAGE} --run"
         rm -f ${AICPU_KERNELS_PACKAGE}
-        return 0
     else
         echo "[ERROR] Not eligible for aicpu upgrade"
         return 1
     fi
 
+    export ASCEND_AICPU_PATH=/home/HwHiAiUser/Ascend
+    sh /home/HwHiAiUser/Ascend/run_aicpu_toolkit.sh
+    if [ $? -ne 0 ];then
+        return 1
+    fi
 }
 
 # ************************upgrade Acllib package********************************
