@@ -1,6 +1,6 @@
 # docker镜像使用指导
 
-本指导将提供ubuntu环境下拉取20.1版本docker开发环境的方法。   
+本指导将提供ubuntu环境下拉取3.2.0alpha001版本docker开发环境的方法。   
  **docker容器中普通用户用户名：HwHiAiUser，密码：Mind@123      
             root用户用户名：root，密码：root**     
  
@@ -60,7 +60,7 @@
 
 ## 第三步：拉取docker镜像
 
-命令行中执行如下命令拉取20.1版本开发环境docker镜像：   
+命令行中执行如下命令拉取3.2.0alpha001版本开发环境docker镜像：   
 **docker pull dopa6/ascenddev_20.1:atlas**
 
 ## 第四步：创建并配置docker环境
