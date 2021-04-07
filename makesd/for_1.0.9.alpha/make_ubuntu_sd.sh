@@ -189,13 +189,21 @@ function checkAscendPackage()
     chmod 750 ${CANN_PACKAGE##*/}
 
     ./${CANN_PACKAGE##*/} --extract=${ScriptPath}/nnrt --noexec
-    if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" = "x" ]] || \
-            [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
+    if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
         echo "extract Ascend-cann-nnrt_"${PACKAGE_VERSION}"_linux-aarch64.run failed. please check this package."
         return 1
     fi
+    if [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)"x" != "x" ]];then
+        AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)
+        AICPU_FLAG=0
+    elif [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" != "x" ]];then
+        AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
+        AICPU_FLAG=1
+    else
+        echo "[ERROR] extract Ascend-cann-nnrt_"${PACKAGE_VERSION}"_linux-aarch64.run failed. please check this package."
+        return 1
+    fi
 
-    AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
     ACLLIB_PACKAGE=$(ls nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)
     PYACL_PACKAGE=$(ls nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)
 
@@ -695,6 +703,38 @@ function installAclLib()
 	echo "install acl lib end"	
 }
 
+function genAicpuKernInstShell_run()
+{
+        echo "
+#!/bin/bash
+
+chown HwHiAiUser:HwHiAiUser /home/HwHiAiUser/${AICPU_KERNELS_PACKAGE##*/}
+su HwHiAiUser -c \"/home/HwHiAiUser/${AICPU_KERNELS_PACKAGE##*/} --run\"
+rm -f /home/HwHiAiUser/${AICPU_KERNELS_PACKAGE##*/}
+
+export ASCEND_AICPU_PATH=/home/HwHiAiUser/Ascend
+sh /home/HwHiAiUser/Ascend/run_aicpu_toolkit.sh
+
+exit 0
+" >${LogPath}squashfs-root/var/aicpu_kernels_install.sh
+
+    chmod 750 ${LogPath}squashfs-root/var/aicpu_kernels_install.sh
+}
+
+function installAicpuKernels_run()
+{
+    cp -f ${ISO_FILE_DIR}/${AICPU_KERNELS_PACKAGE} ${LogPath}squashfs-root/home/HwHiAiUser/
+    if [[ $? -ne 0 ]];then
+        echo "Failed: copy ${ISO_FILE_DIR}/${AICPU_KERNELS_PACKAGE} to filesystem failed!"
+        return 1
+    fi
+    chmod 750 ${LogPath}squashfs-root/home/HwHiAiUser/${AICPU_KERNELS_PACKAGE##*/}
+
+    genAicpuKernInstShell_run
+
+    echo "install Aicpu_run end"
+}
+
 function genAicpuKernInstShell()
 {
 	echo "
@@ -743,35 +783,43 @@ function copyFilesToSDcard()
 function preInstallMinircPackage()
 {
     preInstallDriver
-	if [ $? -ne 0 ];then
-	    echo "Pre install driver package failed"
+    if [ $? -ne 0 ];then
+        echo "Pre install driver package failed"
         return 1
     fi
     echo "pre install driver end"
 	
-	installAclLib
-	if [ $? -ne 0 ];then
-	    echo "Pre install acllib package failed"
+    installAclLib
+    if [ $? -ne 0 ];then
+        echo "Pre install acllib package failed"
         return 1
     fi
     echo "pre install acl lib end"
-	
-	installAicpuKernels
-	if [ $? -ne 0 ];then
-	    echo "Pre install aicpu_kernels package failed"
-        return 1
+
+    if [ ${AICPU_FLAG} -eq 1 ];then    
+        installAicpuKernels
+        if [ $? -ne 0 ];then
+            echo "Pre install aicpu_kernels package failed"
+            return 1
+        fi
+    else
+        installAicpuKernels_run
+        if [ $? -ne 0 ];then
+            echo "Pre install aicpu_kernels package failed"
+            return 1
+        fi
     fi
     echo "pre install aicpu end"
 
-   	installPyAcl
-	if [ $? -ne 0 ];then
-	    echo "Pre install pyacl package failed"
+    installPyAcl
+    if [ $? -ne 0 ];then
+        echo "Pre install pyacl package failed"
         return 1
     fi
     echo "pre install pyacl end" 
 
 	
-	rm -rf ${LogPath}mini_pkg_install/opt
+    rm -rf ${LogPath}mini_pkg_install/opt
     cp -rf ${LogPath}mini_pkg_install/* ${LogPath}squashfs-root/
     if [[ $? -ne 0 ]];then
         echo "Failed: Copy mini_pkg_install to filesystem failed!"
