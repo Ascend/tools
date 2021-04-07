@@ -90,17 +90,17 @@ function CheckPackage()
 
     ./${CANN_PACKAGE} --extract=${ScriptPath}/nnrt --noexec
     if [[ $? -ne 0 ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-acllib-*-linux.aarch64.run)"x" = "x" ]] || [[ $(find ${ScriptPath}/nnrt/run_package/Ascend-pyACL-*-linux.aarch64.run)"x" = "x" ]];then
-        echo "[ERROR] 1extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
+        echo "[ERROR] extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
         return 1
     fi
     if [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)"x" != "x" ]];then
         AICPU_KERNELS_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)
-	AICPU_FLAG=0
+	    AICPU_FLAG=0
     elif [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" != "x" ]];then
         AICPU_KERNELS_PACKAGE=$(ls ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
         AICPU_FLAG=1
     else
-        echo "[ERROR] 2extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
+        echo "[ERROR] extract Ascend-cann-nnrt_*_linux-aarch64.run failed. please check this package."
         return 1
     fi
     echo "AICPU_FLAG is ${AICPU_FLAG}"
