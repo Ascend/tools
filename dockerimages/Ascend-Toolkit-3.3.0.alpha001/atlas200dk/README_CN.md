@@ -4,96 +4,90 @@
  **docker容器中普通用户用户名：HwHiAiUser，密码：HwHiAiUser     
             root用户用户名：root，密码：root**     
  
-## 第一步：安装docker（如果已经安装docker可跳过该步骤）
-1. 以普通用户在命令行中输入如下命令来获取安装docker的脚本。
-   
-    **curl -fsSL https://get.docker.com -o get-docker.sh**
+**1、安装Atlas200DK运行环境**
+
+​	搭建最新版本运行环境（3.3.0alpha001，读卡器场景）
+
+​	[制卡方式](https://support.huaweicloud.com/environment-deployment-Atlas200DK202/atlased_04_0012.html)    
+
+**2、配置Atlas200DK连接网络**    
+参考[开发者板设置联网](https://gitee.com/ascend/samples/blob/master/cplusplus/environment/prepare_ENV/README_200DK_CN.md)
+
+**3、更换apt源（可选）**
+
+官方源推荐外国用户使用
+
+```
+deb http://ports.ubuntu.com/ bionic main restricted universe multiverse
+
+deb-src http://ports.ubuntu.com/ bionic main restricted universe multiverse
+
+deb http://ports.ubuntu.com/ bionic-updates main restricted universe multiverse
+
+deb-src http://ports.ubuntu.com/ bionic-updates main restricted universe multiverse
+
+deb http://ports.ubuntu.com/ bionic-security main restricted universe multiverse
+
+deb-src http://ports.ubuntu.com/ bionic-security main restricted universe multiverse
+
+deb http://ports.ubuntu.com/ bionic-backports main restricted universe multiverse
+
+deb-src http://ports.ubuntu.com/ bionic-backports main restricted universe multiverse
+
+deb http://ports.ubuntu.com/ubuntu-ports/ bionic main universe restricted
+
+deb-src http://ports.ubuntu.com/ubuntu-ports/ bionic main universe restricted
+```
 
 
-    > **说明：**     
-    >
-    > -   如果命令失败，按照提示执行sudo apt install curl。若再次提示curl: (1) Protocol https not supported or disabled in libcurl报错，请输入apt-get update更新软件源。
-    
-    如[图 命令失败示意](#zh-cn_topic_1_1)所示：
-    
-    **图 1**  命令失败示意<a name="zh-cn_topic_1_1"></a>  
-    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153812_1d823792_7985487.png "屏幕截图.png")
-    
-2. 执行以下命令进行docker的安装。
 
-    **sh get-docker.sh**
-    
-    脚本执行成功如[图 执行成功示意](#zh-cn_topic_1_2)所示：
-    
-    **图 2**  执行成功示意<a name="zh-cn_topic_1_2"></a>  
-    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153835_5da0f78f_7985487.png "屏幕截图.png")
-    
-    > **说明：**     
-    >
-    > -   如果安装失败，请进行[换源操作](#zh-cn_topic_2_2)，将本地源更换为清华源。
+国内用户可使用华为arm源
 
-3. 安装成功后请在命令行中顺序执行如下指令将当前使用的普通用户添加到docker用户组内。
+```
+sudo wget -O /etc/apt/sources.list https://repo.huaweicloud.com/repository/conf/Ubuntu-Ports-bionic.list
+```
 
-    **sudo groupadd docker**
+**4、切换到root用户，更新源并安装docker，这里使用docker.io即可**
 
-    **sudo gpasswd -a ${USER} docker**
+```
+su - root
+apt-get update
+apt-get install docker.io
+```
 
-    **sudo service docker restart**
+**5、创建docker用户组，应用用户加入docker组**
 
-    **newgrp docker**
+（1）创建docker用户组
 
-    -   _用户名_：当前使用的普通用户用户名，如HwHiAiUser。
-    
-    > **注意：**     
-    >
-    > -   以上命令只需要执行一次，但是在打开新的终端使用普通用户执行docker指令时还是会报权限不足的错误，此时只要在新打开的终端下执行**newgrp docker**命令就可以了。
+```
+ sudo groupadd docker
+```
 
-## 第二步：配置镜像加速（如果已经配置请跳过该步骤，这里用的是阿里云镜像加速，你也可以使用其他的镜像加速）
-1. 命令行下顺序执行以下命令,使用Root用户创建/etc/docker/daemon.json文件。
+（2） 应用用户加入docker用户组**
 
-    **su root**
-    
-    **vi /etc/docker/daemon.json**
+```
+ sudo usermod -aG docker ${USER}
+```
 
-2. 编辑/etc/docker/daemon.json内容为：
+（3）重启docker服务
 
-    ```
-    {
-     "registry-mirrors": ["https://bem5fwjv.mirror.aliyuncs.com"]
-    }
-    ```
+```
+ sudo systemctl restart docker
+```
 
-    如[图 damon.json文件示意](#zh-cn_topic_1_3)所示：
+（4）切换或者退出当前账户再从新登入
 
-    **图 3**  damon.json文件示意<a name="zh-cn_topic_1_3"></a>  
-    ![输入图片说明](https://images.gitee.com/uploads/images/2021/0406/153911_4fae4274_7985487.png "屏幕截图.png")
-
-    修改完成后输入:wq!保存退出。
-
-    > **注意：**     
-    >
-    > -   如果安装较慢，可以体验华为的镜像加速。如下所示：
-    >   ```
-    >   {
-    >    "registry-mirrors": ["https://050670bd850026be0f43c0086d8b54a0.mirror.swr.myhuaweicloud.com"]
-    >   }
-    >   ```
-
-3. 执行如下命令，退出root用户，并重启docker。
-
-    **exit**
-
-    **sudo systemctl daemon-reload**
-
-    **sudo systemctl restart docker**
-
-## 第三步：直接拉取atlas200dk合设环境镜像
+```
+su root             切换到root用户
+su ${USER}          再切换到原来的应用用户以上配置才生效
+```
+### 直接拉取atlas200dk合设环境镜像
 命令行中执行如下命令拉取镜像：
     
 **docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-catenation:3.3.0.alpha001-full**
 
 
-## 第四步：配置合设环境
+### 配置合设环境
 
 1. 用如下命令查看下载的镜像，可以看到你刚才下载的镜像ID.。
 
@@ -113,7 +107,7 @@
     [https://support.huaweicloud.com/usermanual-A200dk_3000/atlas200dk_02_0012.html](https://support.huaweicloud.com/usermanual-A200dk_3000/atlas200dk_02_0012.html)
 
 
-## 常用操作
+### 常用操作
 
 1. <a name="zh-cn_topic_2_2"></a>**换源操作**
 
