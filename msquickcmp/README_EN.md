@@ -137,7 +137,7 @@ output-path/timestamp
 
    https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
 
-**Run the commands by referring to the above guide to execute the sample. If you want to try with model input data specified, run the command for the scenario where input data is not specified to generate input data files (.bin) as the input.**
+**Run the commands by referring to the above guide to execute the sample. If you want to try with model input data specified, run the command for the scenario where input data is not specified to generate input data files (.bin) as the input.**  
 **Note: Currently, dynamic shape is not supported.**
 
 
