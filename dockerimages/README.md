@@ -6,10 +6,15 @@
     
 确定好需要的镜像后，点击下列对应标签或者进入对应文件夹，按照readme操作即可。   
 
-1. [**Ascend-Toolkit-20.0**](./Ascend-Toolkit-20.0)
+1. [**Ascend-Toolkit-20.0.0**](./Ascend-Toolkit-20.0.0)
 
-    20.0版本开发环境docker镜像，按照readme操作即可使用。
+    20.0.0版本开发环境docker镜像，按照readme操作即可使用。
 
-2. [**Ascend-Toolkit-20.1**](./Ascend-Toolkit-20.1)
+2. [**Ascend-Toolkit-3.1.0.alpha001**](./Ascend-Toolkit-3.1.0.alpha001)
 
-    20.1版本开发环境docker镜像，按照readme操作即可使用。
+    3.1.0.alpha001版本开发环境docker镜像，按照readme操作即可使用。   
+3. [**Ascend-Toolkit-3.2.0.alpha001**](./Ascend-Toolkit-3.2.0.alpha001)
+
+    3.2.0.alpha001版本开发环境docker镜像，按照readme操作即可使用。 
+4. [**Ascend-Toolkit-3.3.0.alpha001**](./Ascend-Toolkit-3.3.0.alpha001)    
+    3.3.0.alpha001版本开发运行合设docker镜像，按照readme操作即可使用。 
