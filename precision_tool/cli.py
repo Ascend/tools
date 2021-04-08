@@ -3,13 +3,18 @@
 cli
 """
 import cmd
+import sys
+
 from lib.precision_tool import PrecisionTool
 from lib.util import util
 
 HELP_AC = "Run auto check function, use [-c] to start vector compare process.\n" \
-          "  usage: ac (-c)\n"
+          "  usage: ac (-c) \n"
+HELP_RUN = "Run any shell command.\n" \
+          "  usage: (run) vim tensor_name.txt \n"
+
 HELP_PT = "Print npy tensor, use [-c] to convert and save to txt file.\n" \
-          "  usage: pt (-c) [tensor_name.npy]\n"
+          "  usage: pt (-c) [tensor_name.npy] \n"
 
 
 class Cli(cmd.Cmd):
@@ -17,7 +22,7 @@ class Cli(cmd.Cmd):
         cmd.Cmd.__init__(self)
         self.prompt = "PrecisionTool > "
         self.precision_tool = None
-        self._prepare()
+        # self._prepare()
 
     def default(self, line: str) -> bool:
         util.execute_command(line)
@@ -26,6 +31,12 @@ class Cli(cmd.Cmd):
     def _prepare(self):
         self.precision_tool = PrecisionTool()
         self.precision_tool.prepare()
+
+    def do_set(self, line=''):
+        """Set env. overflow;dump"""
+        argv = line.split(' ') if line != '' else []
+        self.precision_tool.do_set_env(argv)
+        return True
 
     def do_ac(self, line=''):
         """Auto check."""
@@ -77,7 +88,7 @@ class Cli(cmd.Cmd):
     def do_pt(self, line=''):
         """Print data info:\n usage: pt (-n) [*.npy] (-c)\n   -c: convert and save to txt file"""
         argv = line.split(' ') if line != '' else []
-        if len(argv) == 1:
+        if len(argv) > 0 and argv[0] != '-n' and argv[0] != '-c':
             argv.insert(0, '-n')
         self.precision_tool.do_print_data(argv)
 
@@ -107,6 +118,11 @@ class Cli(cmd.Cmd):
 
 if __name__ == '__main__':
     cli = Cli()
+    log = util.get_log()
+    if len(sys.argv) > 1:
+        log.info("Single command mode.")
+        exit(0)
+    log.info("Interactive command mode")
     try:
         cli.cmdloop(intro="Bingo!")
     except KeyboardInterrupt:

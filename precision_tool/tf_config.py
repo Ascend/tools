@@ -19,7 +19,7 @@ def estimator_dump_config() -> DumpConfig:
         config = DumpConfig(enable_dump_debug=True, dump_path=cfg.DUMP_FILES_OVERFLOW, dump_step=cfg.TF_DUMP_STEP,
                             dump_mode="all", fusion_switch_file=cfg.FUSION_SWITCH_FILE)
     else:
-        config = DumpConfig(enable_dump=True, dump_path=cfg.DUMP_FILES_NPU, dump_step=cfg.TF_DUMP_STEP,
+        config = DumpConfig(enable_dump=True, dump_path=cfg.DUMP_FILES_NPU_ALL, dump_step=cfg.TF_DUMP_STEP,
                             dump_mode="all", op_debug_level=1, fusion_switch_file=cfg.FUSION_SWITCH_FILE)
     return config
 
@@ -50,7 +50,7 @@ def session_dump_config(session_config=None) -> config_pb2.ConfigProto:
     else:
         custom_op.parameter_map['enable_dump'].b = True
         custom_op.parameter_map['dump_mode'].s = tf.compat.as_bytes("all")
-        custom_op.parameter_map['dump_path'].s = tf.compat.as_bytes(cfg.DUMP_FILES_NPU)
+        custom_op.parameter_map['dump_path'].s = tf.compat.as_bytes(cfg.DUMP_FILES_NPU_ALL)
         custom_op.parameter_map['op_debug_level'].i = 2
         custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(cfg.FUSION_SWITCH_FILE)
     custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
@@ -61,8 +61,8 @@ def session_dump_config(session_config=None) -> config_pb2.ConfigProto:
 def _init():
     if not os.path.exists(cfg.DUMP_FILES_OVERFLOW):
         _create_dir(cfg.DUMP_FILES_OVERFLOW)
-    if not os.path.exists(cfg.DUMP_FILES_NPU):
-        _create_dir(cfg.DUMP_FILES_NPU)
+    if not os.path.exists(cfg.DUMP_FILES_NPU_ALL):
+        _create_dir(cfg.DUMP_FILES_NPU_ALL)
 
 
 def _create_dir(path):

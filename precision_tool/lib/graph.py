@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import collections
+import tensorflow as tf
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
@@ -25,28 +26,34 @@ GE_GRAPH_PREFIX = '^ge_.*txt$'
 GE_GRAPH_BUILD = '^ge_.*_Build.*txt$'
 GE_GRAPH_BUILD_PROTO = '^ge_proto.*_Build.*txt$'
 GE_GRAPH_BUILD_JSON = '^ge_proto.*_Build.*json$'
+CKPT_META_SHUFFIX='.meta'
 
 OP_CAST = 'Cast'
 
 
 class Graph(ToolObject):
     """ """
-    build_list = []
-    sub_graph_json_map = {}
-    # ops = []
-    ops_list = collections.OrderedDict()
-    ops_type_list = {}
-
     def __init__(self):
         """
         """
         super(Graph, self).__init__()
         self._init_dirs()
+        self.build_list = []
+        self.sub_graph_json_map = {}
+        # ops = []
+        self.ops_list = collections.OrderedDict()
+        self.cpu_ops_list = collections.OrderedDict()
+        self.ops_type_list = {}
 
     def prepare(self):
         """ prepare """
-        self._prepare_graphs()
+        self._prepare_npu_graphs()
         self._parse_ops()
+        self._parse_cpu_ops()
+
+    def sub_graph(self):
+        """Get sub graph map."""
+        return self.sub_graph_json_map
 
     def check_cast(self):
         """Check cast op type"""
@@ -74,6 +81,9 @@ class Graph(ToolObject):
                 output_dtype += ' ' + output_desc.dtype()
             rich_print('[green][%s][/green] %s\n - Input:  %s\n - Output: %s' % (
                 op.type(), op.name(), input_dtype, output_dtype))
+
+    def check_similarity(self):
+        """Check graph similarity."""
 
     def print_op(self, op_name):
         """ print op detail info"""
@@ -113,6 +123,27 @@ class Graph(ToolObject):
                 op_pass_name = '' if op.pass_name() == '' else '[yellow][%s][/yellow]' % op.pass_name()
                 rich_print('[green][%s][/green]%s %s' % (op.type(), op_pass_name, op.name()))
 
+    def _parse_cpu_ops(self):
+        self._convert_ckpt_to_graph(cfg.GRAPH_CPU)
+
+    def _convert_ckpt_to_graph(self, ckpt_path):
+        if not str(ckpt_path).endswith(CKPT_META_SHUFFIX):
+            if os.path.isfile(ckpt_path + CKPT_META_SHUFFIX):
+                ckpt_path = ckpt_path + CKPT_META_SHUFFIX
+            elif os.path.isdir(ckpt_path):
+                # find .meta
+                sub_files = os.listdir(ckpt_path)
+                for file_name in sub_files:
+                    if file_name.endswith(CKPT_META_SHUFFIX):
+                        ckpt_path = file_name
+        if not str(ckpt_path).endswith(CKPT_META_SHUFFIX):
+            LOG.error("Path [%s] is not valid.", ckpt_path)
+            return
+        saver = tf.train.import_meta_graph(ckpt_path, clear_devices=True)
+        graph = tf.get_default_graph()
+        for op in graph.get_operations():
+            self.cpu_op_list[op.name] = op
+
     @staticmethod
     def _is_dangerous_cast(input_dtype, output_dtype):
         """Check if cast """
@@ -130,7 +161,7 @@ class Graph(ToolObject):
         util.create_dir(cfg.GRAPH_DIR_LAST)
         util.create_dir(cfg.GRAPH_DIR_BUILD)
 
-    def _prepare_graphs(self):
+    def _prepare_npu_graphs(self):
         """Copy ge graphs to graph dir. """
         # move graphs to precision data dir
         files = os.listdir('./')
@@ -151,7 +182,10 @@ class Graph(ToolObject):
     def _parse_ops(self):
         """Parse *_Build.txt.json to op objects."""
         # only parse the last build graph
-        sorted_graphs = sorted(list(self.build_list.keys()))
+        if len(self.build_list) == 0:
+            LOG.warning("Cannot find any ge_proto_*_Build.txt in %s.", cfg.GRAPH_DIR_LAST)
+            return
+        sorted_graphs = sorted(self.build_list)
         LOG.info("Find [%d] graphs. %s", len(sorted_graphs), sorted_graphs)
         last_graph = sorted_graphs[-1]
         LOG.info("Choose the last graph [%s].", last_graph)
@@ -169,3 +203,4 @@ class Graph(ToolObject):
                         self.ops_type_list[op_type] = {}
                     self.ops_list[op_name] = op
                     self.ops_type_list[op_type][op_name] = op
+

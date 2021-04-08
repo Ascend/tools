@@ -25,24 +25,35 @@
 
 ### 安装python3三方依赖
 ```shell
-pip3 install rich readline pexpect scipy
+pip3 install rich readline pexpect scipy graphviz
+
+# ubuntu/Debian
+sudo apt-get install graphviz
+
+# fedora/Centos
+sudo yum install graphviz
+
 ```
 
 ## 获取
 
 1.  下载压缩包的方式获取
-    将https://
+    将https://gitee.com/ascend/tools 以压缩包形式下载
 2.  使用git命令方式获取
 
 ## 使用说明
 
-1.  移动 tools/precision_tool 目录至训练工作目录
+1.  移动 tools/precision_tool 子目录至训练工作目录
 2.  检查配置文件precision_tool/config.py
     ```python
     # 如果需要dump特定曾的数据，则可以修改以下配置项
     # 一般对比分析dump首层即可
     # Dump config '0|5|10'
     TF_DUMP_STEP = '0'
+    
+    # 融合开关配置，可以再该配置文件中配置融合开关的开启和关闭，使用方法参考以下文档：
+    # https://support.huaweicloud.com/tensorflowdevg-cann330alphaXtraining/atlastfadapi_07_0005.html
+    FUSION_SWITCH_FILE = './precision_tool/fusion_switch.cfg'
     
     # 依赖run包中的atc和msaccucmp.pyc工具，一般在run包安装目录，配置到父目录即可
     # 默认run包安装在/usr/local/Ascend，可以不用修改。指定目录安装则需要修改
@@ -159,7 +170,28 @@ pip3 install rich readline pexpect scipy
     ConSim: 0.9999
     ErrorPer: 0.01 (rl= 0.001, al= 0.001)
     ```
+### TF脚本修改参考
 
+```python
+# 打印动态Scale的Loss值
+loss_scale_manager = ExponentialUpdateLossScaleManager()
+scale_v = sess.run([loss_scale_manager.get_loss_scale()])
+print(">>> Current Loss Scale >>> ", scale_v)
+
+
+with tf.Session() as sess:
+   # do session.run()
+   saver = tf.train.Saver()
+   # 保存ckpt
+   saver.save(sess, saver_dir)
+   # ...
+   # 从ckpt恢复
+   saver.restore(sess, saver_dir)
+   # ...
+   # 保存Tensorboard
+   summary_writer = tf.summary.FileWriter(logdir=log_dir, graph=sess.graph)
+
+```
 #### 参与贡献
 
 1.  Fork 本仓库

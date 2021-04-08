@@ -65,27 +65,49 @@ class NpuDumpDecodeFile(object):
 
 
 class Dump(ToolObject):
-    npu_files = None
-    cpu_files = None
-    npu_parent_dirs = None
-    npu_decode_files = None
-    op_npu_decode_files = None
 
     def __init__(self):
         """Init"""
         super(Dump, self).__init__()
+        self.npu_files = None
+        self.cpu_files = None
+        self.npu_parent_dirs = None
+        self.npu_decode_files = None
+        self.op_npu_decode_files = None
+        self.sub_graph = None
         self._init_dirs()
 
-    def preapre(self):
+    def prepare(self, sub_graph):
         """Prepare npu/cpu dump files"""
-        # self._parse_npu_dump_files()
+        self.sub_graph = sub_graph
+        self._prepare_npu_dump()
         self._parse_cpu_dump_files()
+
+    def _prepare_npu_dump(self):
+        """prepare npu dump, mk soft link of of sub_graph"""
+        if self.sub_graph is None:
+            LOG.warning("Sub graph in build graph is None, please check.")
+            return
+        # find right path in DUMP_FILES_NPU_ALL
+        sub_graph_path = ''
+        for dir_path, dir_names, file_names in os.walk(cfg.DUMP_FILES_NPU_ALL, followlinks=True):
+            for dir_name in dir_names:
+                if dir_name in self.sub_graph:
+                    sub_graph_path = os.path.join(dir_path, dir_name)
+                    LOG.info("Find sub graph dir: %s", sub_graph_path)
+        if sub_graph_path == '':
+            LOG.warning("Can not find any sub graph dir %s in [%].", str(self.sub_graph.keys()), sub_graph_path)
+            return
+        # make link to DUMP_FILES_NPU
+        os.symlink(sub_graph_path, cfg.DUMP_FILES_NPU)
+        LOG.info("Link current npu dump dir to sub graph: %s", sub_graph_path)
+        self._parse_npu_dump_files()
 
     @staticmethod
     def _init_dirs():
         """Create dump file dirs"""
         LOG.debug('Init dump dirs.')
-        util.create_dir(cfg.DUMP_FILES_NPU)
+        # util.create_dir(cfg.DUMP_FILES_NPU)
         util.create_dir(cfg.DUMP_FILES_DECODE)
         util.create_dir(cfg.DUMP_FILES_OVERFLOW)
         util.create_dir(cfg.DUMP_FILES_OVERFLOW_DECODE)
@@ -118,7 +140,7 @@ class Dump(ToolObject):
                            cfg.DUMP_FILES_CONVERT]:
             if os.path.isfile(os.path.join(parent_dir, file_name)):
                 LOG.debug("Print data in %s", parent_dir)
-                util.print_npy_summary(parent_dir, file_name)
+                util.print_npy_summary(parent_dir, file_name, is_convert)
                 parent_dirs.append(parent_dir)
         LOG.info("Find file [%s] in [%d] dirs. %s", file_name, len(parent_dirs), str(parent_dirs))
 

@@ -49,7 +49,7 @@ NUMPY_SHUFFIX = '.npy'
 def detect_file(file_name, root_dir):
     """Find file in root dir"""
     result = []
-    for dir_path, dir_names, file_names in os.walk(root_dir):
+    for dir_path, dir_names, file_names in os.walk(root_dir, followlinks=True):
         for name in file_names:
             if name == file_name:
                 result.append(dir_path)
@@ -73,6 +73,10 @@ os.environ['PATH'] = os.environ['PATH'] + ':' + ATC_PATH
 
 
 class Util(object):
+    @staticmethod
+    def get_log():
+        return LOG
+
     @staticmethod
     def execute_command(cmd: str):
         """ Execute shell command
@@ -119,8 +123,8 @@ class Util(object):
         """
         self.create_dir(dst_path)
         format_cmd = '' if data_format == '' else '-f %s' % data_format
-        cmd = 'python3 %s/%s convert -d %s -out %s %s' % (OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP,
-                                                          src_file, dst_path, format_cmd)
+        cmd = '%s %s/%s convert -d %s -out %s %s' % (cfg.PYTHON, OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP,
+                                                     src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
     def compare_vector(self, npu_dump_dir, cpu_dump_dir, graph_json, result_path):
@@ -131,8 +135,9 @@ class Util(object):
         :param result_path: result path
         :return: status code
         """
-        cmd = 'python3 %s/%s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
-            OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP, npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
+        cmd = '%s %s/%s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
+            cfg.PYTHON, OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP, npu_dump_dir, cpu_dump_dir, graph_json,
+            result_path, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -146,7 +151,7 @@ class Util(object):
         dump_files = {}
         newest_sub_path = self._get_newest_dir(path) if sub_path == '' else sub_path
         dump_pattern = re.compile(OFFLINE_DUMP_PATTERN)
-        for dir_path, dir_names, file_names in os.walk(os.path.join(path, newest_sub_path)):
+        for dir_path, dir_names, file_names in os.walk(os.path.join(path, newest_sub_path), followlinks=True):
             for name in file_names:
                 dump_match = dump_pattern.match(name)
                 if dump_match is None:
@@ -229,6 +234,7 @@ class Util(object):
         """Print summary of npy data
         :param path: file path
         :param file_name: file name
+        :param is_convert: if convert to txt file
         :param extern_content: extern content append to the summary
         :return: None
         """
@@ -236,9 +242,11 @@ class Util(object):
         if not os.path.exists(target_file):
             LOG.warning("File [%s] not exist", target_file)
         data = np.load(target_file)
-        content = 'Array: %s' % np.array2string(data)
-        content += "\n========\nShape: %s\nDtype: %s\nMax: %s\nMin: %s\nMean: %s\nPath: %s\nTxtFile: %s.txt" % (
-            data.shape, data.dtype, np.max(data), np.min(data), np.mean(data), target_file, target_file)
+        # content = 'Array: %s\n========' % np.array2string(data)
+        content = "Shape: %s\nDtype: %s\nMax: %s\nMin: %s\nMean: %s\nPath: %s" % (
+            data.shape, data.dtype, np.max(data), np.min(data), np.mean(data), target_file)
+        if is_convert:
+            content += '\nTxtFile: %s.txt' % target_file
         if extern_content != '':
             content += '\n %s' % extern_content
         self.print_panel(content)
@@ -320,7 +328,7 @@ class Util(object):
     def _list_file_with_pattern(path, pattern, extern_pattern, gen_info_func):
         file_list = {}
         re_pattern = re.compile(pattern)
-        for dir_path, dir_names, file_names in os.walk(path):
+        for dir_path, dir_names, file_names in os.walk(path, followlinks=True):
             for name in file_names:
                 match = re_pattern.match(name)
                 if match is None:

@@ -14,6 +14,7 @@ import config as cfg
 # env flags
 FLAG_DUMP_GE_GRAPH = 'DUMP_GE_GRAPH'
 FLAG_DUMP_GRAPH_LEVEL = 'DUMP_GRAPH_LEVEL'
+FLAG_DUMP_GRAPH_PATH = 'DUMP_GRAPH_PATH'
 FLAG_CHECK_OVERFLOW = 'CHECK_OVERFLOW'
 
 
@@ -29,10 +30,14 @@ class PrecisionTool(object):
     def prepare(self):
         """prepare"""
         util.create_dir(cfg.DATA_ROOT_DIR)
-        self.dump.preapre()
         self.graph.prepare()
+        self.dump.prepare(self.graph.sub_graph())
         self.overflow.prepare()
         self.fusion.prepare()
+
+    def do_set_env(self, argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-c', '--name', dest='vector_compare', help='auto check', action='store_true')
 
     def do_auto_check(self, argv):
         """auto check"""
@@ -45,7 +50,7 @@ class PrecisionTool(object):
         self.do_check_fusion()
         self.do_check_overflow()
         self.do_check_cast()
-        # self._check_graph_similarity()
+        self.do_check_graph_similarity()
 
     def do_check_overflow(self):
         """check overflow"""
@@ -62,6 +67,9 @@ class PrecisionTool(object):
         """print fusion info summary"""
         self.fusion.check()
 
+    def do_check_graph_similarity(self):
+        self.graph.check_similarity()
+
     def do_vector_compare(self, argv=None):
         """do vector compare"""
         self.compare.vector_compare()
@@ -70,9 +78,9 @@ class PrecisionTool(object):
         """print tensor data"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='list by op name')
-        parser.add_argument('-c', '--name', dest='convert', help='convert txt', action='store_false')
+        parser.add_argument('-c', '--convert', dest='convert', help='convert txt', action='store_true')
         args = parser.parse_args(argv)
-        self.dump.print_data(args.name, argv.convert)
+        self.dump.print_data(args.name, args.convert)
 
     def do_list_nodes(self, argv):
         """list op nodes in graph"""
@@ -140,6 +148,7 @@ class PrecisionTool(object):
             os.environ[FLAG_DUMP_GE_GRAPH] = "2"
             os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
             os.environ[FLAG_CHECK_OVERFLOW] = "False"
+            os.environ[FLAG_DUMP_GRAPH_PATH] = cfg.GRAPH_DIR_ALL
             LOG.info("Run NPU script with dump data....")
             util.execute_command(cmd)
             LOG.info("Finish run NPU script with dump data.")
