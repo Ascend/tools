@@ -3,24 +3,30 @@ import csv
 import re
 import os
 import shutil
-import pexpect
 import numpy as np
 import logging
 import subprocess
-from rich.panel import Panel
-from rich.traceback import install
-from rich import print as rich_print
+from .precision_tool_exception import PrecisionToolException
 from .file_desc import FileDesc
-
 import config as cfg
 
-install()
+try:
+    from rich.traceback import install
+    from rich.panel import Panel
+    from rich import print as rich_print
+    install()
+except ImportError as import_err:
+    install = None
+    Panel = None
+    rich_print = print
+    print("Failed to import rich with err:%s. some function may disable. Run 'pip3 install rich' to fix it.",
+          import_err)
+
 try:
     import readline
-
     readline.parse_and_bind('tab: complete')
 except ImportError as import_error:
-    print("[cli] Unable to import module: readline.")
+    print("Unable to import module: readline. Run 'pip3 install readline' to fix it.")
 
 logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -46,33 +52,11 @@ CSV_SHUFFIX = '.csv'
 NUMPY_SHUFFIX = '.npy'
 
 
-def detect_file(file_name, root_dir):
-    """Find file in root dir"""
-    result = []
-    for dir_path, dir_names, file_names in os.walk(root_dir, followlinks=True):
-        for name in file_names:
-            if name == file_name:
-                result.append(dir_path)
-    return result
-
-
-def detect_file_if_not_exist(target_file):
-    """Find specific file in cmd root path"""
-    LOG.info("Try to auto detect file with name: %s.", target_file)
-    res = detect_file(target_file, cfg.CMD_ROOT_PATH)
-    if len(res) == 0:
-        LOG.error("Cannot find any file named %s in dir %s" % (target_file, cfg.CMD_ROOT_PATH))
-        return cfg.CMD_ROOT_PATH
-    LOG.info("Detect [%s] success. %s", target_file, res)
-    return res[0]
-
-
-ATC_PATH = detect_file_if_not_exist('atc')
-OPERATOR_CMP_PATH = detect_file_if_not_exist(cfg.MS_ACCU_CMP)
-os.environ['PATH'] = os.environ['PATH'] + ':' + ATC_PATH
-
-
 class Util(object):
+    def __init__(self):
+        self.atc = None
+        self.ms_accu_cmp = None
+
     @staticmethod
     def get_log():
         return LOG
@@ -110,7 +94,8 @@ class Util(object):
                 continue
             if os.path.exists(os.path.join(cfg.GRAPH_DIR_BUILD, file + '.json')):
                 continue
-            cmd = 'atc --mode=5 --om=%s/%s --json=%s/%s.json' % (cfg.GRAPH_DIR_LAST, file, cfg.GRAPH_DIR_BUILD, file)
+            cmd = '%s --mode=5 --om=%s/%s --json=%s/%s.json' % (self._get_atc(), cfg.GRAPH_DIR_LAST,
+                                                                file, cfg.GRAPH_DIR_BUILD, file)
             self.execute_command(cmd)
         LOG.info('Finish convert [%d] build graph from proto to json format.', len(proto_file_list))
 
@@ -123,8 +108,7 @@ class Util(object):
         """
         self.create_dir(dst_path)
         format_cmd = '' if data_format == '' else '-f %s' % data_format
-        cmd = '%s %s/%s convert -d %s -out %s %s' % (cfg.PYTHON, OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP,
-                                                     src_file, dst_path, format_cmd)
+        cmd = '%s %s convert -d %s -out %s %s' % (cfg.PYTHON, self._get_ms_accu_cmp(), src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
     def compare_vector(self, npu_dump_dir, cpu_dump_dir, graph_json, result_path):
@@ -135,9 +119,8 @@ class Util(object):
         :param result_path: result path
         :return: status code
         """
-        cmd = '%s %s/%s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
-            cfg.PYTHON, OPERATOR_CMP_PATH, cfg.MS_ACCU_CMP, npu_dump_dir, cpu_dump_dir, graph_json,
-            result_path, result_path)
+        cmd = '%s %s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
+            cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -305,6 +288,37 @@ class Util(object):
             rich_print(Panel.fit(content, title=title))
         else:
             rich_print(Panel(content, title=title))
+
+    @staticmethod
+    def _detect_file(file_name, root_dir):
+        """Find file in root dir"""
+        result = []
+        for dir_path, dir_names, file_names in os.walk(root_dir, followlinks=True):
+            for name in file_names:
+                if name == file_name:
+                    result.append(dir_path)
+        return result
+
+    def _detect_file_if_not_exist(self, target_file):
+        """Find specific file in cmd root path"""
+        LOG.info("Try to auto detect file with name: %s.", target_file)
+        res = self._detect_file(target_file, cfg.CMD_ROOT_PATH)
+        if len(res) == 0:
+            LOG.error("Cannot find any file named %s in dir %s" % (target_file, cfg.CMD_ROOT_PATH))
+            raise PrecisionToolException("File not exist.")
+        LOG.info("Detect [%s] success. %s", target_file, res)
+        return res[0], str(os.path.join(res[0], target_file))
+
+    def _get_atc(self):
+        if self.atc is not None:
+            atc_path, self.atc = self._detect_file_if_not_exist('atc')
+            os.environ['PATH'] = os.environ['PATH'] + ':' + atc_path
+        return self.atc
+
+    def _get_ms_accu_cmp(self):
+        if self.ms_accu_cmp is not None:
+            _, self.ms_accu_cmp = self._detect_file_if_not_exist(cfg.MS_ACCU_CMP)
+        return self.ms_accu_cmp
 
     @staticmethod
     def _get_newest_dir(path: str):

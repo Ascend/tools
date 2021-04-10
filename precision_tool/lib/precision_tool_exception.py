@@ -1,7 +1,4 @@
-
-
-PRECISION_ERROR_INVALID_FILE = 1
-
+# coding=utf-8
 
 class PrecisionToolException(Exception):
     """

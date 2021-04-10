@@ -2,128 +2,110 @@
 """
 cli
 """
-import cmd
+import os
 import sys
-
-from lib.precision_tool import PrecisionTool
+from termcolor import colored
+from lib.interactive_cli import InteractiveCli
 from lib.util import util
+import config as cfg
 
-HELP_AC = "Run auto check function, use [-c] to start vector compare process.\n" \
-          "  usage: ac (-c) \n"
-HELP_RUN = "Run any shell command.\n" \
-          "  usage: (run) vim tensor_name.txt \n"
+INTRODUCE_DOC = \
+    "==============<Precision Tool>=================\n" \
+    "Usage:\n" \
+    "  Single mode:\n" \
+    "    Exp:\n" \
+    "      python3.7.5 precision_tool/cli.py tf_dump \"sh cpu_train.sh param1 param2\"" \
+    "  Single mode:\n" \
+    "    Exp:\n"
 
-HELP_PT = "Print npy tensor, use [-c] to convert and save to txt file.\n" \
-          "  usage: pt (-c) [tensor_name.npy] \n"
+def _run_tf_dbg_dump(cmd_line):
+    """ run tf debug
+    should set tf debug ui_type='readline'
+    """
+    log = util.get_log()
+    try:
+        import pexpect
+    except ImportError as import_err:
+        log.error("Import pexpect failed with err:%s. You can run 'pip3 install pexpect' to fix it.", import_err)
+        return
+    tf_dbg = pexpect.spawn(cmd_line)
+    tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
+    tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
+    tf_dbg.getecho()
+    tf_dbg.sendline('run')
+    tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
+    tf_dbg.sendline('lt > %s' % cfg.DUMP_FILES_CPU_NAMES)
+    convert_cmd = "timestamp=$[$(date +%s%N)/1000]; cat " + cfg.DUMP_FILES_CPU_NAMES + \
+                  " | awk '{print \"pt\",$4,$4}'| awk '{gsub(\"/\", \"_\", $3); gsub(\":\", \".\", $3);" \
+                  "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + "/" + \
+                  "\"$3\".\"\"'$timestamp'\"\".npy\")}' > " + cfg.DUMP_FILES_CPU_CMDS
+    util.execute_command(convert_cmd)
+    if not os.path.exists(cfg.DUMP_FILES_CPU_CMDS):
+        log.error("Save tf dump cmd failed")
+        return
+    for cmd in open(cfg.DUMP_FILES_CPU_CMDS):
+        log.debug(cmd)
+        # tf_dbg.expect('tfdbg>')
+        tf_dbg.sendline(cmd)
+    tf_dbg.expect('tfdbg>')
+    tf_dbg.sendline('exit')
+    log.info('Finish save tf data')
 
 
-class Cli(cmd.Cmd):
-    def __init__(self):
-        cmd.Cmd.__init__(self)
-        self.prompt = "PrecisionTool > "
-        self.precision_tool = None
-        # self._prepare()
+def _unset_flags():
+    if cfg.PRECISION_TOOL_OVERFLOW_FLAG in os.environ:
+        del os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG]
+    if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ:
+        del os.environ[cfg.PRECISION_TOOL_DUMP_FLAG]
 
-    def default(self, line: str) -> bool:
-        util.execute_command(line)
-        return False
 
-    def _prepare(self):
-        self.precision_tool = PrecisionTool()
-        self.precision_tool.prepare()
+def _run_npu_dump(cmd):
+    _unset_flags()
+    log = util.get_log()
+    os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] = 'True'
+    log.info("Start run NPU script with dump data.")
+    print(cmd)
+    ret = util.execute_command(cmd)
+    log.info("Finish run NPU script with dump data. ret [%s]", ret)
+    _unset_flags()
 
-    def do_set(self, line=''):
-        """Set env. overflow;dump"""
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_set_env(argv)
-        return True
 
-    def do_ac(self, line=''):
-        """Auto check."""
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_auto_check(argv)
+def _run_npu_overflow(cmd):
+    _unset_flags()
+    log = util.get_log()
+    os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG] = 'True'
+    log.info("Start run NPU script with dump data....")
+    ret = util.execute_command(cmd)
+    log.info("Finish run NPU script with dump data. ret [%s]", ret)
+    _unset_flags()
 
-    def do_run(self, line=''):
-        """Run any shell command"""
-        util.execute_command(line)
 
-    def do_npu_run(self, line=''):
-        """Run npu npu script with debug envs(overflow/dump):\n usage: npu_run (overflow/dump) [start npu command]"""
-        self.precision_tool.auto_run_with_debug_envs(line)
-        self._prepare()
-
-    def do_tf_run(self, line=''):
-        """Run tf cpu script with tfdbg to generate golden data:\n usage: tf_run [tf cpu start command]"""
-        self.precision_tool.run_tf_dbg_dump(line)
-        self._prepare()
-
-    def do_ls(self, line=''):
-        """List ops: \n usage: ls (op(default)/dump) -n [op_name] -t [op_type]"""
-        argv = line.split(' ') if line != '' else []
-        if len(argv) > 0 and argv[0] == 'dump':
-            return self.precision_tool.do_list_dump(argv[1:])
-        self.precision_tool.do_list_nodes(argv)
-
-    def do_ni(self, line=''):
-        """Print node info:\n usage: ni (-n) [op_name]"""
-        argv = line.split(' ') if line != '' else []
-        if len(argv) == 1:
-            argv.insert(0, '-n')
-        self.precision_tool.do_node_info(argv)
-
-    def do_dc(self, line=''):
-        """Convert npu dump by op names:\n usage: dc (-n) [npu dump file] -f [target format]"""
-        argv = line.split(' ') if line != '' else []
-        if len(argv) == 0:
-            return self.precision_tool.do_convert_all_npu_dump()
-        if argv[0] != '-n':
-            argv.insert(0, '-n')
-        self.precision_tool.do_convert_npu_dump(argv)
-
-    def do_vc(self, line=''):
-        """Do vector compare: \n usage: vc """
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_vector_compare(argv)
-
-    def do_pt(self, line=''):
-        """Print data info:\n usage: pt (-n) [*.npy] (-c)\n   -c: convert and save to txt file"""
-        argv = line.split(' ') if line != '' else []
-        if len(argv) > 0 and argv[0] != '-n' and argv[0] != '-c':
-            argv.insert(0, '-n')
-        self.precision_tool.do_print_data(argv)
-
-    def do_fu(self, line=''):
-        """Fusion summary"""
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_check_fusion(argv)
-
-    def do_cp(self, line=''):
-        """Compare two data file """
-        argv = line.split(' ') if line != '' else []
-        argv.insert(0, '-n')
-        self.precision_tool.do_compare_data(argv)
-
-    def do_cc(self, line=''):
-        """Check cast"""
-        self.precision_tool.do_check_cast()
-
-    def do_cd(self, line=''):
-        """Check dtype"""
-        self.precision_tool.do_check_dtype()
-
-    def do_help(self, arg: str):
-        # print(arg)
-        super(Cli, self).do_help(arg)
+def main():
+    log = util.get_log()
+    if len(sys.argv) > 1:
+        if len(sys.argv) == 2:
+            print(INTRODUCE_DOC)
+            sys.exit(0)
+        log.info("Single command mode.")
+        cmd_line = sys.argv[2]
+        if sys.argv[1] == 'tf_dump':
+            _run_tf_dbg_dump(cmd_line)
+        elif sys.argv[1] == 'npu_dump':
+            _run_npu_dump(cmd_line)
+        elif sys.argv[1] == 'npu_overflow':
+            _run_npu_overflow(cmd_line)
+        else:
+            log.warning("Unknown command:", sys.argv[1])
+            print(INTRODUCE_DOC)
+        exit(0)
+    log.info("Interactive command mode.")
+    cli = InteractiveCli()
+    try:
+        cli.cmdloop(intro=cli.__doc__)
+    except KeyboardInterrupt:
+        log.info("Bye.......")
+    sys.exit(0)
 
 
 if __name__ == '__main__':
-    cli = Cli()
-    log = util.get_log()
-    if len(sys.argv) > 1:
-        log.info("Single command mode.")
-        exit(0)
-    log.info("Interactive command mode")
-    try:
-        cli.cmdloop(intro="Bingo!")
-    except KeyboardInterrupt:
-        print("Bye!")
+    main()

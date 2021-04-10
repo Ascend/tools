@@ -20,31 +20,90 @@
 #### TODO
 1. NPU单算子自验证【自动/手动】
 2. UB融合/图融合开启关闭分析【自动/手动】
-## 环境准备
-一般直接在NPU训练环境上部署该脚本，环境上能够正常执行CPU和NPU训练脚本
-
+### 工具获取
+1. 下载压缩包的方式获取
+   将https://gitee.com/ascend/tools 以压缩包形式下载
+2. 使用git命令方式获取
+3. 移动 tools/precision_tool 子目录至训练工作目录
 ### 安装python3三方依赖
 ```shell
 pip3 install rich readline pexpect scipy graphviz
-
 # ubuntu/Debian
 sudo apt-get install graphviz
-
 # fedora/Centos
 sudo yum install graphviz
-
 ```
-
-## 获取
-
-1.  下载压缩包的方式获取
-    将https://gitee.com/ascend/tools 以压缩包形式下载
-2.  使用git命令方式获取
-
+### 工具执行依赖
+* 一般直接在NPU训练环境上部署该脚本，环境上能够正常执行CPU和NPU训练脚本
+* 该工具基于**NPU的计算图**，**NPU的DUMP数据**，**NPU的溢出检测数据**，**TF的计算图meta文件**，**TF的DUMP数据**进行数据解析和分析。
+这几类依赖数据可以通过以下方式获取：
+#### 1. NPU的计算图获取
+```注意：NPU的Dump数据和计算图存在一定的对应关系，最好同时获取（不修改代码和环境版本的情况下分开获取也可以）```
+1. 参考迁移指导中的修改配置，执行NPU脚本，并将获取到的图转存至precision_data图目录
+   ```shell
+   export DUMP_GE_GRAPH=2
+   export DUMP_GRAPH_LEVEL=3
+   export DUMP_GRAPH_PATH=./precision_data/graph/all
+   # 未配置DUMP_GRAPH_PATH时，图文件将保存在脚本执行目录，可以直接转存至precision_data目录
+   mkdir -p ./precision_data/graph/all && mv ge_proto_*.txt ./precision_data/graph/all/
+   ```
+2. 使用precision_tool中提供的辅助命令行执行训练脚本，将自动配置以上环境变量并执行训练任务
+   ```shell
+   # 注意：避免在自定义的训练脚本中unset上述DUMP GRAPH相关的环境变量
+   python3.7.5 precision_tool/cli.py npu_dump "sh run_train.sh param1 param2"
+   ```
+#### 2. NPU的DUMP数据获取
+1. 参考[精度比对工具使用指南](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0004.html) 修改训练脚本。
+   执行训练脚本，并将dump的数据拷贝到【precision_data/dump/npu/】目录
+2. 在训练脚本中**import precision_tool.tf_config**，并使用precision_tool中提供的辅助命令行执行训练脚本 
+    ``` python
+    # 引用 precision_tool/tf_config.py
+    import precision_tool.tf_config as npu_tf_config
+    
+    # 如果使用的是Estimator
+    npu_config = NPURunConfig(dump_config=npu_tf_config.estimator_dump_config)
+    
+    # 如果使用的是session.run方式，输入config可选，填入可以在原先的config上新增Dump配置项
+    sess = tf.Session(config=npu_tf_config.session_dump_config(config))
+    ```
+    ```shell
+    python3.7.5 precision_tool/cli.py npu_dump "sh run_train.sh param1 param2"
+    ```
+#### 3. NPU的溢出检测数据的获取
+1. 参考[使用溢出检测工具分析算子溢出](https://support.huaweicloud.com/tensorflowdevg-cann330alphaXtraining/atlasmprtg_13_0037.html) 修改训练脚本，
+   并将溢出数据拷贝至【precision_tool/dump/overflow/】目录
+2. 在训练脚本中**import precision_tool.tf_config**，并按【2. NPU的DUMP数据获取】中修改训练代码，使用precision_tool中提供的辅助命令行执行训练脚本
+    ```shell
+    python3.7.5 precision_tool/cli.py npu_overflow "sh run_train.sh param1 param2"
+    ```
+#### 4. TF计算图Meta文件的获取
+* 通过saver保存ckpt获取
+    ```python
+    # 修改CPU/NPU脚本
+    with tf.Session() as sess:
+       # do session.run()
+       saver = tf.train.Saver()
+       # 保存ckpt
+       saver.save(sess, saver_dir)
+    ```
+#### 5. TF的DUMP数据获取
+1. 参考[准备基于GPU/CPU运行生成的npy数据](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0005.html) 
+   获取CPU/GPU的TF数据，并拷贝至【precision/dump/cpu/】目录
+2. 在CPU/GPU训练脚本中添加tf_debug代码，并使用precision_tool中提供的辅助命令行工具生成标杆DUMP数据
+   ```python
+    from tensorflow.python import debug as tf_debug
+    
+    # 如果使用的是Estimator,EstimatorSpec加入training_hooks
+    estim_specs = tf.estimator.EstimatorSpec(training_hooks=[tf_debug.LocalCLIDebugHook()])    
+    
+    # 如果使用的session.run，则需要在session初始化后加入tf_debug代码
+    sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type="readline")
+   ```
+   ```shell
+   python3.7.5 precision_tool/cli.py tf_dump "sh cpu_train.sh param1 param2"
+   ```
 ## 使用说明
-
-1.  移动 tools/precision_tool 子目录至训练工作目录
-2.  检查配置文件precision_tool/config.py
+1.  配置文件precision_tool/config.py（正常默认即可）
     ```python
     # 如果需要dump特定曾的数据，则可以修改以下配置项
     # 一般对比分析dump首层即可
@@ -68,55 +127,39 @@ sudo yum install graphviz
     LOG_LEVEL = "NOTSET"
     DATA_ROOT_DIR = './precision_data'
     ```
-3. TF执行脚本修改（要Dump标杆数据的话）
-    ```python
-    from tensorflow.python import debug as tf_debug
-    
-    # 如果使用的是Estimator,EstimatorSpec加入training_hooks
-    estim_specs = tf.estimator.EstimatorSpec(training_hooks=[tf_debug.LocalCLIDebugHook()])    
-    
-    # 如果使用的session.run，则需要在session初始化后加入tf_debug代码
-    sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type="readline")
-    ```
-4. NPU执行脚本修改
-    ```python
-    # 引入 precision_tool/tf_config.py
-    import precision_tool.tf_config as npu_tf_config
-    
-    # 如果使用的是Estimator
-    npu_config = NPURunConfig(dump_config=npu_tf_config.estimator_dump_config)
-    
-    # 如果使用的是session.run方式，输入config可选，填入可以在原先的config上新增Dump配置项
-    sess = tf.Session(config=npu_tf_config.session_dump_config(config))
-    ```
-4. 启动脚本（交互命令行）
+2. 启动脚本（交互命令行）
     ```shell
     python3 ./precision_tool/cli.py 
     ```
-    
-### 支持的命令
-1. tf_run [start tf cpu script command]
+### 非交互模式命令
+1. tf_dump [start tf cpu script command]
     ```shell
     # 启动tf训练脚本，Dump CPU标杆数据
     # 需要配合上述tf_debug修改使用，能够Dump出第一个step的所有Tensor数据
     # 也可以在GPU/CPU环境上单独部署脚本执行该命令，将数据目录precision_data/dump/cpu 拷贝到NPU环境分析
-    PrecisionTool > tf_run python3 LeNet_cpu.py
+    python3.7.5 precision_tool/cli.py tf_dump 'python3 LeNet_cpu.py'
     ```
-   
-2. npu_run [start npu script command]
+2. npu_dump [start npu script command]
     ```shell
-    # 启动npu训练脚本，自动进行溢出检测和图dump及数据dump
+    # 启动npu训练脚本，图dump及数据dump
     # 需要配合上述precision_tool/tf_config.py 使用
-    PrecisionTool > npu_run python3 LeNet_npu.py
+    python3.7.5 precision_tool/cli.py npu_dump 'python3 LeNet_npu.py'
     ```
    
+3. npu_overflow [start npu script command]
+    ```shell
+    # 启动npu训练脚本，进行溢出检测
+    # 需要配合上述precision_tool/tf_config.py 使用
+    python3.7.5 precision_tool/cli.py npu_overflow 'python3 LeNet_npu.py'
+    ```
+   
+### 交互模式命令
 3. ac (-c)
     ```shell
     # auto check. 自动化检测命令
     # 列出Fusion信息;解析算子溢出信息;(-c)进行全网比对
     PrecisionTool > ac -c
     ```
-   
 4. run [command]
     ```shell
     # 不退出交互命令环境执行shell命令，与内置命令不冲突的可以直接执行，否则需要加run前缀

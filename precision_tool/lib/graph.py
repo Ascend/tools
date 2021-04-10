@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import collections
-import tensorflow as tf
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
@@ -127,6 +126,7 @@ class Graph(ToolObject):
         self._convert_ckpt_to_graph(cfg.GRAPH_CPU)
 
     def _convert_ckpt_to_graph(self, ckpt_path):
+        import tensorflow as tf
         if not str(ckpt_path).endswith(CKPT_META_SHUFFIX):
             if os.path.isfile(ckpt_path + CKPT_META_SHUFFIX):
                 ckpt_path = ckpt_path + CKPT_META_SHUFFIX

@@ -7,6 +7,10 @@ from tensorflow.python import debug as tf_debug
 import tensorflow as tf
 from . import config as cfg
 
+FLAG_DUMP_GE_GRAPH = 'DUMP_GE_GRAPH'
+FLAG_DUMP_GRAPH_LEVEL = 'DUMP_GRAPH_LEVEL'
+FLAG_DUMP_GRAPH_PATH = 'DUMP_GRAPH_PATH'
+
 
 def estimator_dump_config() -> DumpConfig:
     """return DumpConfig.
@@ -18,9 +22,12 @@ def estimator_dump_config() -> DumpConfig:
     if _is_overflow():
         config = DumpConfig(enable_dump_debug=True, dump_path=cfg.DUMP_FILES_OVERFLOW, dump_step=cfg.TF_DUMP_STEP,
                             dump_mode="all", fusion_switch_file=cfg.FUSION_SWITCH_FILE)
-    else:
+    elif _is_dump():
+        _set_dump_graph_flags()
         config = DumpConfig(enable_dump=True, dump_path=cfg.DUMP_FILES_NPU_ALL, dump_step=cfg.TF_DUMP_STEP,
                             dump_mode="all", op_debug_level=1, fusion_switch_file=cfg.FUSION_SWITCH_FILE)
+    else:
+        config = DumpConfig()
     return config
 
 
@@ -47,13 +54,15 @@ def session_dump_config(session_config=None) -> config_pb2.ConfigProto:
         custom_op.parameter_map['dump_debug_mode'].s = tf.compat.as_bytes("all")
         custom_op.parameter_map['dump_path'].s = tf.compat.as_bytes(cfg.DUMP_FILES_OVERFLOW)
         custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(cfg.FUSION_SWITCH_FILE)
-    else:
+        custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
+    elif _is_dump():
+        _set_dump_graph_flags()
         custom_op.parameter_map['enable_dump'].b = True
         custom_op.parameter_map['dump_mode'].s = tf.compat.as_bytes("all")
         custom_op.parameter_map['dump_path'].s = tf.compat.as_bytes(cfg.DUMP_FILES_NPU_ALL)
         custom_op.parameter_map['op_debug_level'].i = 2
         custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(cfg.FUSION_SWITCH_FILE)
-    custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
+        custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
     session_config.graph_options.rewrite_options.remapping = RewriterConfig.OFF
     return session_config
 
@@ -75,11 +84,33 @@ def _create_dir(path):
         print("Failed to create {}. {}".format(path, str(err)))
 
 
+def _unset_dump_graph_flags():
+    if FLAG_DUMP_GE_GRAPH in os.environ:
+        del os.environ[FLAG_DUMP_GE_GRAPH]
+    if FLAG_DUMP_GRAPH_LEVEL in os.environ:
+        del os.environ[FLAG_DUMP_GRAPH_LEVEL]
+    if FLAG_DUMP_GRAPH_PATH in os.environ:
+        del os.environ[FLAG_DUMP_GRAPH_PATH]
+
+
+def _set_dump_graph_flags():
+    os.environ[FLAG_DUMP_GE_GRAPH] = "2"
+    os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
+    os.environ[FLAG_DUMP_GRAPH_PATH] = cfg.GRAPH_DIR_ALL
+
+
+def _is_dump() -> bool:
+    if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] == 'True':
+        print("======< PrecisionTool enable npu dump >======")
+        return True
+    return False
+
+
 def _is_overflow() -> bool:
-    if "CHECK_OVERFLOW" in os.environ:
-        return os.environ["CHECK_OVERFLOW"] == 'True'
-    else:
-        return False
+    if cfg.PRECISION_TOOL_OVERFLOW_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG] == 'True':
+        print("======< PrecisionTool enable npu overflow >======")
+        return True
+    return False
 
 
 def _is_fusion_switch() -> bool:
