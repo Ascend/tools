@@ -2,7 +2,6 @@
 import json
 from lib.tool_object import ToolObject
 from lib.util import util
-from lib.util import LOG
 import config as cfg
 
 AI_CORE_OVERFLOW_STATUS = {
@@ -38,6 +37,7 @@ class Overflow(ToolObject):
     def __init__(self):
         """Init"""
         super(Overflow, self).__init__()
+        self.log = util.get_log()
 
     def prepare(self):
         """Prepare"""
@@ -47,7 +47,7 @@ class Overflow(ToolObject):
     def check(self):
         """Check overflow info"""
         if len(self.overflow_ops) == 0:
-            LOG.info("[Overflow] Checked success. find [0] overflow node!")
+            self.log.info("[Overflow] Checked success. find [0] overflow node!")
             return
         for op_name in self.overflow_ops:
             file_infos = self.overflow_ops[op_name]
@@ -55,7 +55,7 @@ class Overflow(ToolObject):
             file_info = file_infos[first_timestamp]
             self._decode_overflow_info(file_info)
             self._parse_overflow_info(file_info)
-        LOG.info("[Overflow] Checked success. find [%d] overflow node!", len(self.overflow_ops))
+        self.log.info("[Overflow] Checked success. find [%d] overflow node!", len(self.overflow_ops))
 
     def _parse_overflow_files(self):
         # make relationship between dump_file and debug_file
@@ -63,7 +63,7 @@ class Overflow(ToolObject):
             dump_file_list = [item for item in dirs.values() if item['op_type'] != 'Opdebug']
             debug_file_list = [item for item in dirs.values() if item['op_type'] == 'Opdebug']
             if len(dump_file_list) != len(debug_file_list):
-                LOG.error("Dump files num not equal to Debug files info")
+                self.log.error("Dump files num not equal to Debug files info")
             dump_file_list = sorted(dump_file_list, key=lambda x: x['timestamp'])
             debug_file_list = sorted(debug_file_list, key=lambda x: x['timestamp'])
             for i in range(len(dump_file_list)):
@@ -125,14 +125,13 @@ class Overflow(ToolObject):
             res += '\n -- %s' % dump_decode_file['file_name']
         return res
 
-    @staticmethod
-    def _decode_ai_core_status(status):
+    def _decode_ai_core_status(self, status):
         error_code = []
         if type(status) is not int:
             return error_code
         bin_status = ''.join(reversed(bin(status)))
         prefix = ''
-        LOG.debug('Decode AI Core Overflow status:[%s]', hex(status))
+        self.log.debug('Decode AI Core Overflow status:[%s]', hex(status))
         for i in range(len(bin_status)):
             if bin_status[i] == '1':
                 error_code.append(AI_CORE_OVERFLOW_STATUS[hex(int('1' + prefix, 2))])

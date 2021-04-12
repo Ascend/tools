@@ -8,10 +8,6 @@ from lib.tool_object import ToolObject
 from lib.graph import Graph
 from lib.dump import Dump
 from lib.util import util
-from lib.util import LOG
-from rich.table import Table
-from rich import print as rich_print
-from rich.columns import Columns
 import config as cfg
 
 graph = Graph()
@@ -37,17 +33,18 @@ class Compare(ToolObject):
     def __init__(self):
         """Init"""
         super(Compare, self).__init__()
+        self.log = util.get_log()
 
     def vector_compare(self):
         """Compare all ops"""
         if util.empty_dir(cfg.DUMP_FILES_CPU):
-            LOG.warning("No valid dump file in %s", cfg.DUMP_FILES_CPU)
+            self.log.warning("No valid dump file in %s", cfg.DUMP_FILES_CPU)
             return
-        LOG.info("[VectorCompare] Running...")
+        self.log.info("[VectorCompare] Running...")
         if not util.empty_dir(cfg.VECTOR_COMPARE_PATH):
             self._parse_result_files()
             self.vector_summary()
-            LOG.info("Vector compare path is not empty, show previous result.")
+            self.log.info("Vector compare path is not empty, show previous result.")
             return
         util.create_dir(cfg.VECTOR_COMPARE_PATH)
         util.clear_dir(cfg.VECTOR_COMPARE_PATH)
@@ -59,7 +56,7 @@ class Compare(ToolObject):
                     continue
                 count += 1
                 util.compare_vector(dump_dir, cfg.DUMP_FILES_CPU, graph_json, cfg.VECTOR_COMPARE_PATH)
-        LOG.info("[VectorCompare] Done. Process [%d] graphs.", count)
+        self.log.info("[VectorCompare] Done. Process [%d] graphs.", count)
         self._parse_result_files()
         self.vector_summary()
 
@@ -67,7 +64,7 @@ class Compare(ToolObject):
         """Print not NaN result in vector compare result"""
         for file_name in self.vector_compare_result:
             items = self.vector_compare_result[file_name]
-            table = self._create_table(file_name, list(ROW_MAP.keys())[3:])
+            table = util.create_table(file_name, list(ROW_MAP.keys())[3:])
             for item in items:
                 if len(item) == 0 or item[ROW_MAP['TensorIdx']] == 'TensorIndex' or item[ROW_MAP['MaxAbs']] == 'NaN':
                     continue
@@ -76,16 +73,16 @@ class Compare(ToolObject):
                               item[ROW_MAP['ARE']], item[ROW_MAP['RED']], item[ROW_MAP['KLD']],
                               item[ROW_MAP['StandardDeviation']])
 
-            rich_print("[CosSim: CosineSimilarity] [MaxAbs: MaxAbsoluteError] [ARE: MaxAbsoluteError] "
+            util.print("[CosSim: CosineSimilarity] [MaxAbs: MaxAbsoluteError] [ARE: MaxAbsoluteError] "
                        "[RED: RelativeEuclideanDistance] [KLD: KullbackLeiblerDivergence]")
-            rich_print(table)
+            util.print(table)
 
     def compare_data(self, left, right, rl=0.001, al=0.001, print_n=20):
         """Compare data"""
         left = self._detect_file(left)
         right = self._detect_file(right)
         if left is None or right is None:
-            LOG.error("invalid input or output")
+            self.log.error("invalid input or output")
             return
         # save to txt
         util.save_npy_to_txt(left)
@@ -103,11 +100,11 @@ class Compare(ToolObject):
         shape_left = data_left.shape
         shape_right = data_right.shape
         if shape_left != shape_right:
-            LOG.warning("Data shape not equal: %s vs %s", data_left.shape, data_right.shape)
+            self.log.warning("Data shape not equal: %s vs %s", data_left.shape, data_right.shape)
         data_left = data_left.reshape(-1)
         data_right = data_right.reshape(-1)
         if data_left.shape[0] != data_right.shape[0]:
-            LOG.warning("Data size not equal: %s vs %s", data_left.shape, data_right.shape)
+            self.log.warning("Data size not equal: %s vs %s", data_left.shape, data_right.shape)
         all_close = np.allclose(data_left, data_right, atol=al, rtol=rl)
         # cos_sim = 1 - spatial.distance.cosine(data_left, data_right)
         cos_sim = np.dot(data_left, data_right) / (
@@ -115,8 +112,8 @@ class Compare(ToolObject):
         err_cnt = 0
         total_cnt = data_left.shape[0]
         diff_table_columns = ['Index', 'Left', 'Right', 'Diff']
-        err_table = self._create_table("Error Item Table", diff_table_columns)
-        top_table = self._create_table("Top Item Table", diff_table_columns)
+        err_table = util.create_table("Error Item Table", diff_table_columns)
+        top_table = util.create_table("Top Item Table", diff_table_columns)
         for i in range(total_cnt):
             abs_diff = abs(data_left[i] - data_right[i])
             if abs_diff > (al + rl * abs(data_right[i])):
@@ -126,7 +123,7 @@ class Compare(ToolObject):
                     err_table.add_row(str(i), str(data_left[i]), str(data_right[i]), str(abs_diff))
                 err_cnt += 1
         err_percent = float(err_cnt / total_cnt)
-        rich_print(Columns([err_table, top_table]))
+        util.print(util.create_columns([err_table, top_table]))
         return total_cnt, all_close, cos_sim, err_percent
 
     def _parse_result_files(self):
@@ -145,10 +142,3 @@ class Compare(ToolObject):
             if os.path.isfile(os.path.join(parent_dir, file_name)):
                 return os.path.join(parent_dir, file_name)
         return None
-
-    @staticmethod
-    def _create_table(title, columns):
-        table = Table(title=title)
-        for column_name in columns:
-            table.add_column(column_name, overflow='fold')
-        return table

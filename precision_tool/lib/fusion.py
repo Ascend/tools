@@ -5,10 +5,7 @@ import shutil
 
 from lib.tool_object import ToolObject
 from lib.util import util
-from lib.util import LOG
 import config as cfg
-from rich.table import Table
-from rich.columns import Columns
 
 FUSION_RESULT_FILE_NAME = 'fusion_result.json'
 EFFECT_TIMES_KEY = 'effect_times'
@@ -44,10 +41,10 @@ class FusionResult(object):
 
 
 class Fusion(ToolObject):
-    fusion_result = []
-
     def __init__(self):
         super(Fusion, self).__init__()
+        self.fusion_result = []
+        self.log = util.get_log()
 
     def prepare(self, json_path='./'):
         """Prepare fusion rule manager
@@ -59,7 +56,7 @@ class Fusion(ToolObject):
         file_path_local = os.path.join(cfg.FUSION_DIR, FUSION_RESULT_FILE_NAME)
         if not os.path.isfile(file_path):
             if not os.path.isfile(file_path_local):
-                LOG.warning("Can not find fusion result json.")
+                self.log.warning("Can not find fusion result json.")
                 return
         else:
             shutil.copy(file_path, cfg.FUSION_DIR)
@@ -71,14 +68,14 @@ class Fusion(ToolObject):
         """Check fusion rules
         :return: None
         """
-        LOG.info("Check effect fusion rule list.")
+        self.log.info("Check effect fusion rule list.")
         for fusion in self.fusion_result:
             graph_fusion_table = self._build_table('Graph Fusion [GraphID: %s]' % fusion.graph_id(),
                                                    fusion.get_effect_graph_fusion())
             ub_fusion_table = self._build_table('UB Fusion [GraphID: %s]' % fusion.graph_id(),
                                                 fusion.get_effect_ub_fusion())
-            util.print_panel(Columns([graph_fusion_table, ub_fusion_table]), title='GraphID:' + fusion.graph_id(),
-                             fit=True)
+            util.print_panel(util.create_columns([graph_fusion_table, ub_fusion_table]),
+                             title='GraphID:' + fusion.graph_id(), fit=True)
 
     @staticmethod
     def _get_result_jsons(file_name):
@@ -99,9 +96,7 @@ class Fusion(ToolObject):
 
     @staticmethod
     def _build_table(title, fusion):
-        table = Table(title=title)
-        table.add_column('Fusion Name')
-        table.add_column('Effect times')
+        table = util.create_table(title, ['Fusion Name', 'Effect times'])
         for f in fusion:
             table.add_row(f, str(fusion[f]))
         return table

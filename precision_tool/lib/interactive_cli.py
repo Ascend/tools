@@ -108,4 +108,4 @@ class InteractiveCli(cmd.Cmd):
 
     def do_help(self, arg: str):
         # print(arg)
-        super(Cli, self).do_help(arg)
+        super(InteractiveCli, self).do_help(arg)

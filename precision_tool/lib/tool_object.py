@@ -1,7 +1,4 @@
-""""""
-import config as cfg
-from lib.util import LOG
-import os
+# coding=utf-8
 
 
 class ToolObject(object):

@@ -7,16 +7,11 @@ import os
 import re
 import shutil
 import collections
-from rich.table import Table
-from rich.live import Live
-from rich.panel import Panel
-from rich import print as rich_print
 
 import config as cfg
 from lib.tool_object import ToolObject
 from lib.op import Op
 from lib.util import util
-from lib.util import LOG
 
 DANGEROUS_CAST = {
     'DT_FLOAT': ['DT_INT32']
@@ -43,6 +38,7 @@ class Graph(ToolObject):
         self.ops_list = collections.OrderedDict()
         self.cpu_ops_list = collections.OrderedDict()
         self.ops_type_list = {}
+        self.log = util.get_log()
 
     def prepare(self):
         """ prepare """
@@ -66,7 +62,7 @@ class Graph(ToolObject):
                 for output_desc in op.outputs():
                     output_type = output_desc.dtype() if output_desc.dtype() != '' else output_type
                 color = 'red' if self._is_dangerous_cast(input_type, output_type) else 'yellow'
-                rich_print('[green][%s][/green][%s][%s -> %s][/%s] %s' % (
+                util.print('[green][%s][/green][%s][%s -> %s][/%s] %s' % (
                     op.type(), color, input_type, output_type, color, op.name()))
 
     def check_dtype(self):
@@ -78,7 +74,7 @@ class Graph(ToolObject):
             output_dtype = ''
             for output_desc in op.outputs():
                 output_dtype += ' ' + output_desc.dtype()
-            rich_print('[green][%s][/green] %s\n - Input:  %s\n - Output: %s' % (
+            util.print('[green][%s][/green] %s\n - Input:  %s\n - Output: %s' % (
                 op.type(), op.name(), input_dtype, output_dtype))
 
     def check_similarity(self):
@@ -87,11 +83,11 @@ class Graph(ToolObject):
     def print_op(self, op_name):
         """ print op detail info"""
         if op_name not in self.ops_list:
-            LOG.warning("can not find op [%s]" % op_name)
+            self.log.warning("can not find op [%s]" % op_name)
             return
         op = self.ops_list[op_name]
         title = '[green][%s][/green]%s' % (op.type(), op.name())
-        rich_print(Panel.fit(op.summary(), title=title))
+        util.print_panel(op.summary(), title=title, fit=True)
 
     def list_ops(self):
         """list ops in graph"""
@@ -108,19 +104,15 @@ class Graph(ToolObject):
         """"""
         if op_type == '' and op_name == '' and pass_name == '':
             for op in self.ops_list.values():
-                # rich_print(Panel(op.summary()))
-                rich_print('[green][%s][/green] %s' % (op.type(), op.name()))
-            table = Table(title="Operation Summary")
-            table.add_column("OpType")
-            table.add_column("Count")
-            with Live(table, vertical_overflow='visible'):
-                for op_type in self.ops_type_list.keys():
-                    table.add_row(op_type, str(len(self.ops_type_list[op_type])))
+                util.print('[green][%s][/green] %s' % (op.type(), op.name()))
+            table = util.create_table("Operation Summary", ["OpType", "Count"])
+            for op_type in self.ops_type_list.keys():
+                table.add_row(op_type, str(len(self.ops_type_list[op_type])))
             return
         for op in self.ops_list.values():
             if op_type in op.type() and op_name in op.name() and pass_name in op.pass_name():
                 op_pass_name = '' if op.pass_name() == '' else '[yellow][%s][/yellow]' % op.pass_name()
-                rich_print('[green][%s][/green]%s %s' % (op.type(), op_pass_name, op.name()))
+                util.print('[green][%s][/green]%s %s' % (op.type(), op_pass_name, op.name()))
 
     def _parse_cpu_ops(self):
         self._convert_ckpt_to_graph(cfg.GRAPH_CPU)
@@ -137,7 +129,7 @@ class Graph(ToolObject):
                     if file_name.endswith(CKPT_META_SHUFFIX):
                         ckpt_path = file_name
         if not str(ckpt_path).endswith(CKPT_META_SHUFFIX):
-            LOG.error("Path [%s] is not valid.", ckpt_path)
+            self.log.error("Path [%s] is not valid.", ckpt_path)
             return
         saver = tf.train.import_meta_graph(ckpt_path, clear_devices=True)
         graph = tf.get_default_graph()
@@ -155,7 +147,6 @@ class Graph(ToolObject):
     @staticmethod
     def _init_dirs():
         """Create graph dirs."""
-        LOG.debug('Init graph dirs.')
         util.create_dir(cfg.GRAPH_DIR)
         util.create_dir(cfg.GRAPH_DIR_ALL)
         util.create_dir(cfg.GRAPH_DIR_LAST)
@@ -172,7 +163,7 @@ class Graph(ToolObject):
                     shutil.copy(file, cfg.GRAPH_DIR_LAST)
                 shutil.move(file, os.path.join(cfg.GRAPH_DIR_ALL, file))
                 num += 1
-        LOG.info("Prepare GE graphs success. Move [%d] graphs", num)
+        self.log.info("Prepare GE graphs success. Move [%d] graphs", num)
         # convert build proto files to json files
         util.convert_proto_to_json(os.listdir(cfg.GRAPH_DIR_LAST))
         # list graphs
@@ -183,17 +174,17 @@ class Graph(ToolObject):
         """Parse *_Build.txt.json to op objects."""
         # only parse the last build graph
         if len(self.build_list) == 0:
-            LOG.warning("Cannot find any ge_proto_*_Build.txt in %s.", cfg.GRAPH_DIR_LAST)
+            self.log.warning("Cannot find any ge_proto_*_Build.txt in %s.", cfg.GRAPH_DIR_LAST)
             return
         sorted_graphs = sorted(self.build_list)
-        LOG.info("Find [%d] graphs. %s", len(sorted_graphs), sorted_graphs)
+        self.log.info("Find [%d] graphs. %s", len(sorted_graphs), sorted_graphs)
         last_graph = sorted_graphs[-1]
-        LOG.info("Choose the last graph [%s].", last_graph)
+        self.log.info("Choose the last graph [%s].", last_graph)
         graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, last_graph)
         with open(graph_path, 'r') as f:
             graph_json = json.load(f)
             for item in graph_json['graph']:
-                LOG.info("Find graph [%s] in %s", item['name'], last_graph)
+                self.log.info("Find graph [%s] in %s", item['name'], last_graph)
                 self.sub_graph_json_map[item['name']] = graph_path
                 for op_json in item['op']:
                     op_name = op_json['name']

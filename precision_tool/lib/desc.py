@@ -1,5 +1,5 @@
 # coding=utf-8
-from lib.util import LOG
+from lib.util import util
 
 
 class Desc(object):
@@ -45,8 +45,9 @@ class Desc(object):
 class InputDesc(Desc):
     def __init__(self, name, desc_json, index):
         super(InputDesc, self).__init__(desc_json, index)
+        self.log = util.get_log()
         if name == '':
-            LOG.warning('invalid input name.')
+            self.log.warning('invalid input name.')
         name_info = name.split(':')
         self.op_name = name
         self.peer_index = -2
@@ -72,7 +73,7 @@ class OutputDesc(Desc):
     def __init__(self, name, desc_json, index):
         super(OutputDesc, self).__init__(desc_json, index)
         if name == '':
-            LOG.warning('invalid output name.')
+            self.log.warning('invalid output name.')
         self.op_names = name.split(':')
 
     def names(self):

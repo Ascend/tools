@@ -8,7 +8,6 @@ from lib.graph import Graph
 from lib.compare import Compare
 from lib.fusion import Fusion
 from lib.util import util
-from lib.util import LOG
 import config as cfg
 
 # env flags
@@ -26,6 +25,7 @@ class PrecisionTool(object):
         self.dump = Dump()
         self.compare = Compare()
         self.fusion = Fusion()
+        self.log = util.get_log()
 
     def prepare(self):
         """prepare"""
@@ -124,62 +124,9 @@ class PrecisionTool(object):
         parser.add_argument('-rl', '--rtol', dest='rtol', default=0.001, type=float, help='set atol')
         args = parser.parse_args(argv)
         if len(args.names) < 2:
-            LOG.error("compare files less then 2")
+            self.log.error("compare files less then 2")
             return
-        self.compare.compare_data(args.names[0], args.names[1], print_n=args.print)
-
-    @staticmethod
-    def auto_run_with_debug_envs(cmd, overflow=True, dump=True):
-        """ auto run """
-        if FLAG_DUMP_GE_GRAPH in os.environ:
-            del os.environ[FLAG_DUMP_GE_GRAPH]
-        if FLAG_DUMP_GRAPH_LEVEL in os.environ:
-            del os.environ[FLAG_DUMP_GRAPH_LEVEL]
-
-        if overflow:
-            # set check overflow flag
-            os.environ[FLAG_CHECK_OVERFLOW] = "True"
-            LOG.info("Run NPU script with overflow check....")
-            util.execute_command(cmd)
-            LOG.info("Finish run NPU script with overflow check.")
-
-        if dump:
-            # set dump ge flag
-            os.environ[FLAG_DUMP_GE_GRAPH] = "2"
-            os.environ[FLAG_DUMP_GRAPH_LEVEL] = "1"
-            os.environ[FLAG_CHECK_OVERFLOW] = "False"
-            os.environ[FLAG_DUMP_GRAPH_PATH] = cfg.GRAPH_DIR_ALL
-            LOG.info("Run NPU script with dump data....")
-            util.execute_command(cmd)
-            LOG.info("Finish run NPU script with dump data.")
-
-    @staticmethod
-    def run_tf_dbg_dump(line):
-        """ run tf debug
-        should set tf debug ui_type='readline'
-        """
-        tf_dbg = pexpect.spawn(line)
-        tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
-        tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
-        tf_dbg.getecho()
-        tf_dbg.sendline('run')
-        tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
-        tf_dbg.sendline('lt > %s' % cfg.DUMP_FILES_CPU_NAMES)
-        convert_cmd = "timestamp=$[$(date +%s%N)/1000]; cat " + cfg.DUMP_FILES_CPU_NAMES + \
-                      " | awk '{print \"pt\",$4,$4}'| awk '{gsub(\"/\", \"_\", $3); gsub(\":\", \".\", $3);" \
-                      "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + "/" + \
-                      "\"$3\".\"\"'$timestamp'\"\".npy\")}' > " + cfg.DUMP_FILES_CPU_CMDS
-        util.execute_command(convert_cmd)
-        if not os.path.exists(cfg.DUMP_FILES_CPU_CMDS):
-            LOG.error("Save tf dump cmd failed")
-            return
-        for cmd in open(cfg.DUMP_FILES_CPU_CMDS):
-            LOG.debug(cmd)
-            # tf_dbg.expect('tfdbg>')
-            tf_dbg.sendline(cmd)
-        tf_dbg.expect('tfdbg>')
-        tf_dbg.sendline('exit')
-        LOG.info('Finish save tf data')
+        self.compare.compare_data(args.names[0], args.names[1], print_n=int(args.print))
 
     def check_graph_similarity(self):
         """ Check graph similarity """

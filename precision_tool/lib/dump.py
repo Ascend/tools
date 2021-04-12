@@ -3,13 +3,12 @@ import os
 import re
 from lib.tool_object import ToolObject
 from lib.util import util
-from lib.util import LOG
 import config as cfg
-from rich.progress import Progress
 
 
 class NpuDumpDecodeFile(object):
     def __init__(self):
+        self.log = util.get_log()
         self.input_files = {}
         self.output_files = {}
         self.timestamp = -1
@@ -21,7 +20,7 @@ class NpuDumpDecodeFile(object):
     def update(self, file_info):
         """Prepare op npu decode file map."""
         if not self._check(file_info):
-            LOG.warning('Invalid NpuDumpDecodeFile: %s', file_info)
+            self.log.warning('Invalid NpuDumpDecodeFile: %s', file_info)
             return
         if file_info['type'] == 'input':
             self.input_files[file_info['idx']] = file_info
@@ -33,24 +32,24 @@ class NpuDumpDecodeFile(object):
             self.timestamp, self.task_id, self.op_type, self.op_name)
         if len(self.input_files) > 0:
             info = self.input_files[0]
-            shape, dtype, max, min, mean = util.npy_info(info['path'])
+            shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
             txt += '\n - Input:  [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                shape, dtype, max, min, mean, info['file_name'])
+                shape, dtype, max_data, min_data, mean, info['file_name'])
             for idx in range(1, len(self.input_files)):
                 info = self.input_files[idx]
-                shape, dtype, max, min, mean = util.npy_info(info['path'])
+                shape, dtype, max_data, min, mean = util.npy_info(info['path'])
                 txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                    idx, shape, dtype, max, min, mean, info['file_name'])
+                    idx, shape, dtype, max_data, min_data, mean, info['file_name'])
         if len(self.output_files) > 0:
             info = self.output_files[0]
-            shape, dtype, max, min, mean = util.npy_info(info['path'])
+            shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
             txt += '\n - Output: [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                shape, dtype, max, min, mean, info['file_name'])
+                shape, dtype, max_data, min_data, mean, info['file_name'])
             for idx in range(1, len(self.output_files)):
                 info = self.output_files[idx]
-                shape, dtype, max, min, mean = util.npy_info(info['path'])
+                shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
                 txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                    idx, shape, dtype, max, min, mean, info['file_name'])
+                    idx, shape, dtype, max_data, min_data, mean, info['file_name'])
         return txt
 
     def _check(self, file_info):
@@ -69,6 +68,7 @@ class Dump(ToolObject):
     def __init__(self):
         """Init"""
         super(Dump, self).__init__()
+        self.log = util.get_log()
         self.npu_files = None
         self.cpu_files = None
         self.npu_parent_dirs = None
@@ -86,7 +86,7 @@ class Dump(ToolObject):
     def _prepare_npu_dump(self):
         """prepare npu dump, mk soft link of of sub_graph"""
         if self.sub_graph is None:
-            LOG.warning("Sub graph in build graph is None, please check.")
+            self.log.warning("Sub graph in build graph is None, please check.")
             return
         # find right path in DUMP_FILES_NPU_ALL
         sub_graph_path = ''
@@ -94,19 +94,18 @@ class Dump(ToolObject):
             for dir_name in dir_names:
                 if dir_name in self.sub_graph:
                     sub_graph_path = os.path.join(dir_path, dir_name)
-                    LOG.info("Find sub graph dir: %s", sub_graph_path)
+                    self.log.info("Find sub graph dir: %s", sub_graph_path)
         if sub_graph_path == '':
-            LOG.warning("Can not find any sub graph dir %s in [%].", str(self.sub_graph.keys()), sub_graph_path)
+            self.log.warning("Can not find any sub graph dir %s in [%].", str(self.sub_graph.keys()), sub_graph_path)
             return
         # make link to DUMP_FILES_NPU
         os.symlink(sub_graph_path, cfg.DUMP_FILES_NPU)
-        LOG.info("Link current npu dump dir to sub graph: %s", sub_graph_path)
+        self.log.info("Link current npu dump dir to sub graph: %s", sub_graph_path)
         self._parse_npu_dump_files()
 
-    @staticmethod
-    def _init_dirs():
+    def _init_dirs(self):
         """Create dump file dirs"""
-        LOG.debug('Init dump dirs.')
+        self.log.debug('Init dump dirs.')
         # util.create_dir(cfg.DUMP_FILES_NPU)
         util.create_dir(cfg.DUMP_FILES_DECODE)
         util.create_dir(cfg.DUMP_FILES_OVERFLOW)
@@ -131,27 +130,19 @@ class Dump(ToolObject):
     def print_data(self, file_name, is_convert):
         """Print numpy data file"""
         parent_dirs = []
+        file_names = [file_name]
         if '/' in file_name:
             # maybe node name, replace to '_' and detect
-            LOG.warning("Invalid file name[%s]. you may mean the files below.", file_name)
-            self._detect_file_name(file_name)
-            return
+            self.log.warning("Invalid file name[%s]. you may mean the files below.", file_name)
+            file_names = self._detect_file_name(file_name)
         for parent_dir in [cfg.DUMP_FILES_DECODE, cfg.DUMP_FILES_CPU, cfg.DUMP_FILES_OVERFLOW_DECODE,
                            cfg.DUMP_FILES_CONVERT]:
-            if os.path.isfile(os.path.join(parent_dir, file_name)):
-                LOG.debug("Print data in %s", parent_dir)
-                util.print_npy_summary(parent_dir, file_name, is_convert)
-                parent_dirs.append(parent_dir)
-        LOG.info("Find file [%s] in [%d] dirs. %s", file_name, len(parent_dirs), str(parent_dirs))
-
-    @staticmethod
-    def _detect_file_name(file_name):
-        match_name = file_name.replace('/', '_').replace('.', '_') + '\\.'
-        cpu_files = util.list_cpu_dump_decode_files(cfg.DUMP_FILES_CPU, match_name)
-        summary = 'CPU_DUMP:'
-        for file_name in cpu_files.keys():
-            summary += '\n - %s' % file_name
-        util.print_panel(summary)
+            for file_name in file_names:
+                if os.path.isfile(os.path.join(parent_dir, file_name)):
+                    self.log.debug("Print data in %s", parent_dir)
+                    util.print_npy_summary(parent_dir, file_name, is_convert)
+                    parent_dirs.append(parent_dir)
+        self.log.info("Find file [%s] in [%d] dirs. %s", file_name, len(parent_dirs), str(parent_dirs))
 
     def get_npu_dump_files_by_op(self, op):
         """Get npu dump files by Op"""
@@ -188,7 +179,7 @@ class Dump(ToolObject):
             # maybe op name
             file_info = self._get_file_by_op_name(name)
         if file_info is None:
-            LOG.warning("Can not find any op/dump file named %s", name)
+            self.log.warning("Can not find any op/dump file named %s", name)
             return
         util.convert_dump_to_npy(file_info['path'], cfg.DUMP_FILES_CONVERT, data_format)
         dump_convert_files = util.list_npu_dump_convert_files(cfg.DUMP_FILES_CONVERT, name)
@@ -230,3 +221,13 @@ class Dump(ToolObject):
         dump_files = self.get_npu_dump_files_by_op(op)
         for dump_file in dump_files.values():
             util.convert_dump_to_npy(dump_file['path'], cfg.DUMP_FILES_DECODE)
+
+    @staticmethod
+    def _detect_file_name(file_name):
+        match_name = file_name.replace('/', '_').replace('.', '_') + '\\.'
+        cpu_files = util.list_cpu_dump_decode_files(cfg.DUMP_FILES_CPU, match_name)
+        summary = 'CPU_DUMP:'
+        for file_name in cpu_files.keys():
+            summary += '\n - %s' % file_name
+        util.print_panel(summary)
+        return cpu_files

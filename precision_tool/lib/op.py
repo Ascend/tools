@@ -1,7 +1,6 @@
 # coding=utf-8
 import re
 from typing import List
-from lib.util import LOG
 from lib.desc import InputDesc
 from lib.desc import OutputDesc
 from lib.dump import Dump
@@ -36,12 +35,13 @@ class Op(object):
         self.npu_input_files = None
         self.npu_output_files = None
         self.cpu_output_files = None
+        self.log = util.get_log()
 
-    def name(self) -> str:
+    def name(self):
         """Get op name"""
         return self.op_json[JSON_KEY_NAME]
 
-    def type(self) -> str:
+    def type(self):
         """Get op type"""
         return self.op_json[JSON_KEY_TYPE]
 
@@ -133,14 +133,14 @@ class Op(object):
         self.input_list = []
         if 'input' not in self.op_json:
             if self.type() not in NO_INPUT_NODES:
-                LOG.warning('Parse Op[%s][%s] inputs error.' % (self.type(), self.name()))
+                self.log.warning('Parse Op[%s][%s] inputs error.' % (self.type(), self.name()))
             return self.input_list
         desc_index = 0
         for i in range(len(self.op_json['input'])):
             name = self.op_json['input'][i]
             if name == '':
                 if self.type() not in NO_INPUT_NODES:
-                    LOG.warning('invalid input name.')
+                    self.log.warning('invalid input name.')
                 continue
             name_info = name.split(':')
             if len(name_info) == 2 and int(name_info[1]) == -1:
@@ -156,7 +156,7 @@ class Op(object):
         self.output_list = []
         if 'dst_index' not in self.op_json:
             if self.type() not in NO_OUTPUT_NODES:
-                LOG.warning('Parse Op[%s][%s] outputs error.' % (self.type(), self.name()))
+                self.log.warning('Parse Op[%s][%s] outputs error.' % (self.type(), self.name()))
             return self.output_list
         desc_index = 0
         for i in range(len(self.op_json['dst_index'])):

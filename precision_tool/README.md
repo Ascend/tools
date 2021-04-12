@@ -27,7 +27,7 @@
 3. 移动 tools/precision_tool 子目录至训练工作目录
 ### 安装python3三方依赖
 ```shell
-pip3 install rich readline pexpect scipy graphviz
+pip3 install rich gnureadline pexpect scipy graphviz
 # ubuntu/Debian
 sudo apt-get install graphviz
 # fedora/Centos
@@ -101,6 +101,9 @@ sudo yum install graphviz
    ```
    ```shell
    python3.7.5 precision_tool/cli.py tf_dump "sh cpu_train.sh param1 param2"
+   # 注意：一般进入tf_debug命令行后，需要执行两次run才能能完成一个step，lt指令才能获得所有tensor的列表。
+   #      如果实际使用中在嵌入tf_debug代码后需要执行run的次数不是两次，则可以使用如下方式控制run次数
+   python3.7.5 precision_tool/cli.py tf_dump "sh cpu_train.sh param1 param2" 2
    ```
 ## 使用说明
 1.  配置文件precision_tool/config.py（正常默认即可）

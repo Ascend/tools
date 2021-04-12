@@ -7,17 +7,21 @@ import numpy as np
 import logging
 import subprocess
 from .precision_tool_exception import PrecisionToolException
-from .file_desc import FileDesc
 import config as cfg
 
 try:
     from rich.traceback import install
     from rich.panel import Panel
-    from rich import print as rich_print
+    from rich.table import Table
+    import rich.print as rich_print
+    from rich.columns import Columns
+    # from rich import print as rich_print
     install()
 except ImportError as import_err:
     install = None
     Panel = None
+    Table = None
+    Columns = None
     rich_print = print
     print("Failed to import rich with err:%s. some function may disable. Run 'pip3 install rich' to fix it.",
           import_err)
@@ -26,7 +30,7 @@ try:
     import readline
     readline.parse_and_bind('tab: complete')
 except ImportError as import_error:
-    print("Unable to import module: readline. Run 'pip3 install readline' to fix it.")
+    print("Unable to import module: readline. Run 'pip3 install gnureadline' to fix it.")
 
 logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -277,7 +281,25 @@ class Util(object):
         return rows
 
     @staticmethod
-    def print_panel(content, title='', fit=True):
+    def print(content):
+        rich_print(content)
+
+    @staticmethod
+    def create_table(title, columns):
+        if Table is None:
+            raise PrecisionToolException("No rich module error.")
+        table = Table(title=title)
+        for column_name in columns:
+            table.add_column(column_name, overflow='fold')
+        return table
+
+    @staticmethod
+    def create_columns(content):
+        if Columns is None:
+            raise PrecisionToolException("No rich module error.")
+        return Columns(content)
+
+    def print_panel(self, content, title='', fit=True):
         """ Print panel.
         :param content: content
         :param title: title
@@ -285,9 +307,9 @@ class Util(object):
         :return:Node
         """
         if fit:
-            rich_print(Panel.fit(content, title=title))
+            self.print(Panel.fit(content, title=title))
         else:
-            rich_print(Panel(content, title=title))
+            self.print(Panel(content, title=title))
 
     @staticmethod
     def _detect_file(file_name, root_dir):
