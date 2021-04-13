@@ -444,7 +444,7 @@ network:
     usb0:
       dhcp4: no 
       addresses: [${USB_CARD_DEFAULT_IP}/24] 
-      gateway4: ${USB_CARD_GATEWAY}
+      #gateway4: ${USB_CARD_GATEWAY}
       nameservers:
             addresses: [114.114.114.114]	  
 \" > /etc/netplan/01-netcfg.yaml
