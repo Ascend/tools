@@ -413,7 +413,6 @@ network:
     usb0:
       dhcp4: no 
       addresses: [${USB_CARD_DEFAULT_IP}/24] 
-      #gateway4: ${NETWORK_CARD_GATEWAY}
 \" > /etc/netplan/01-netcfg.yaml
 echo \"config network ok\"
 # 5. auto-run minirc_cp.sh and minirc_sys_init.sh when start ubuntu
