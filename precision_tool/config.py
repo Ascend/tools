@@ -23,14 +23,12 @@ ROOT_DIR = './'
 DATA_ROOT_DIR = os.path.join(ROOT_DIR, 'precision_data')
 GRAPH_DIR = os.path.join(DATA_ROOT_DIR, 'graph')
 GRAPH_DIR_ALL = os.path.join(DATA_ROOT_DIR, 'graph/all')
-GRAPH_DIR_LAST = os.path.join(DATA_ROOT_DIR, 'graph/last')
 GRAPH_DIR_BUILD = os.path.join(DATA_ROOT_DIR, 'graph/json')
 GRAPH_CPU = os.path.join(DATA_ROOT_DIR, 'graph/cpu')
 
 FUSION_DIR = os.path.join(DATA_ROOT_DIR, 'fusion')
 
-DUMP_FILES_NPU_ALL = os.path.join(DATA_ROOT_DIR, 'dump/npu/all')
-DUMP_FILES_NPU = os.path.join(DATA_ROOT_DIR, 'dump/npu/current')
+DUMP_FILES_NPU = os.path.join(DATA_ROOT_DIR, 'dump/npu/')
 DUMP_FILES_OVERFLOW = os.path.join(DATA_ROOT_DIR, 'dump/overflow')
 DUMP_FILES_OVERFLOW_DECODE = os.path.join(DATA_ROOT_DIR, 'dump/overflow_decode')
 DUMP_FILES_CPU = os.path.join(DATA_ROOT_DIR, 'dump/cpu')
@@ -45,9 +43,14 @@ VECTOR_COMPARE_PATH = os.path.join(DATA_ROOT_DIR, 'dump/vector/compare')
 PRECISION_TOOL_OVERFLOW_FLAG = 'PRECISION_TOOL_OVERFLOW'
 PRECISION_TOOL_DUMP_FLAG = 'PRECISION_TOOL_DUMP'
 
+# DUMP CONFIG
+OP_DEBUG_LEVEL = 2
+DUMP_GE_GRAPH_VALUE = 2
+DUMP_GRAPH_LEVEL_VALUE = 2
+
 # TF_DEBUG
 TF_DEBUG_TIMEOUT = 360
 
 # MSACCUCMP
 MS_ACCU_CMP = 'msaccucmp.py'
-PYTHON = 'python3.7.5'
+PYTHON = 'python3'

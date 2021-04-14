@@ -45,7 +45,7 @@ class Op(object):
         """Get op type"""
         return self.op_json[JSON_KEY_TYPE]
 
-    def inputs(self) -> List[InputDesc]:
+    def inputs(self):
         """Get the input list"""
         if self.input_list is None:
             self._parse_inputs()

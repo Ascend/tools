@@ -13,13 +13,20 @@ HELP_PT = "Print npy tensor, use [-c] to convert and save to txt file.\n" \
 
 
 class InteractiveCli(cmd.Cmd):
+    """    ____                 _      _           ______            __
+   / __ \________  _____(_)____(_)___  ____/_  __/___  ____  / /
+  / /_/ / ___/ _ \/ ___/ / ___/ / __ \/ __ \/ / / __ \/ __ \/ /
+ / ____/ /  /  __/ /__/ (__  ) / /_/ / / / / / / /_/ / /_/ / /
+/_/   /_/   \___/\___/_/____/_/\____/_/ /_/_/  \____/\____/_/
+    """
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.prompt = "PrecisionTool > "
         self.precision_tool = None
-        # self._prepare()
+        util.print_panel(self.__doc__)
+        self._prepare()
 
-    def default(self, line: str) -> bool:
+    def default(self, line=''):
         util.execute_command(line)
         return False
 

@@ -4,6 +4,8 @@ import re
 from lib.tool_object import ToolObject
 from lib.util import util
 import config as cfg
+from lib.precision_tool_exception import catch_tool_exception
+from lib.precision_tool_exception import PrecisionToolException
 
 
 class NpuDumpDecodeFile(object):
@@ -37,7 +39,7 @@ class NpuDumpDecodeFile(object):
                 shape, dtype, max_data, min_data, mean, info['file_name'])
             for idx in range(1, len(self.input_files)):
                 info = self.input_files[idx]
-                shape, dtype, max_data, min, mean = util.npy_info(info['path'])
+                shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
                 txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
                     idx, shape, dtype, max_data, min_data, mean, info['file_name'])
         if len(self.output_files) > 0:
@@ -71,10 +73,10 @@ class Dump(ToolObject):
         self.log = util.get_log()
         self.npu_files = None
         self.cpu_files = None
-        self.npu_parent_dirs = None
         self.npu_decode_files = None
         self.op_npu_decode_files = None
         self.sub_graph = None
+        self.sub_graph_path = None
         self._init_dirs()
 
     def prepare(self, sub_graph):
@@ -83,30 +85,27 @@ class Dump(ToolObject):
         self._prepare_npu_dump()
         self._parse_cpu_dump_files()
 
+    @catch_tool_exception
     def _prepare_npu_dump(self):
         """prepare npu dump, mk soft link of of sub_graph"""
         if self.sub_graph is None:
-            self.log.warning("Sub graph in build graph is None, please check.")
-            return
+            raise PrecisionToolException("Sub graph in build graph is None, please check.")
         # find right path in DUMP_FILES_NPU_ALL
-        sub_graph_path = ''
-        for dir_path, dir_names, file_names in os.walk(cfg.DUMP_FILES_NPU_ALL, followlinks=True):
+        for dir_path, dir_names, file_names in os.walk(cfg.DUMP_FILES_NPU, followlinks=True):
             for dir_name in dir_names:
-                if dir_name in self.sub_graph:
-                    sub_graph_path = os.path.join(dir_path, dir_name)
-                    self.log.info("Find sub graph dir: %s", sub_graph_path)
-        if sub_graph_path == '':
-            self.log.warning("Can not find any sub graph dir %s in [%].", str(self.sub_graph.keys()), sub_graph_path)
-            return
-        # make link to DUMP_FILES_NPU
-        os.symlink(sub_graph_path, cfg.DUMP_FILES_NPU)
-        self.log.info("Link current npu dump dir to sub graph: %s", sub_graph_path)
+                if dir_name == self.sub_graph:
+                    self.sub_graph_path = os.path.join(dir_path, dir_name)
+                    self.log.info("Find sub graph dir: %s", self.sub_graph_path)
+        if self.sub_graph_path is None:
+            raise PrecisionToolException("Can not find any sub graph dir %s in npu dump path [%s]." % (
+                self.sub_graph, cfg.DUMP_FILES_NPU))
         self._parse_npu_dump_files()
 
-    def _init_dirs(self):
+    @staticmethod
+    def _init_dirs():
         """Create dump file dirs"""
-        self.log.debug('Init dump dirs.')
-        # util.create_dir(cfg.DUMP_FILES_NPU)
+        # self.log.debug('Init dump dirs.')
+        util.create_dir(cfg.DUMP_FILES_NPU)
         util.create_dir(cfg.DUMP_FILES_DECODE)
         util.create_dir(cfg.DUMP_FILES_OVERFLOW)
         util.create_dir(cfg.DUMP_FILES_OVERFLOW_DECODE)
@@ -189,10 +188,13 @@ class Dump(ToolObject):
             summary_txt += '\n - %s' % convert_file['file_name']
         util.print_panel(summary_txt)
 
-    def decode_all_npu_dump(self):
+    def decode_all_npu_dump(self, src_path=None):
         """Decode all npu dump files"""
-        for parent_dir in self.npu_parent_dirs:
-            util.convert_dump_to_npy(parent_dir, cfg.DUMP_FILES_DECODE)
+        if src_path is None:
+            if len(self.npu_files) == 0:
+                raise PrecisionToolException("No npu dump files")
+            src_path = self.npu_files.values()[0]['dir_path']
+        util.convert_dump_to_npy(src_path, cfg.DUMP_FILES_DECODE)
         self.npu_decode_files = util.list_npu_dump_decode_files(cfg.DUMP_FILES_DECODE)
         self.op_npu_decode_files = {}
         for file_info in self.npu_decode_files.values():
@@ -212,7 +214,18 @@ class Dump(ToolObject):
         return None
 
     def _parse_npu_dump_files(self):
-        self.npu_files, self.npu_parent_dirs = util.list_dump_files(cfg.DUMP_FILES_NPU)
+        # self.npu_files, self.npu_parent_dirs = util.list_dump_files(self.sub_graph_path)
+        self.npu_files = util.list_npu_dump_files(self.sub_graph_path)
+        parent_dirs = []
+        for file_info in self.npu_files.values():
+            if file_info['dir_path'] not in parent_dirs:
+                parent_dirs.append(file_info['dir_path'])
+        if len(parent_dirs) == 0:
+            raise PrecisionToolException("Can not find any npu files in dir: %s" % self.sub_graph_path)
+        if len(parent_dirs) > 1:
+            self.log.warning("Npu dump files exist in different sub dirs, will select the first one. %s", parent_dirs)
+        self.sub_graph_path = parent_dirs[0]
+        self.log.info("Update sub graph path to %s", self.sub_graph_path)
 
     def _parse_cpu_dump_files(self):
         self.cpu_files = util.list_cpu_dump_decode_files(cfg.DUMP_FILES_CPU)

@@ -1,8 +1,11 @@
 # coding=utf-8
 import json
+import collections
 from lib.tool_object import ToolObject
 from lib.util import util
 import config as cfg
+from lib.precision_tool_exception import PrecisionToolException
+from lib.precision_tool_exception import catch_tool_exception
 
 AI_CORE_OVERFLOW_STATUS = {
     '0x8': '符号证书最小附属NEG符号位取反溢出',
@@ -29,7 +32,7 @@ L2_ATOMIC_ADD_STATUS = {
 
 
 class Overflow(ToolObject):
-    overflow_ops = {}
+    overflow_ops = collections.OrderedDict()
     overflow_dump_files = {}
     task_id_to_file_map = {}
     overflow_dump_parent_dirs = {}
@@ -44,17 +47,23 @@ class Overflow(ToolObject):
         self.overflow_dump_files, self.overflow_dump_parent_dirs = util.list_dump_files(cfg.DUMP_FILES_OVERFLOW)
         self._parse_overflow_files()
 
-    def check(self):
+    def check(self, max_num=3):
         """Check overflow info"""
         if len(self.overflow_ops) == 0:
             self.log.info("[Overflow] Checked success. find [0] overflow node!")
             return
+        max_num = min(max_num, len(self.overflow_ops))
+        self.log.info("[Overflow] Find [%s] overflow node. Will show top %s ops.", len(self.overflow_ops), max_num)
+        cnt = 0
         for op_name in self.overflow_ops:
             file_infos = self.overflow_ops[op_name]
             first_timestamp = sorted(file_infos.keys())[0]
             file_info = file_infos[first_timestamp]
             self._decode_overflow_info(file_info)
             self._parse_overflow_info(file_info)
+            cnt += 1
+            if cnt == max_num:
+                break
         self.log.info("[Overflow] Checked success. find [%d] overflow node!", len(self.overflow_ops))
 
     def _parse_overflow_files(self):
@@ -69,14 +78,15 @@ class Overflow(ToolObject):
             for i in range(len(dump_file_list)):
                 dump_file_list[i]['debug_file'] = debug_file_list[i]
         # makeup overflow_ops
-        for file_name in self.overflow_dump_files:
-            file_info = self.overflow_dump_files[file_name]
-            if file_info['op_type'] == 'Opdebug':
-                continue
+        op_dump_files = filter(lambda x: x['op_type'] != 'Opdebug', self.overflow_dump_files.values())
+        # sorted by taskid
+        op_dump_files = sorted(op_dump_files, key=lambda x: x['task_id'])
+        for file_info in op_dump_files:
             op_name = file_info['op_name']
             timestamp = file_info['timestamp']
             if op_name not in self.overflow_ops:
                 self.overflow_ops[op_name] = {}
+                self.log.debug("Find overflow op, [TaskId:%s][OpName:%s]", file_info['task_id'], op_name)
             self.overflow_ops[op_name][timestamp] = file_info
 
     @staticmethod

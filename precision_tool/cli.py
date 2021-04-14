@@ -6,6 +6,7 @@ import os
 import sys
 import argparse
 from termcolor import colored
+from lib.precision_tool import PrecisionTool
 from lib.interactive_cli import InteractiveCli
 from lib.precision_tool_exception import PrecisionToolException
 from lib.util import util
@@ -38,11 +39,13 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
         import pexpect
         import readline
     except ImportError as import_err:
-        log.error("Import failed with err:%s. You can run 'pip3 install pexpect gnureadline' to fix it.", import_err)
+        log.error("Import failed with err:%s. You can run 'pip3 install pexpect gnureadline pyreadline' to fix it.",
+                  import_err)
         raise PrecisionToolException("Import module error.")
     log.info("======< Auto run tf train process to dump data >======")
     tf_dbg = pexpect.spawn(cmd_line)
-    tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
+    # tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
+    tf_dbg.logfile = sys.stdout.buffer
     for i in range(run_times):
         tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
         log.info("Process %d tf_debug.run", i + 1)
@@ -93,9 +96,12 @@ def _run_npu_overflow(cmd):
     _unset_flags()
     log = util.get_log()
     os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG] = 'True'
-    log.info("Start run NPU script with dump data....")
+    log.info("Start run NPU script with overflow check process....")
     ret = util.execute_command(cmd)
-    log.info("Finish run NPU script with dump data. ret [%s]", ret)
+    log.info("Finish run NPU script with overflow check process. ret [%s]", ret)
+    precision_tool = PrecisionTool()
+    precision_tool.prepare()
+    precision_tool.do_check_overflow()
     _unset_flags()
 
 
@@ -120,7 +126,7 @@ def main():
     log.info("Interactive command mode.")
     cli = InteractiveCli()
     try:
-        cli.cmdloop(intro=cli.__doc__)
+        cli.cmdloop(intro="Enjoy!")
     except KeyboardInterrupt:
         log.info("Bye.......")
     sys.exit(0)

@@ -13,7 +13,7 @@ try:
     from rich.traceback import install
     from rich.panel import Panel
     from rich.table import Table
-    import rich.print as rich_print
+    from rich import print as rich_print
     from rich.columns import Columns
     # from rich import print as rich_print
     install()
@@ -23,21 +23,22 @@ except ImportError as import_err:
     Table = None
     Columns = None
     rich_print = print
-    print("Failed to import rich with err:%s. some function may disable. Run 'pip3 install rich' to fix it.",
+    print("Failed to import rich. some function may disable. Run 'pip3 install rich' to fix it.",
           import_err)
 
 try:
     import readline
     readline.parse_and_bind('tab: complete')
 except ImportError as import_error:
-    print("Unable to import module: readline. Run 'pip3 install gnureadline' to fix it.")
+    print("Unable to import module: readline. Run 'pip3 install gnureadline pyreadline' to fix it.")
 
 logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S")
 LOG = logging.getLogger()
 
 # patterns
-GE_GRAPH_BUILD_PROTO_PATTERN = '^ge_proto.*_Build.*txt$'
+GE_PROTO_BUILD_GRAPH_PATTERN = '^ge_proto.*_Build.*txt$'
+GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'
 OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})"
 OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.npy$"
@@ -60,10 +61,10 @@ class Util(object):
     def __init__(self):
         self.atc = None
         self.ms_accu_cmp = None
+        self.log = LOG
 
-    @staticmethod
-    def get_log():
-        return LOG
+    def get_log(self):
+        return self.log
 
     @staticmethod
     def execute_command(cmd: str):
@@ -87,21 +88,26 @@ class Util(object):
             return True
         return False
 
-    def convert_proto_to_json(self, proto_file_list):
+    def convert_proto_to_json(self, proto_file):
         """Convert GE proto graphs to json format.
         command: atc --mode=5 --om=ge_proto_Build.txt --json=xxx.json
-        :param proto_file_list: proto file list
-        :return:
+        :param proto_file: proto file
+        :return: result json file
         """
-        for file in proto_file_list:
-            if not re.match(GE_GRAPH_BUILD_PROTO_PATTERN, file):
-                continue
-            if os.path.exists(os.path.join(cfg.GRAPH_DIR_BUILD, file + '.json')):
-                continue
-            cmd = '%s --mode=5 --om=%s/%s --json=%s/%s.json' % (self._get_atc(), cfg.GRAPH_DIR_LAST,
-                                                                file, cfg.GRAPH_DIR_BUILD, file)
-            self.execute_command(cmd)
-        LOG.info('Finish convert [%d] build graph from proto to json format.', len(proto_file_list))
+        src_file = os.path.join(cfg.GRAPH_DIR_ALL, proto_file)
+        json_file = proto_file + '.json'
+        dst_file = os.path.join(cfg.GRAPH_DIR_BUILD, json_file)
+        if os.path.exists(dst_file):
+            self.log.debug("GE graph build json already exist.")
+            return json_file
+        cmd = '%s --mode=5 --om=%s --json=%s' % (self._get_atc(), src_file, dst_file)
+        self.execute_command(cmd)
+        if not os.path.isfile(dst_file):
+            self.log.error("Convert GE build graph to json failed. can not find any json file in %s",
+                           cfg.GRAPH_DIR_BUILD)
+            return None
+        self.log.info('Finish convert [%s] build graph from proto to json format.', proto_file)
+        return json_file
 
     def convert_dump_to_npy(self, src_file, dst_path, data_format=''):
         """Convert npu dump files to npy format.
@@ -123,8 +129,12 @@ class Util(object):
         :param result_path: result path
         :return: status code
         """
-        cmd = '%s %s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
-            cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
+        if graph_json is None:
+            cmd = '%s %s compare -m %s -f %s -out %s >> %s/log.txt' % (
+                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path, result_path)
+        else:
+            cmd = '%s %s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
+                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -148,6 +158,14 @@ class Util(object):
                     parent_dirs[dir_path] = {}
                 parent_dirs[dir_path][name] = dump_files[name]
         return dump_files, parent_dirs
+
+    def list_npu_dump_files(self, path, extern_pattern=''):
+        return self._list_file_with_pattern(path, OFFLINE_DUMP_PATTERN, extern_pattern,
+                                            self._gen_dump_file_info)
+
+    def list_ge_graph_files(self, path, extern_pattern=''):
+        return self._list_file_with_pattern(path, GE_PROTO_GRAPH_PATTERN, extern_pattern,
+                                            self._gen_build_graph_file_info)
 
     def list_npu_dump_decode_files(self, path, extern_pattern=''):
         return self._list_file_with_pattern(path, OFFLINE_DUMP_DECODE_PATTERN, extern_pattern,
@@ -306,6 +324,9 @@ class Util(object):
         :param fit: if panel size fit the content
         :return:Node
         """
+        if Panel is None:
+            print(content)
+            return
         if fit:
             self.print(Panel.fit(content, title=title))
         else:
@@ -326,19 +347,18 @@ class Util(object):
         LOG.info("Try to auto detect file with name: %s.", target_file)
         res = self._detect_file(target_file, cfg.CMD_ROOT_PATH)
         if len(res) == 0:
-            LOG.error("Cannot find any file named %s in dir %s" % (target_file, cfg.CMD_ROOT_PATH))
-            raise PrecisionToolException("File not exist.")
+            raise PrecisionToolException("Cannot find any file named %s in dir %s" % (target_file, cfg.CMD_ROOT_PATH))
         LOG.info("Detect [%s] success. %s", target_file, res)
         return res[0], str(os.path.join(res[0], target_file))
 
     def _get_atc(self):
-        if self.atc is not None:
+        if self.atc is None:
             atc_path, self.atc = self._detect_file_if_not_exist('atc')
             os.environ['PATH'] = os.environ['PATH'] + ':' + atc_path
         return self.atc
 
     def _get_ms_accu_cmp(self):
-        if self.ms_accu_cmp is not None:
+        if self.ms_accu_cmp is None:
             _, self.ms_accu_cmp = self._detect_file_if_not_exist(cfg.MS_ACCU_CMP)
         return self.ms_accu_cmp
 
@@ -373,6 +393,15 @@ class Util(object):
                     continue
                 file_list[name] = gen_info_func(name, match, dir_path)
         return file_list
+
+    @staticmethod
+    def _gen_build_graph_file_info(name, match, dir_path):
+        return {
+            "file_name": name,
+            "path": os.path.join(dir_path, name),
+            "graph_id": int(match.group(1)),
+            "graph_name": match.group(2)
+        }
 
     @staticmethod
     def _gen_dump_file_info(name, match, dir_path):
