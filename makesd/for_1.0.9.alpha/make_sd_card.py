@@ -37,6 +37,7 @@ import subprocess
 import time
 import yaml
 import sys
+import re
 
 
 NETWORK_CARD_DEFAULT_IP="192.168.0.2"
@@ -107,12 +108,12 @@ def execute(cmd, timeout=3600, cwd=None):
 
 def print_process(string, is_finished=False):
     if string == "" or string is None or is_finished:
-        print(".......... .......... .......... .......... 100%", end='\r')
+        print(".......... .......... .......... .......... 100%")
         print("")
     else:
         string = string.split(".......... ", 1)[1]
         string = string.split("%")[0] + "%"
-        print(string, end='\r')
+        print(string)
 
 def execute_wget(cmd, timeout=86400, cwd=None):
     '''execute os command'''
@@ -202,6 +203,14 @@ def remove_chn_and_charactor(str1):
 
     return stren
 
+def get_disk_size(disk_info):
+    size_str = re.search("\d+(,\d+)* bytes", disk_info).group()  
+    print("Disk size info: ", size_str)
+    
+    size_str = size_str.replace(',', '')    
+    
+    return int(size_str.split(" ")[0])
+
 def check_sd(dev_name):
     ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'"%(dev_name))
     disk[0] = remove_chn_and_charactor(disk[0])    
@@ -224,9 +233,7 @@ def check_sd(dev_name):
             unchanged_disk_list.append(disk_name)
     unchanged_disk = " ".join(unchanged_disk_list)
 
-
-    disk_size_str = disk[0].split(",")[1].split()[0]
-    disk_size = int(disk_size_str)
+    disk_size = get_disk_size(disk[0])
     print("disk %s size %d"%(dev_name, disk_size))
     if dev_name  in unchanged_disk or disk_size < MIN_DISK_SIZE:
         print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
