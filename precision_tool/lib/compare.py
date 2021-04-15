@@ -42,9 +42,9 @@ class Compare(ToolObject):
 
     def vector_compare(self, lh_path, rh_path, graph_json=None):
         """Compare all ops"""
-        if util.empty_dir(lh_path):
+        if lh_path is None or util.empty_dir(lh_path):
             raise PrecisionToolException("No valid dump file in %s" % lh_path)
-        if util.empty_dir(rh_path):
+        if rh_path is None or util.empty_dir(rh_path):
             raise PrecisionToolException("No valid dump file in %s" % rh_path)
         self.log.info("Start vector compare process...")
         util.compare_vector(lh_path, rh_path, graph_json, cfg.VECTOR_COMPARE_PATH)
@@ -80,7 +80,7 @@ class Compare(ToolObject):
         if file_name is None:
             # find the latest result
             file_list = sorted(self.vector_compare_result.values(), key=lambda x: x['timestamp'])
-            file_name = file_list[-1]
+            file_name = file_list[-1]['file_name']
             self.log.debug("Find %s result files. Choose [%s]", file_list, file_name)
         if file_name not in self.vector_compare_result:
             raise PrecisionToolException("Can not find file:%s in dir:%s" % (file_name, cfg.VECTOR_COMPARE_PATH))

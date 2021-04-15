@@ -51,7 +51,7 @@ class Op(object):
             self._parse_inputs()
         return self.input_list
 
-    def outputs(self) -> List[OutputDesc]:
+    def outputs(self):
         """Get output list"""
         if self.output_list is None:
             self._parse_outputs()
@@ -64,19 +64,19 @@ class Op(object):
                     return attr[JSON_VALUE][JSON_KEY_STR]
         return ''
 
-    def npu_dump_input_files(self) -> dict:
+    def npu_dump_input_files(self):
         """Get op input dump decode file info dict"""
         if self.npu_input_files is None:
             self._parse_decode_file()
         return self.npu_input_files
 
-    def npu_dump_output_files(self) -> dict:
+    def npu_dump_output_files(self):
         """Get op output dump decode file info dict"""
         if self.npu_output_files is None:
             self._parse_decode_file()
         return self.npu_output_files
 
-    def cpu_dump_output_files(self) -> dict:
+    def cpu_dump_output_files(self):
         """Get cpu dump decode file info dict"""
         if self.cpu_output_files is None:
             self.cpu_output_files = {}
@@ -87,7 +87,7 @@ class Op(object):
                     util.npy_info(cpu_file['path'])
         return self.cpu_output_files
 
-    def summary(self) -> str:
+    def summary(self):
         """Summary of current op"""
         input_txt = ''
         output_txt = ''

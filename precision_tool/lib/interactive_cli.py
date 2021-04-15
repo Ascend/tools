@@ -3,6 +3,11 @@ import cmd
 from .util import util
 from .precision_tool import PrecisionTool
 
+HEADER = "    ____                 _      _           ______            __\n\
+   / __ \________  _____(_)____(_)___  ____/_  __/___  ____  / / \n\
+  / /_/ / ___/ _ \/ ___/ / ___/ / __ \/ __ \/ / / __ \/ __ \/ / \n\
+ / ____/ /  /  __/ /__/ (__  ) / /_/ / / / / / / /_/ / /_/ / / \n\
+/_/   /_/   \___/\___/_/____/_/\____/_/ /_/_/  \____/\____/_/\n"
 
 HELP_AC = "Run auto check function, use [-c] to start vector compare process.\n" \
           "  usage: ac (-c) \n"
@@ -13,17 +18,11 @@ HELP_PT = "Print npy tensor, use [-c] to convert and save to txt file.\n" \
 
 
 class InteractiveCli(cmd.Cmd):
-    """    ____                 _      _           ______            __
-   / __ \________  _____(_)____(_)___  ____/_  __/___  ____  / /
-  / /_/ / ___/ _ \/ ___/ / ___/ / __ \/ __ \/ / / __ \/ __ \/ /
- / ____/ /  /  __/ /__/ (__  ) / /_/ / / / / / / /_/ / /_/ / /
-/_/   /_/   \___/\___/_/____/_/\____/_/ /_/_/  \____/\____/_/
-    """
     def __init__(self):
         cmd.Cmd.__init__(self)
         self.prompt = "PrecisionTool > "
         self.precision_tool = None
-        util.print_panel(self.__doc__)
+        util.print_panel(HEADER)
         self._prepare()
 
     def default(self, line=''):
@@ -112,7 +111,3 @@ class InteractiveCli(cmd.Cmd):
     def do_cd(self, line=''):
         """Check dtype"""
         self.precision_tool.do_check_dtype()
-
-    def do_help(self, arg: str):
-        # print(arg)
-        super(InteractiveCli, self).do_help(arg)

@@ -92,7 +92,7 @@ class PrecisionTool(object):
         if args.lt is None:
             lh_path = self.dump.sub_graph_path
             rh_path = cfg.DUMP_FILES_CPU
-            graph_json = self.graph.build_file
+            graph_json = os.path.join(cfg.GRAPH_DIR_BUILD, self.graph.build_file)
         else:
             lh_path = args.lt
             rh_path = args.rt

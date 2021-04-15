@@ -16,12 +16,8 @@ from lib.precision_tool_exception import catch_tool_exception
 from lib.precision_tool_exception import PrecisionToolException
 
 DANGEROUS_CAST = {
-    'DT_FLOAT': ['DT_INT32']
+    'DT_FLOAT': ['DT_INT32', 'DT_FLOAT16']
 }
-GE_GRAPH_PREFIX = '^ge_.*txt$'
-GE_GRAPH_BUILD = '^ge_.*_Build.*txt$'
-GE_GRAPH_BUILD_PROTO = '^ge_proto.*_Build.*txt$'
-GE_GRAPH_BUILD_JSON = '^ge_proto.*_Build.*json$'
 CKPT_META_SHUFFIX='.meta'
 
 OP_CAST = 'Cast'
@@ -52,6 +48,8 @@ class Graph(ToolObject):
 
     def check_cast(self):
         """Check cast op type"""
+        cast_list = {}
+        danger_cast_list = {}
         if OP_CAST in self.ops_type_list:
             cast_ops = self.ops_type_list[OP_CAST]
             for op in cast_ops.values():
@@ -61,9 +59,13 @@ class Graph(ToolObject):
                     input_type = input_desc.dtype() if input_desc.dtype() != '' else input_type
                 for output_desc in op.outputs():
                     output_type = output_desc.dtype() if output_desc.dtype() != '' else output_type
-                color = 'red' if self._is_dangerous_cast(input_type, output_type) else 'yellow'
-                summary_txt = "[green][%s][/green][%s][%s -> %s][/%s] %s" % (
-                    op.type(), color, input_type, output_type, color, op.name())
+                cast_type = "%s -> %s" % (input_type, output_type)
+                if cast_type not in cast_list:
+                    cast_list[cast_type] = []
+                cast_list[cast_type].append([op.name(), input_type, output_type])
+        for cast_type, cast_info in cast_list.items():
+            if self._is_dangerous_cast(cast_info[1], cast_info[2]):
+                summary_txt = "[green][Cast][/green][red][%s][/red] %s" % (cast_type, cast_info[, 0:1])
                 util.print(summary_txt)
 
     def check_dtype(self):
@@ -158,7 +160,7 @@ class Graph(ToolObject):
         graph_files = util.list_ge_graph_files(cfg.GRAPH_DIR_ALL)
         # print(graph_files)
 
-        build_files = sorted(filter(lambda x: x['graph_name'] == 'Build', graph_files.values()),
+        build_files = sorted(filter(lambda x: x['graph_name'] == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
                              key=lambda x: x['graph_id'])
         if len(build_files) == 0:
             self.log.warning("Can not find any build files in dir: %s", cfg.GRAPH_DIR_ALL)

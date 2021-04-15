@@ -12,7 +12,7 @@ FLAG_DUMP_GRAPH_LEVEL = 'DUMP_GRAPH_LEVEL'
 FLAG_DUMP_GRAPH_PATH = 'DUMP_GRAPH_PATH'
 
 
-def estimator_dump_config() -> DumpConfig:
+def estimator_dump_config():
     """return DumpConfig.
     In estimator mode. set dump_config in NPURunConfig().
     exp. config = NPURunConfig(dump_config=estimator_dum_config(), session_config=session_config)

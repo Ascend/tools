@@ -54,3 +54,4 @@ TF_DEBUG_TIMEOUT = 360
 # MSACCUCMP
 MS_ACCU_CMP = 'msaccucmp.py'
 PYTHON = 'python3'
+BUILD_JSON_GRAPH_NAME = 'PreRunAfterBuild'

@@ -12,6 +12,7 @@ from lib.precision_tool_exception import PrecisionToolException
 from lib.util import util
 import config as cfg
 
+
 INTRODUCE_DOC = \
     "==============<Precision Tool>=================\n" \
     "Usage:\n" \
@@ -53,6 +54,7 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
     log.info("Generate tensor name file.")
     tf_dbg.expect('tfdbg>', timeout=cfg.TF_DEBUG_TIMEOUT)
     tf_dbg.sendline('lt > %s' % cfg.DUMP_FILES_CPU_NAMES)
+    tf_dbg.expect('tfdbg>')
     if not os.path.exists(cfg.DUMP_FILES_CPU_NAMES):
         log.error("Failed to get tensor name in tf_debug.")
         raise PrecisionToolException("Get tensor name in tf_debug failed.")
@@ -68,9 +70,8 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
     log.info("Generate tf dump commands. Start run commands in file: %s", cfg.DUMP_FILES_CPU_CMDS)
     for cmd in open(cfg.DUMP_FILES_CPU_CMDS):
         log.debug(cmd.strip())
-        tf_dbg.expect('tfdbg>')
         tf_dbg.sendline(cmd.strip())
-    tf_dbg.expect('tfdbg>')
+        tf_dbg.expect('tfdbg>')
     tf_dbg.sendline('exit')
     log.info('Finish dump tf data')
 

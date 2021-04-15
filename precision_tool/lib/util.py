@@ -37,7 +37,7 @@ logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(l
 LOG = logging.getLogger()
 
 # patterns
-GE_PROTO_BUILD_GRAPH_PATTERN = '^ge_proto.*_Build.*txt$'
+# GE_PROTO_BUILD_GRAPH_PATTERN = '^ge_proto.*_Build.*txt$'
 GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'
 OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})"
 OFFLINE_DUMP_DECODE_PATTERN = \
@@ -129,6 +129,7 @@ class Util(object):
         :param result_path: result path
         :return: status code
         """
+        self.create_dir(result_path)
         if graph_json is None:
             cmd = '%s %s compare -m %s -f %s -out %s >> %s/log.txt' % (
                 cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path, result_path)
