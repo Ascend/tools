@@ -16,7 +16,7 @@ from lib.precision_tool_exception import catch_tool_exception
 from lib.precision_tool_exception import PrecisionToolException
 
 DANGEROUS_CAST = {
-    'DT_FLOAT': ['DT_INT32', 'DT_FLOAT16']
+    'DT_FLOAT': ['DT_INT32']
 }
 CKPT_META_SHUFFIX='.meta'
 
@@ -24,16 +24,11 @@ OP_CAST = 'Cast'
 
 
 class Graph(ToolObject):
-    """ """
     def __init__(self):
-        """
-        """
         super(Graph, self).__init__()
         self._init_dirs()
         self.build_file = None
-        # self.build_list = []
         self.sub_graph = None
-        # ops = []
         self.ops_list = collections.OrderedDict()
         self.cpu_ops_list = collections.OrderedDict()
         self.ops_type_list = {}
@@ -62,10 +57,10 @@ class Graph(ToolObject):
                 cast_type = "%s -> %s" % (input_type, output_type)
                 if cast_type not in cast_list:
                     cast_list[cast_type] = []
-                cast_list[cast_type].append([op.name(), input_type, output_type])
-        for cast_type, cast_info in cast_list.items():
-            if self._is_dangerous_cast(cast_info[1], cast_info[2]):
-                summary_txt = "[green][Cast][/green][red][%s][/red] %s" % (cast_type, cast_info[, 0:1])
+                cast_list[cast_type].append(op.name())
+        for cast_type in cast_list:
+            if self._is_dangerous_cast(cast_type):
+                summary_txt = "[green][Cast][/green][red][%s][/red] %s" % (cast_type, cast_list[cast_type])
                 util.print(summary_txt)
 
     def check_dtype(self):
@@ -140,8 +135,11 @@ class Graph(ToolObject):
             self.cpu_op_list[op.name] = op
 
     @staticmethod
-    def _is_dangerous_cast(input_dtype, output_dtype):
+    def _is_dangerous_cast(cast_type):
         """Check if cast """
+        cast_info = cast_type.split(" -> ")
+        input_dtype = cast_info[0]
+        output_dtype = cast_info[1]
         if input_dtype in DANGEROUS_CAST:
             if output_dtype in DANGEROUS_CAST[input_dtype]:
                 return True
@@ -158,8 +156,6 @@ class Graph(ToolObject):
         """Copy ge graphs to graph dir. """
         # move graphs to precision data dir
         graph_files = util.list_ge_graph_files(cfg.GRAPH_DIR_ALL)
-        # print(graph_files)
-
         build_files = sorted(filter(lambda x: x['graph_name'] == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
                              key=lambda x: x['graph_id'])
         if len(build_files) == 0:
@@ -167,37 +163,12 @@ class Graph(ToolObject):
             return
         self.log.info("Choose [%s] as default GE build file.", build_files[-1]['file_name'])
         self.build_file = util.convert_proto_to_json(build_files[-1]['file_name'])
-        '''
-        # print(build_files)
-        return
-        files = os.listdir('./')
-        num = 0
-        for file in files:
-            if re.match(GE_GRAPH_PREFIX, file):
-                if re.match(GE_GRAPH_BUILD, file):
-                    shutil.copy(file, cfg.GRAPH_DIR_LAST)
-                shutil.move(file, os.path.join(cfg.GRAPH_DIR_ALL, file))
-                num += 1
-        self.log.info("Prepare GE graphs success. Move [%d] graphs", num)
-        # convert build proto files to json files
-        
-        # list graphs
-        self.build_list = list(filter(lambda x: re.match(GE_GRAPH_BUILD_JSON, x) is not None,
-                                      os.listdir(cfg.GRAPH_DIR_BUILD)))
-        '''
 
     def _parse_ops(self):
         """Parse *_Build.txt.json to op objects."""
         # only parse the last build graph
         if self.build_file is None:
             raise PrecisionToolException("Cannot find any ge_proto_*_Build.json in %s." % cfg.GRAPH_DIR_BUILD)
-        '''
-        sorted_graphs = sorted(self.build_list)
-        self.log.info("Find [%d] graphs. %s", len(sorted_graphs), sorted_graphs)
-        last_graph = sorted_graphs[-1]
-        self.log.info("Choose the last graph [%s].", last_graph)
-        graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, last_graph)
-        '''
         graph_name = self.build_file
         graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, graph_name)
         with open(graph_path, 'r') as f:

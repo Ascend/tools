@@ -33,7 +33,7 @@ def estimator_dump_config():
     return config
 
 
-def session_dump_config(session_config=None) -> config_pb2.ConfigProto:
+def session_dump_config(session_config=None):
     """
     In TF session mode. set dump_config in session_config.
     exp. config = session_dump_config()
@@ -102,21 +102,21 @@ def _set_dump_graph_flags():
     os.environ[FLAG_DUMP_GRAPH_PATH] = cfg.GRAPH_DIR_ALL
 
 
-def _is_dump() -> bool:
+def _is_dump():
     if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] == 'True':
         print("======< PrecisionTool enable npu dump >======")
         return True
     return False
 
 
-def _is_overflow() -> bool:
+def _is_overflow():
     if cfg.PRECISION_TOOL_OVERFLOW_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG] == 'True':
         print("======< PrecisionTool enable npu overflow >======")
         return True
     return False
 
 
-def _is_fusion_switch() -> bool:
+def _is_fusion_switch():
     if "FUSION_SWITCH" in os.environ:
         return os.environ["FUSION_SWITCH"] == 'True'
     else:

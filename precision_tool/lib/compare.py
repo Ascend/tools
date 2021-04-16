@@ -28,6 +28,12 @@ ROW_MAP = {
     'StandardDeviation': 9     # StandardDeviation
 }
 
+ROW_MAP_DESC = r"""[CosSim: CosineSimilarity]
+[MaxAbs: MaxAbsoluteError]
+[ARE: MaxAbsoluteError]
+[RED: RelativeEuclideanDistance]
+[KLD: KullbackLeiblerDivergence]"""
+
 
 class Compare(ToolObject):
     def __init__(self):
@@ -51,26 +57,6 @@ class Compare(ToolObject):
         self.log.info("Vector compare process finish.")
         self._parse_result_files()
         self.vector_summary()
-        '''
-        if not util.empty_dir(cfg.VECTOR_COMPARE_PATH):
-            self._parse_result_files()
-            self.vector_summary()
-            self.log.info("Vector compare path is not empty, show previous result.")
-            return
-        # util.create_dir(cfg.VECTOR_COMPARE_PATH)
-        # util.clear_dir(cfg.VECTOR_COMPARE_PATH)
-        count = 0
-        for graph_name in graph.sub_graph_json_map:
-            graph_json = graph.sub_graph_json_map[graph_name]
-            for dump_dir in dump.npu_parent_dirs:
-                if graph_name not in dump_dir:
-                    continue
-                count += 1
-                util.compare_vector(dump_dir, cfg.DUMP_FILES_CPU, graph_json, cfg.VECTOR_COMPARE_PATH)
-        self.log.info("[VectorCompare] Done. Process [%d] graphs.", count)
-        self._parse_result_files()
-        self.vector_summary()
-        '''
 
     @catch_tool_exception
     def vector_summary(self, file_name=None):
@@ -95,11 +81,10 @@ class Compare(ToolObject):
                           item[ROW_MAP['ARE']], item[ROW_MAP['RED']], item[ROW_MAP['KLD']],
                           item[ROW_MAP['StandardDeviation']])
 
-        util.print("[CosSim: CosineSimilarity] [MaxAbs: MaxAbsoluteError] [ARE: MaxAbsoluteError] " +
-                   "[RED: RelativeEuclideanDistance] [KLD: KullbackLeiblerDivergence]")
+        util.print(ROW_MAP_DESC)
         util.print(table)
 
-    def compare_data(self, left, right, rl=0.001, al=0.001, print_n=20):
+    def compare_data(self, left, right, rl=0.001, al=0.001, diff_count=20):
         """Compare data"""
         left = self._detect_file(left)
         right = self._detect_file(right)
@@ -109,13 +94,13 @@ class Compare(ToolObject):
         util.save_npy_to_txt(left)
         util.save_npy_to_txt(right)
         # compare data
-        total_cnt, all_close, cos_sim, err_percent = self._do_compare_data(left, right, rl, al, print_n)
+        total_cnt, all_close, cos_sim, err_percent = self._do_compare_data(left, right, rl, al, diff_count)
         content = 'SrcFile: %s \nDstFile: %s\nSrcFile: %s.txt\nDstFile: %s.txt' % (left, right, left, right)
         content += '\nNumCnt:  %s\nAllClose: %s\nCosSim:   %s\nErrorPer: %s (rl= %s, al= %s)' % (
             total_cnt, all_close, cos_sim, err_percent, rl, al)
         util.print_panel(content)
 
-    def _do_compare_data(self, left, right, rl=0.001, al=0.001, print_n=20):
+    def _do_compare_data(self, left, right, rl=0.001, al=0.001, diff_count=20):
         data_left = np.load(left).astype(np.float32)
         data_right = np.load(right).astype(np.float32)
         shape_left = data_left.shape
@@ -138,9 +123,9 @@ class Compare(ToolObject):
         for i in range(total_cnt):
             abs_diff = abs(data_left[i] - data_right[i])
             if abs_diff > (al + rl * abs(data_right[i])):
-                if i < print_n:
+                if i < diff_count:
                     top_table.add_row(str(i), str(data_left[i]), str(data_right[i]), str(abs_diff))
-                if err_cnt < print_n:
+                if err_cnt < diff_count:
                     err_table.add_row(str(i), str(data_left[i]), str(data_right[i]), str(abs_diff))
                 err_cnt += 1
         err_percent = float(err_cnt / total_cnt)

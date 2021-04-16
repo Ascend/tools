@@ -47,7 +47,7 @@ sudo yum install graphviz
    # 未配置DUMP_GRAPH_PATH时，图文件将保存在脚本执行目录，可以直接转存至precision_data目录
    mkdir -p ./precision_data/graph/all && mv ge_proto_*.txt ./precision_data/graph/all/
    ```
-2. 使用precision_tool中提供的辅助命令行执行训练脚本，将自动配置以上环境变量并执行训练任务
+2. 【推荐】使用precision_tool中提供的辅助命令行执行训练脚本，将自动配置以上环境变量并执行训练任务
    ```shell
    # 注意：避免在自定义的训练脚本中unset上述DUMP GRAPH相关的环境变量
    python3.7.5 precision_tool/cli.py npu_dump "sh run_train.sh param1 param2"
@@ -55,7 +55,7 @@ sudo yum install graphviz
 #### 2. NPU的DUMP数据获取
 1. 参考[精度比对工具使用指南](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0004.html) 修改训练脚本。
    执行训练脚本，并将dump的数据拷贝到【precision_data/dump/npu/】目录
-2. 在训练脚本中**import precision_tool.tf_config**，并使用precision_tool中提供的辅助命令行执行训练脚本 
+2. 【推荐】在训练脚本中**import precision_tool.tf_config**，并使用precision_tool中提供的辅助命令行执行训练脚本 
     ``` python
     # 引用 precision_tool/tf_config.py
     import precision_tool.tf_config as npu_tf_config
@@ -72,7 +72,7 @@ sudo yum install graphviz
 #### 3. NPU的溢出检测数据的获取
 1. 参考[使用溢出检测工具分析算子溢出](https://support.huaweicloud.com/tensorflowdevg-cann330alphaXtraining/atlasmprtg_13_0037.html) 修改训练脚本，
    并将溢出数据拷贝至【precision_tool/dump/overflow/】目录
-2. 在训练脚本中**import precision_tool.tf_config**，并按【2. NPU的DUMP数据获取】中修改训练代码，使用precision_tool中提供的辅助命令行执行训练脚本
+2. 【推荐】在训练脚本中**import precision_tool.tf_config**，并按【2. NPU的DUMP数据获取】中修改训练代码，使用precision_tool中提供的辅助命令行执行训练脚本
     ```shell
     python3.7.5 precision_tool/cli.py npu_overflow "sh run_train.sh param1 param2"
     ```
@@ -89,7 +89,7 @@ sudo yum install graphviz
 #### 5. TF的DUMP数据获取
 1. 参考[准备基于GPU/CPU运行生成的npy数据](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0005.html) 
    获取CPU/GPU的TF数据，并拷贝至【precision/dump/cpu/】目录
-2. 在CPU/GPU训练脚本中添加tf_debug代码，并使用precision_tool中提供的辅助命令行工具生成标杆DUMP数据
+2. 【推荐】在CPU/GPU训练脚本中添加tf_debug代码，并使用precision_tool中提供的辅助命令行工具生成标杆DUMP数据
    ```python
     from tensorflow.python import debug as tf_debug
     
@@ -157,33 +157,33 @@ sudo yum install graphviz
     ```
    
 ### 交互模式命令
-3. ac (-c)
+1. ac (-c)
     ```shell
     # auto check. 自动化检测命令
     # 列出Fusion信息;解析算子溢出信息;(-c)进行全网比对
     PrecisionTool > ac -c
     ```
-4. run [command]
+2. run [command]
     ```shell
     # 不退出交互命令环境执行shell命令，与内置命令不冲突的可以直接执行，否则需要加run前缀
     PrecisionTool > run vim cli.py
     PrecisionTool > vim cli.py
     ```
 
-5. ls -n [op_name] -t [op_type]
+3. ls -n [op_name] -t [op_type]
     ```shell
     # 通过[算子名]/[算子类型]查询网络里的算子，模糊匹配
     PrecisionTool > ls -n conv1 -t Mul
     [MatMulV2] LeNet/conv1/Matmul
     ```
 
-6. ni (-n) [op_name]
+4. ni (-n) [op_name]
     ```shell
     # 通过[算子名]查询算子节点信息
     PrecisionTool > ni LeNet/conv1/Matmul
     ```
    
-7. pt (-n) [*.npy]
+5. pt (-n) [*.npy]
     ```shell
     # 查看某个dump数据块的数据信息
     PrecisionTool > pt MatMulV2.LeNet_conv1_Matmul.17.6.16160712863169.output.npy
@@ -198,7 +198,7 @@ sudo yum install graphviz
     TxtFile:./precision_data/dump/decode/MatMulV2.LeNet_conv1_Matmul.17.6.16160712863169.output.npy.txt
     ```
 
-8. cp (-n) [left *.npy] [right *.npy] -p [print num] -al [atol] -rl [rtol]
+6. cp (-n) [left *.npy] [right *.npy] -p [print num] -al [atol] -rl [rtol]
     ```shell
     # 对比两个tensor的数据
     # -p 指定输出的错误数据的个数及前多少个数据

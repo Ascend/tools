@@ -3,11 +3,11 @@ import cmd
 from .util import util
 from .precision_tool import PrecisionTool
 
-HEADER = "    ____                 _      _           ______            __\n\
-   / __ \________  _____(_)____(_)___  ____/_  __/___  ____  / / \n\
-  / /_/ / ___/ _ \/ ___/ / ___/ / __ \/ __ \/ / / __ \/ __ \/ / \n\
- / ____/ /  /  __/ /__/ (__  ) / /_/ / / / / / / /_/ / /_/ / / \n\
-/_/   /_/   \___/\___/_/____/_/\____/_/ /_/_/  \____/\____/_/\n"
+HEADER = r"""    ____                 _      _           ______            __
+   / __ \________  _____(_)____(_)___  ____/_  __/___  ____  / /
+  / /_/ / ___/ _ \/ ___/ / ___/ / __ \/ __ \/ / / __ \/ __ \/ /
+ / ____/ /  /  __/ /__/ (__  ) / /_/ / / / / / / /_/ / /_/ / /
+/_/   /_/   \___/\___/_/____/_/\____/_/ /_/_/  \____/\____/_/"""
 
 HELP_AC = "Run auto check function, use [-c] to start vector compare process.\n" \
           "  usage: ac (-c) \n"
@@ -33,12 +33,6 @@ class InteractiveCli(cmd.Cmd):
         self.precision_tool = PrecisionTool()
         self.precision_tool.prepare()
 
-    def do_set(self, line=''):
-        """Set env. overflow;dump"""
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_set_env(argv)
-        return True
-
     def do_ac(self, line=''):
         """Auto check."""
         argv = line.split(' ') if line != '' else []
@@ -47,17 +41,7 @@ class InteractiveCli(cmd.Cmd):
     def do_run(self, line=''):
         """Run any shell command"""
         util.execute_command(line)
-    '''
-    def do_npu_run(self, line=''):
-        """Run npu npu script with debug envs(overflow/dump):\n usage: npu_run (overflow/dump) [start npu command]"""
-        self.precision_tool.auto_run_with_debug_envs(line)
-        self._prepare()
 
-    def do_tf_run(self, line=''):
-        """Run tf cpu script with tfdbg to generate golden data:\n usage: tf_run [tf cpu start command]"""
-        self.precision_tool.run_tf_dbg_dump(line)
-        self._prepare()
-    '''
     def do_ls(self, line=''):
         """List ops: \n usage: ls (op(default)/dump) -n [op_name] -t [op_type]"""
         argv = line.split(' ') if line != '' else []
@@ -93,21 +77,8 @@ class InteractiveCli(cmd.Cmd):
             argv.insert(0, '-n')
         self.precision_tool.do_print_data(argv)
 
-    def do_fu(self, line=''):
-        """Fusion summary"""
-        argv = line.split(' ') if line != '' else []
-        self.precision_tool.do_check_fusion(argv)
-
     def do_cp(self, line=''):
         """Compare two data file """
         argv = line.split(' ') if line != '' else []
         argv.insert(0, '-n')
         self.precision_tool.do_compare_data(argv)
-
-    def do_cc(self, line=''):
-        """Check cast"""
-        self.precision_tool.do_check_cast()
-
-    def do_cd(self, line=''):
-        """Check dtype"""
-        self.precision_tool.do_check_dtype()

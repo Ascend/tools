@@ -38,10 +38,6 @@ class PrecisionTool(object):
         self.fusion.prepare()
         self.compare.prepare()
 
-    def do_set_env(self, argv):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('-c', '--name', dest='vector_compare', help='auto check', action='store_true')
-
     @catch_tool_exception
     def do_auto_check(self, argv):
         """auto check"""
@@ -73,7 +69,7 @@ class PrecisionTool(object):
         self.graph.check_dtype()
 
     @catch_tool_exception
-    def do_check_fusion(self, argv=None):
+    def do_check_fusion(self):
         """print fusion info summary"""
         self.fusion.check()
 
@@ -151,14 +147,14 @@ class PrecisionTool(object):
         """compare two tensor"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='names', type=str, default=[], help='op name', nargs='+')
-        parser.add_argument('-p', '--print', dest='print', default=20, type=int, help='print err data num')
+        parser.add_argument('-p', '--print', dest='count', default=20, type=int, help='print err data num')
         parser.add_argument('-al', '--atol', dest='atol', default=0.001, type=float, help='set rtol')
         parser.add_argument('-rl', '--rtol', dest='rtol', default=0.001, type=float, help='set atol')
         args = parser.parse_args(argv)
         if len(args.names) != 2:
             self.log.error("compare files should be 2.")
         else:
-            self.compare.compare_data(args.names[0], args.names[1], print_n=args.print)
+            self.compare.compare_data(args.names[0], args.names[1], args.rtol, args.atol, args.count)
 
     @catch_tool_exception
     def check_graph_similarity(self):
