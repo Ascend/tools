@@ -60,7 +60,7 @@ path_prefix=${0%npucollect.sh*}
 trap "
 if ps aux | grep .sh | grep running_process;then
     ps aux | grep .sh | grep running_process | awk '{print \$2}' | xargs kill -9
-    ${path_prefix}core.sh post_process $path
+    bash ${path_prefix}core.sh post_process $path
     rm -rf $path
 fi
 exit
@@ -73,7 +73,7 @@ pre_name=pre_process
 for module in ${modules[*]}
 do
     echo "----------[$module] pre process start------"
-    $path_prefix$module.sh $pre_name $path
+    bash $path_prefix$module.sh $pre_name $path
     echo "----------[$module] pre process end------"
 done
 echo "--------pre process end--------"
@@ -85,7 +85,7 @@ running_name=running_process
 for module in ${modules[*]}
 do
     echo "----------[$module] running process start------"
-    $path_prefix$module.sh $running_name $path &
+    bash $path_prefix$module.sh $running_name $path &
     running_pid[${#running_pid[@]}]=$!
     echo "----------[$module] running process end------"
 done
@@ -112,7 +112,7 @@ running_once_name=running_process_once
 for module in ${modules[*]}
 do
     echo "----------[$module] running process once start------"
-    $path_prefix$module.sh $running_once_name $path
+    bash $path_prefix$module.sh $running_once_name $path
     echo "----------[$module] running process once end------"
 done
 
@@ -122,7 +122,7 @@ post_name=post_process
 for module in ${modules[*]}
 do
     echo "----------[$module] post process start------"
-    $path_prefix$module.sh $post_name $path
+    bash $path_prefix$module.sh $post_name $path
     echo "----------[$module] post process end------"
 done
 echo "--------post process end--------"

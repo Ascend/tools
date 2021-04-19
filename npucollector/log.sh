@@ -48,7 +48,7 @@ running_process_once()
     fi
     #process device aicpu
     if [ -d ~/ascend/log/device-0/ ];then
-        \cp -f ~/ascend/log/plog/* $base_path$device_aicpu_path
+        \cp -f ~/ascend/log/device* $base_path$device_aicpu_path
     fi
     #process device_msreport
     if [ "$HOME" == "/root" ];then
@@ -142,7 +142,7 @@ post_process()
             done
 
             #firmware
-            for absolute_dir in `find $base_path$device_msreport_path/slog/ -name "device-[0-9]"`
+            for absolute_dir in `find $base_path$device_msreport_path/target/slog/ -name "device-[0-9]"`
             do
                 mkdir -p $base_path$device_firmware_path/${absolute_dir##*/}
                 for file in `find $absolute_dir -type f`
