@@ -59,7 +59,7 @@ path_prefix=${0%npucollect.sh*}
 
 trap "
 if ps aux | grep .sh | grep running_process;then
-    ps aux | grep .sh | grep running_process | awk '{print \$2}' | xargs kill -9'
+    ps aux | grep .sh | grep running_process | awk '{print \$2}' | xargs kill -9
     ${path_prefix}core.sh post_process $path
     rm -rf $path
 fi

@@ -48,7 +48,7 @@ running_process_once()
     fi
     #process device aicpu
     if [ -d ~/ascend/log/device-0/ ];then
-        \cp -f ~/ascend/log/plog/* $base_path$host_cann_log_path
+        \cp -f ~/ascend/log/plog/* $base_path$device_aicpu_path
     fi
     #process device_msreport
     if [ "$HOME" == "/root" ];then
@@ -120,8 +120,8 @@ post_process()
             #driver
             for dir in `ls -l $base_path$device_msreport_path/target/message | grep ^d | awk '{print $9}'`
             do
-            mkdir -p $base_path$device_driver_path/$dir
-            for file in `find $base_path$device_msreport_path/target/message/$dir -type f`
+                mkdir -p $base_path$device_driver_path/$dir
+                for file in `find $base_path$device_msreport_path/target/message/$dir -type f`
                 do
                     mv $file $base_path$device_driver_path/$dir
                 done
@@ -170,8 +170,8 @@ post_process()
     #process host message
     if [ "$HOME" == "/root" ];then
         file=/var/log/messages
-    if [ -f $file -a -r $file ];then
-            cp $file $base_path$device_driver_log_path
+        if [ -f $file -a -r $file ];then
+            cp $file $base_path$host_driver_log_path
         else
             echo "[error] messages_file:$file can't reach"
         fi
