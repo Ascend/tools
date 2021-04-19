@@ -48,7 +48,7 @@ running_process_once()
     fi
     #process device aicpu
     if [ -d ~/ascend/log/device-0/ ];then
-        \cp -f ~/ascend/log/device* $base_path$device_aicpu_path
+        \cp -rf ~/ascend/log/device* $base_path$device_aicpu_path
     fi
     #process device_msreport
     if [ "$HOME" == "/root" ];then
