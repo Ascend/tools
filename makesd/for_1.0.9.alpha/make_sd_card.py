@@ -211,6 +211,14 @@ def get_disk_size(disk_info):
     
     return int(size_str.split(" ")[0])
 
+def get_sectors_num(disk_info):
+    sectors_str = re.search("\d+(,\d+)* sectors", disk_info).group()  
+    print("Disk size info: ", sectors_str)
+    
+    sectors_str = sectors_str.replace(',', '')    
+    
+    return int(sectors_str.split(" ")[0])
+
 def check_sd(dev_name):
     ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'"%(dev_name))
     disk[0] = remove_chn_and_charactor(disk[0])    
@@ -239,8 +247,7 @@ def check_sd(dev_name):
         print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
         return False,None,None
 
-    sector_num_str = disk[0].split(",")[2].split()[0]
-    sector_num = int(sector_num_str)
+    sector_num = get_sectors_num(disk[0])
     print("sector num %d"%(sector_num))
 
     ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P '[\\x{5355}\\x{5143}]|Units'"%(dev_name))
