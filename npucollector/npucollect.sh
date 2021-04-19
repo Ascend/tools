@@ -59,10 +59,11 @@ path_prefix=${0%npucollect.sh*}
 
 trap "
 if ps aux | grep .sh | grep running_process;then
-    ps aux | grep .sh | grep running_process | awk '{print \$2} | xargs kill -9'
+    ps aux | grep .sh | grep running_process | awk '{print \$2}' | xargs kill -9'
     ${path_prefix}core.sh post_process $path
     rm -rf $path
 fi
+exit
 " EXIT
 
 
@@ -131,11 +132,11 @@ if [ -f $2 ];then
     rm -rf $2
 fi
 cd ${path%/*}
-tar -zxvf ${2##*/} ${path%%*/}
+tar -zcvf ${2##*/} ${path##*/}
 
 if [ $? -eq 0 ];then
     rm -rf $path
 else
     echo "[ERROR] tar command not success, origin directory will reserve, please check data in directory or try again"
 fi
-echo "--------compressing done--------"
+echo "--------compress done--------"
