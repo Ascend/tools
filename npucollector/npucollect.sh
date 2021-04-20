@@ -1,5 +1,5 @@
 #!/bin/bash
-modules=(core ge log ops install)
+modules=(core ge log ops environment)
 
 #clear previous process
 if ps aux | grep .sh | grep running_process;then
@@ -17,6 +17,12 @@ fi
 
 cmd=$1
 path=${2%.tar.gz*}
+
+if [ ${path:0:1} != "/" ];then
+    path=`pwd`/$path
+fi
+path=$path"_tmp_for_npucollect"
+
 
 if ! grep -q -E '\.tar\.gz$' <<< "$2";then
     echo "[error] argument2 invalid, suffix must use .tar.gz"
@@ -44,6 +50,9 @@ if [ -d $path ];then
         echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
         exit
     fi
+    echo "Target path [$path] is exist, stop to avoid data override."
+    echo "If you want to use this path indeed, please rm the directory firstly"
+    exit
 else
     mkdir -p $path
     if [ $? -ne 0 ];then
@@ -89,7 +98,6 @@ do
     running_pid[${#running_pid[@]}]=$!
     echo "----------[$module] running process end------"
 done
-echo "--------running process end--------"
 
 export PRINT_MODEL=1
 export DUMP_GE_GRAPH=2
@@ -98,6 +106,7 @@ export NPU_COLLECT_PATH=$path
 export ASCEND_GLOBAL_LOG_LEVEL=1
 
 ulimit -c unlimited
+echo $cmd > $path/log/host/user_cmd
 $cmd > $path/log/host/screen.txt 2>&1
 
 for pid in ${running_pid[*]}
@@ -107,6 +116,8 @@ do
         kill -9 $pid>/dev/null 2>&1
     fi
 done
+
+echo "--------running process end--------"
 
 running_once_name=running_process_once
 for module in ${modules[*]}

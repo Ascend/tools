@@ -1,10 +1,19 @@
 #!/bin/bash
 install_path=/log/host/install
+environment_path=/extra-info/environment
 
 pre_process()
 {
     base_path=$1
     mkdir -p $base_path$install_path
+    mkdir -p $base_path$environment_path
+
+    ps aux > $base_path$environment_path/process_status
+    free > $base_path$environment_path/cache_memory_status
+    df -h > $base_path$environment_path/disk_memory_status
+
+    uname -a > $base_path$environment_path/kernel_info
+    cat /proc/version > $base_path$environment_path/os_info
 }
 
 running_process_once()
