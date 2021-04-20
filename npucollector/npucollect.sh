@@ -21,19 +21,11 @@ path=${2%.tar.gz*}
 if [ ${path:0:1} != "/" ];then
     path=`pwd`/$path
 fi
-path=$path"_tmp_for_npucollect"
+path=$path"_dir_for_npucollect"
 
 
 if ! grep -q -E '\.tar\.gz$' <<< "$2";then
     echo "[error] argument2 invalid, suffix must use .tar.gz"
-    echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
-    echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
-    echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
-    exit
-fi
-
-if ! grep -q -E '^/' <<< "$2";then
-    echo "[error] argument2 invalid, prefix must use /, must use absolute path"
     echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
     echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
     echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
