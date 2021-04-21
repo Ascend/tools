@@ -114,7 +114,7 @@ b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名
 | --output | 推理数据输出路径                |
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
-| --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认fasle |
+| --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认false |
 | --profiler   | profiler开关，true或者false, 可选参数，默认false。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。不能与--dump同时为true。 |  
 | --dump   | dump开关，true或者false, 可选参数，默认false。<br>dump数据在--output参数指定的目录下的dump文件夹内。不能与--profiler同时为true。 |
 | --device   | 指定运行设备 [0,255]，可选参数，默认0 |

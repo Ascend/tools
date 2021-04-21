@@ -1,24 +1,24 @@
-English|[中文](README_CN.md)
+中文|[English](README_EN.md)
 
 # for_1.0.8.alpha
 
-## Supporting relationship
+## 配套关系
 
-The business card requires the firmware and driver package and the community version cann_minirc package, which have corresponding firmware and driver version numbers and CANN version numbers respectively.
-The following table shows the matching table of **hardware version and CANN version**. Please select the corresponding CANN version package for card making according to the hardware version.
+制卡需要固件与驱动包和社区版cann_minirc包，分别有对应的固件与驱动版本号和CANN版本号。    
+下表为**硬件版本与CANN版本配套表**，请根据硬件版本选择对应的CANN版本包进行制卡。
 
 <table>
-<tr><td width="25%"><b>Driver and Firmware Version</b></td><td width="75%"><b>CANN Version</b></td></tr>
-<tr><td>1.0.8.alpha</td><td>3.1.0.alpha001<br/>Note: The 20.1.alpha001 version number is deprecated.</td>
+<tr><td width="25%"><b>驱动与固件版本</b></td><td width="75%"><b>CANN版本</b></td></tr>
+<tr><td>1.0.8.alpha</td><td>3.1.0.alpha001<br/>备注：曾用版本号“20.1.alpha001”</td>
 </tr>
 </table>
 
-## File introduction
+## 文件介绍
 
-- **make_sd_card.py**：Entry script for SD card making
+- make_sd_card.py：制卡入口脚本
 
-- **make_ubuntu_sd.sh**：Make SD card operating system script
+- make_ubuntu_sd.sh：制作SD卡操作系统脚本
 
-## Procedure
+## 制卡步骤
 
-For card making steps, please refer to [Atlas 200 DK Developer Kit (1.0.8.alpha)](https://support.huaweicloud.com/intl/en-us/dedg-A200dk_3000_c75/atlased_04_0013.html)
+**制卡步骤请参见[Atlas 200 DK 开发者套件（1.0.8.alpha）](https://support.huaweicloud.com/dedg-A200dk_3000_c75/atlased_04_0013.html)**
