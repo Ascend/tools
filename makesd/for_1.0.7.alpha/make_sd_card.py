@@ -59,7 +59,7 @@ MAKING_SD_CARD_COMMAND = "bash {path}/make_ubuntu_sd.sh " + " {dev_name}" + \
 
 
 def execute(cmd, timeout=3600, cwd=None):
-    '''execute os command'''
+    """execute os command"""
 
     is_linux = platform.system() == 'Linux'
 
@@ -153,7 +153,7 @@ def get_disk_size_and_sectors(disk_info):
     if (len(disk_size_list) != 3):
         print("[ERROR] Get disk size failed ", disk_info)
         execute("echo '[ERROR] Get disk size failed %s' >> %s" % (disk_info, MAKE_SD_LOG_PATH))
-        return 0,0
+        return 0, 0
     return int(disk_size_list[1]), int(disk_size_list[2])
 
 def check_sd(dev_name):
@@ -163,7 +163,7 @@ def check_sd(dev_name):
         print("[ERROR] Can not get disk, please use fdisk -l to check available disk name!")
         execute("echo '[ERROR] Can not get disk, please use fdisk -l to check available disk name!'\
         >> %s" % (MAKE_SD_LOG_PATH))
-        return False,None,None
+        return False, None, None
 
     ret, mounted_list = execute("df -h")
 
@@ -186,24 +186,26 @@ def check_sd(dev_name):
     if dev_name  in unchanged_disk or disk_size < MIN_DISK_SIZE:
         print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
         execute("echo '[ERROR] Invalid SD card or size is less then 8G, please check SD Card.' >> %s"\
-         % (MAKE_SD_LOG_PATH))
+            % (MAKE_SD_LOG_PATH))
         return False, None, None
 
-    ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P '[\\x{5355}\\x{5143}]|Units'" % (dev_name))
+    ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P \
+    '[\\x{5355}\\x{5143}]|Units'" % (dev_name))
     if not ret or len(sector) > 1:
         print("[ERROR] Can not get sector size , please use fdisk -l to check available disk name!")
-        execute("echo '[ERROR] Can not get sector size , please use fdisk -l to check available disk name!' >> %s" % (MAKE_SD_LOG_PATH))
+        execute("echo '[ERROR] Can not get sector size , please use fdisk -l to check available disk name!' \
+            >> %s" % (MAKE_SD_LOG_PATH))
         return False, None, None
 
     sector[0] = remove_chn_and_charactor(sector[0])    
     sector_size_str=sector[0].split('*')[1].split('=')[0].strip()
     sector_size=int(sector_size_str)
 
-    print("sector size %d"%(sector_size))
+    print("sector size %d" % (sector_size))
     execute("echo 'sector size %d' >> %s" % (sector_size, MAKE_SD_LOG_PATH))
-    return True,sector_num,sector_size
+    return True, sector_num, sector_size
 
-def process_local_installation(dev_name,sector_num,sector_size):
+def process_local_installation(dev_name, sector_num, sector_size):
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
         "Please input Y: continue, other to install them:"
@@ -239,16 +241,19 @@ def process_local_installation(dev_name,sector_num,sector_size):
     print("Command:")
     execute("echo 'Command:' >> %s" % (MAKE_SD_LOG_PATH))
     making_sd_card_command_str = MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, \
-    pkg_path=CURRENT_PATH, ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH,sector_num=sector_num,sector_size=sector_size)
+    pkg_path=CURRENT_PATH, ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH, sector_num=sector_num,\
+    sector_size=sector_size)
     print(making_sd_card_command_str)
     execute("echo '%s' >> %s" % (making_sd_card_command_str, MAKE_SD_LOG_PATH))
     #"""
-    execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,
-                                                ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH,sector_num=sector_num,sector_size=sector_size))
+    execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,\
+        ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH, sector_num=sector_num, \
+        sector_size=sector_size))
     ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=LOG_PATH))
     if not ret[0]:
         print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % LOG_PATH)
-        execute("echo '[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!' >> %s" % (LOG_PATH, MAKE_SD_LOG_PATH))
+        execute("echo '[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!' >> %s" \
+        % (LOG_PATH, MAKE_SD_LOG_PATH))
         return False
     #"""
     return True
@@ -262,7 +267,7 @@ def print_usage():
     execute("echo '\t                 Use local given packages to make SD card.' >> %s" % (MAKE_SD_LOG_PATH))
 
 def main():
-    '''sd card making'''
+    """sd card making"""
     command = ""
     dev_name = ""
     sector_num=None
