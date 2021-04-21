@@ -1,4 +1,4 @@
-中文](https://gitee.com/ascend/tools/blob/master/msame/README.md)|EN
+[中文](https://gitee.com/ascend/tools/blob/master/msame/README.md)|EN
 
 # Ascend Model Executor: msame
 
