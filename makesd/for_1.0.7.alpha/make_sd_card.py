@@ -1,6 +1,4 @@
-#
-#   =======================================================================
-#
+"""
 # Copyright (C) 2018, Hisilicon Technologies Co., Ltd. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,8 +26,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#   =======================================================================
-#
+"""
+
 import os
 import platform
 import signal
@@ -116,6 +114,7 @@ def C_trans_to_E(string):
 
 
 def remove_chn_and_charactor(str1):
+    """remove Special charactors""" 
     C_PUN = u'，。！？：【】（）《》“‘'
     stren = ''
 
@@ -150,6 +149,7 @@ def remove_chn_and_charactor(str1):
 
 
 def get_disk_size_and_sectors(disk_info):
+    """get disk infomation""" 
     disk_size_info = disk_info.split(":")[1]
     disk_size_info = disk_size_info.replace(",", ".")
     disk_size_list = re.findall(r"\b\d+\.?\d+\b", disk_size_info)
@@ -161,6 +161,7 @@ def get_disk_size_and_sectors(disk_info):
 
 
 def check_sd(dev_name):
+    """check sd card""" 
     ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'" % (dev_name))
     disk[0] = remove_chn_and_charactor(disk[0])    
     if not ret or len(disk) > 1:
@@ -211,6 +212,7 @@ def check_sd(dev_name):
 
 
 def process_local_installation(dev_name, sector_num, sector_size):
+    """Installation process""" 
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
         "Please input Y: continue, other to install them:"
@@ -267,6 +269,7 @@ def process_local_installation(dev_name, sector_num, sector_size):
 
 
 def print_usage():
+    """print usage"""
     print("Usage: ")
     print("\t[local   ]: python3 make_sd_card.py local [SD Name]")
     print("\t                 Use local given packages to make SD card.")
