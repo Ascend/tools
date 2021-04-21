@@ -105,6 +105,7 @@ def execute(cmd, timeout=3600, cwd=None):
 
     return True, std_output_lines_last
 
+
 def C_trans_to_E(string):
     E_PUN = u',.!?:[]()<>"\''
     C_PUN = u'，。！？：【】（）《》“‘'
@@ -112,6 +113,7 @@ def C_trans_to_E(string):
     table= {ord(f): ord(t) for f, t in zip(C_PUN, E_PUN)}
 
     return string.translate(table)
+
 
 def remove_chn_and_charactor(str1):
     C_PUN = u'，。！？：【】（）《》“‘'
@@ -146,6 +148,7 @@ def remove_chn_and_charactor(str1):
 
     return stren
 
+
 def get_disk_size_and_sectors(disk_info):
     disk_size_info = disk_info.split(":")[1]
     disk_size_info = disk_size_info.replace(",", ".")
@@ -155,6 +158,7 @@ def get_disk_size_and_sectors(disk_info):
         execute("echo '[ERROR] Get disk size failed %s' >> %s" % (disk_info, MAKE_SD_LOG_PATH))
         return 0, 0
     return int(disk_size_list[1]), int(disk_size_list[2])
+
 
 def check_sd(dev_name):
     ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'" % (dev_name))
@@ -205,6 +209,7 @@ def check_sd(dev_name):
     execute("echo 'sector size %d' >> %s" % (sector_size, MAKE_SD_LOG_PATH))
     return True, sector_num, sector_size
 
+
 def process_local_installation(dev_name, sector_num, sector_size):
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
@@ -240,23 +245,26 @@ def process_local_installation(dev_name, sector_num, sector_size):
     execute("echo 'Step: Start to make SD Card. It need some time, please wait...' >> %s" % (MAKE_SD_LOG_PATH))
     print("Command:")
     execute("echo 'Command:' >> %s" % (MAKE_SD_LOG_PATH))
+
     making_sd_card_command_str = MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, \
     pkg_path=CURRENT_PATH, ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH, sector_num=sector_num,\
     sector_size=sector_size)
+
     print(making_sd_card_command_str)
     execute("echo '%s' >> %s" % (making_sd_card_command_str, MAKE_SD_LOG_PATH))
-    #"""
+
     execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,\
         ubuntu_file_name=ubuntu_file_name, log_path=LOG_PATH, sector_num=sector_num, \
         sector_size=sector_size))
+
     ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=LOG_PATH))
     if not ret[0]:
         print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % LOG_PATH)
         execute("echo '[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!' >> %s" \
         % (LOG_PATH, MAKE_SD_LOG_PATH))
         return False
-    #"""
     return True
+
 
 def print_usage():
     print("Usage: ")
@@ -265,6 +273,7 @@ def print_usage():
     execute("echo 'Usage: ' >> %s" % (MAKE_SD_LOG_PATH))
     execute("echo '\t[local   ]: python3 make_sd_card.py local [SD Name]' >> %s" % (MAKE_SD_LOG_PATH))
     execute("echo '\t                 Use local given packages to make SD card.' >> %s" % (MAKE_SD_LOG_PATH))
+
 
 def main():
     """sd card making"""
