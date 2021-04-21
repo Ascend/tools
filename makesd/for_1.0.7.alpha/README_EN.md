@@ -1,4 +1,4 @@
-English|[中文](README_CN.md)
+English|[中文](README.md)
 
 # for_1.0.7.alpha
 
