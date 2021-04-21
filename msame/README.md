@@ -8,20 +8,22 @@
 模型必须是通过atc工具转换的om模型，输入bin文件需要符合模型的输入要求（支持模型多输入）。
 
 ### 使用环境
-已安装开发与运行环境的昇腾AI推理设备。  
+已安装运行环境的昇腾AI推理设备，如需重新编译，还需安装开发环境。  
 
 ### 获取
-1. 下载压缩包方式获取。
-
-   将 https://gitee.com/ascend/tools 仓中的脚本下载至服务器的任意目录。
-
-   例如存放路径为：$HOME/AscendProjects/tools。
-
-2. 命令行使用git命令方式获取。
-
-   在命令行中：$HOME/AscendProjects目录下执行以下命令下载代码。
+- 命令行方式下载
 
    **git clone https://gitee.com/ascend/tools.git**
+
+- 压缩包方式下载
+
+    1. tools仓右上角选择 **克隆/下载** 下拉框并选择 **下载ZIP**。
+
+    2. 将ZIP包上传到开发环境中的普通用户家目录中，例如 **$HOME/ascend-tools-master.zip**。
+
+    3. 开发环境中，执行以下命令，解压zip包。
+
+        **unzip ascend-tools-master.zip**
 
 
 ### 使用方法
