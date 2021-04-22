@@ -33,7 +33,7 @@
 
 进入msame目录
 ```
-cd $HOME/AscendProjects/tools/msame/
+cd $HOME/tools/msame/
 ```
 工具在out目录下,进入out目录
 ```
