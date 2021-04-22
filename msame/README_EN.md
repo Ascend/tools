@@ -37,7 +37,7 @@ Set up an operating environment powered by Ascend AI Processor. The development 
 Go to the directory:
 
 ```
-cd $HOME/AscendProjects/tools/msame/
+cd $HOME/tools/msame/
 ```
 
 Go to the **out** directory where the tool is located:
