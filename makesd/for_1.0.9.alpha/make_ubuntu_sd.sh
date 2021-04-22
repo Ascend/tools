@@ -196,6 +196,9 @@ function checkAscendPackage()
     if [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)"x" != "x" ]];then
         AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.run)
         AICPU_FLAG=0
+    elif [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels_minirc-*.run)"x" != "x" ]];then
+        AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels_minirc-*.run)
+	AICPU_FLAG=0
     elif [[ $(find ${ScriptPath}/nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)"x" != "x" ]];then
         AICPU_KERNELS_PACKAGE=$(ls nnrt/run_package/Ascend310-aicpu_kernels-*-minirc.tar.gz)
         AICPU_FLAG=1
