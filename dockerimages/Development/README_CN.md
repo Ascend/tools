@@ -1,6 +1,6 @@
 # docker镜像使用指导
 
-本指导将提供ubuntu环境下拉取3.2.0alpha001版本docker开发环境的方法。   
+本指导将提供ubuntu环境下拉取3.1.0alpha001及以后版本docker开发环境的方法。   
  **docker容器中普通用户用户名：HwHiAiUser，密码：Mind@123      
             root用户用户名：root，密码：root**     
  
@@ -60,9 +60,14 @@
 
 ## 第三步：拉取docker镜像
 
-命令行中执行如下命令拉取3.2.0alpha001版本开发环境docker镜像：   
-**docker pull dopa6/ascenddev_20.1:atlas**
+命令行中执行如下命令拉取各个版本开发环境docker镜像：   
+ - 3.1.0.alpha001版本  
+     **docker pull dopa6/ascenddev_20.1:atlas**   
 
+ - 3.2.0.alpha001版本  
+     **docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-dev:3.2.0alpha001**   
+ - 3.3.0.alpha001版本  
+  **docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-dev:ascenddev_3.3.0alpha001** 
 ## 第四步：创建并配置docker环境
 
 1. 查看容器ID。
