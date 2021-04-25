@@ -84,7 +84,7 @@ su ${USER}          再切换到原来的应用用户以上配置才生效
 ### 直接拉取atlas200dk合设环境镜像
 命令行中执行如下命令拉取镜像：
     
-**docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-catenation:3.3.0.alpha001-full**
+**docker pull swr.cn-north-4.myhuaweicloud.com/ascend-develop/atlas200dk-catenation:3.3.0alpha001**
 
 
 ### 配置合设环境
