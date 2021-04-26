@@ -8,7 +8,7 @@
 
 1. [**Development**](./Development)
 
-    atlas200dk/atlas300开发环境。
+    atlas200dk/atlas300开发环境docker镜像。
 
 2. [**atlas200dk-catenation**](./atlas200dk-catenation)
 
