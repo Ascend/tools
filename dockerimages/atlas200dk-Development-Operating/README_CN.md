@@ -1,14 +1,13 @@
 # docker镜像使用指导
 
-该使用指导将指导你拉取一个3.3.0.alpha001  atlas200dk的开发运行环境。环境内已经安装好了开发和运行环境，用户直接运行样例。    
+该使用指导将指导你拉取一个atlas200dk的开发运行环境。环境内已经安装好了开发和运行环境，用户直接运行样例。    
  **docker容器中普通用户用户名：HwHiAiUser，密码：HwHiAiUser     
             root用户用户名：root，密码：root**     
  
 **1、安装Atlas200DK运行环境**
 
-​	搭建最新版本运行环境（3.3.0alpha001，读卡器场景）
-
-​	[制卡方式](https://support.huaweicloud.com/environment-deployment-Atlas200DK202/atlased_04_0012.html)    
+​	搭建运行环境（选择对应版本读卡器场景）
+  
 
 **2、配置Atlas200DK连接网络**    
 参考[开发者板设置联网](https://gitee.com/ascend/samples/blob/master/cplusplus/environment/prepare_ENV/README_200DK_CN.md)
