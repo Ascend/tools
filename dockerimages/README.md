@@ -10,9 +10,9 @@
 
     atlas200dk/atlas300开发环境docker镜像，按照readme操作即可使用。
 
-2. [**atlas200dk-catenation**](./atlas200dk-catenation)
+2. [**atlas200dk-Development-Operating**](./atlas200dk-Development-Operating)
 
-    3.3.0.alpha001版本atlas200dk开发运行环境docker镜像，按照readme操作即可使用。   
-3. [**atlas300-catenation**](./atlas300-catenation)
+    atlas200dk开发运行环境docker镜像，按照readme操作即可使用。   
+3. [**atlas300-Development-Operating**](./atlas300-Development-Operating)
 
-    3.2.0.alpha001版本及以上atlas300开发运行环境docker镜像，按照readme操作即可使用。 
+    atlas300开发运行环境docker镜像，按照readme操作即可使用。 
