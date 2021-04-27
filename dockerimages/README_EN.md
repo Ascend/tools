@@ -9,11 +9,11 @@ After determining the required image, click the corresponding tag to go to the i
 
 1. [**Development**](./Development)
 
-    20.0 version development environment docker image. Mindstudio and ADK have been installed in the environment, directly open Mindsutido to use.   
+   Development environment docker image. Mindstudio and ADK have been installed in the environment, directly open Mindsutido to use.   
 
-2. [**atlas200dk-catenation**](./atlas200dk-catenation)
+2. [**atlas200dk-Development-Operating**](./atlas200dk-Development-Operating)
 
-    Atlas200dk 3.3.0. Alpha001 version catenation environment Docker image, can be used according to README operation.    
-3. [**atlas300-catenation**](./atlas300-catenation)
+    Atlas200dk Development-Operating environment Docker image, can be used according to README operation.    
+3. [**atlas300-Development-Operating**](./atlas300-Development-Operating)
 
-    Atlas300 3.2.0. Alpha001 version and above catenation environment Docker image, can be used according to README operation. 
+    Atlas300 Development-Operating environment Docker image, can be used according to README operation. 
