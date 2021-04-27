@@ -1,6 +1,6 @@
 # docker镜像使用指导
 
-本指导将提供ubuntu环境下拉取3.1.0alpha001及以后版本docker开发环境的方法。   
+本指导将提供ubuntu环境下拉取docker开发环境的方法。   
  **docker容器中普通用户用户名：HwHiAiUser，密码：Mind@123      
             root用户用户名：root，密码：root**     
  
