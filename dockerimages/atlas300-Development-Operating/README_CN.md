@@ -25,19 +25,10 @@ apt-get install docker.io
  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0326/112909_b5956577_7985487.png "屏幕截图.png")
   
     
-2.宿主机需要安装驱动和固件，详情请参见[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://support.huaweicloud.com/instg-cli-cann330/atlasrun_03_0015.html)的“准备硬件环境”章节。     
-  [驱动包下载](https://ascend.huawei.com/#/hardware/firmware-drivers)   
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0326/113114_05e5e3d4_7985487.png "屏幕截图.png")  
-  解压A300-3010-npu_20.2.0_ubuntu18.04-x86_64.zip后得到
-驱动安装包A300-3010-npu-driver_20.2.0_ubuntu18.04-x86_64.run和固件安装包A300-3000-3010-npu-firmware_1.76.22.3.220.run    
-  [安装驱动包](https://support.huawei.com/enterprise/zh/doc/EDOC1100079287/65a1ae8d)    
-  [安装固件包](https://support.huawei.com/enterprise/zh/doc/EDOC1100079287/7c53cdbb)
+2.宿主机需要安装驱动和固件，详情请选择对应版本[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://www.hiascend.com/zh/document)的“准备硬件环境”章节。     
 
-3.宿主机需要安装实用工具包toolbox，详情请参见[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://support.huaweicloud.com/instg-cli-cann202/atlasrun_03_0113.html)的“安装运行环境（推理）>在容器安装>在宿主机安装实用工具包”章节。    
-  [toolbox下载地址](https://ascend.huawei.com/#/software/cann/commercial)    
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0326/113703_0d25732d_7985487.png "屏幕截图.png")   
-  安装方法参考下方文档：   
-https://support.huaweicloud.com/instg-cli-cann202/atlasrun_03_0101.html
+3.宿主机需要安装实用工具包toolbox，详情请选择对应版本[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://www.hiascend.com/zh/document）的“安装运行环境（推理）>在容器安装>在宿主机安装实用工具包”章节。   
+
 ### 直接拉取atlas300合设环境镜像
  命令行中执行如下命令拉取镜像：
   - 3.2.0.alpha001版本  
