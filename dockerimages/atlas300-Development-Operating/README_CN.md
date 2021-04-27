@@ -27,7 +27,7 @@ apt-get install docker.io
     
 2.宿主机需要安装驱动和固件，详情请选择对应版本[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://www.hiascend.com/zh/document)的“准备硬件环境”章节。     
 
-3.宿主机需要安装实用工具包toolbox，详情请选择对应版本[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://www.hiascend.com/zh/document）的“安装运行环境（推理）>在容器安装>在宿主机安装实用工具包”章节。   
+3.宿主机需要安装实用工具包toolbox，详情请选择对应版本[《CANN 软件安装指南 (开发&运行场景, 通过命令行方式)》](https://www.hiascend.com/zh/document)的“安装运行环境（推理）>在容器安装>在宿主机安装实用工具包”章节。   
 
 ### 直接拉取atlas300合设环境镜像
  命令行中执行如下命令拉取镜像：
