@@ -14,6 +14,7 @@ class Desc(object):
     def __init__(self, desc_json, index):
         self.desc_json = desc_json
         self.index = index
+        self.log = util.get_log()
 
     def idx(self):
         return self.index
@@ -45,7 +46,6 @@ class Desc(object):
 class InputDesc(Desc):
     def __init__(self, name, desc_json, index):
         super(InputDesc, self).__init__(desc_json, index)
-        self.log = util.get_log()
         if name == '':
             self.log.warning('invalid input name.')
         name_info = name.split(':')
@@ -64,8 +64,11 @@ class InputDesc(Desc):
     def is_control(self):
         return self.peer_index == -1
 
-    def summary(self):
-        return "[green][%d][/green][yellow][%s][%s][%s][/yellow] %s:%d" % (
+    def summary(self, origin_txt=False):
+        if origin_txt:
+            return "[%d][%s][%s]%s %s:%d" % (self.idx(), self.dtype(), self.format(),
+                                             self.shape(), self.name(), self.peer_idx())
+        return "[green][%d][/green][yellow][%s][%s]%s[/yellow] %s:%d" % (
             self.idx(), self.dtype(), self.format(), self.shape(), self.name(), self.peer_idx())
 
 
@@ -79,6 +82,8 @@ class OutputDesc(Desc):
     def names(self):
         return self.op_names
 
-    def summary(self):
-        return "[green][%d][/green][yellow][%s][%s][%s][/yellow] %s" % (
+    def summary(self, origin_txt=False):
+        if origin_txt:
+            return "[%d][%s][%s]%s %s" % (self.idx(), self.dtype(), self.format(), self.shape(), self.names())
+        return "[green][%d][/green][yellow][%s][%s]%s[/yellow] %s" % (
             self.idx(), self.dtype(), self.format(), self.shape(), self.names())

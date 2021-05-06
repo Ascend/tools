@@ -14,7 +14,7 @@
  
     开发环境中普通用户执行以下命令下载tools仓。    
     **cd $HOME**     
-    **git clone https://gitee.com/ascend/tools.git**    
+    **git clone https://github.com/Ascend/tools.git**    
     （注：如果没有安装git，执行sudo apt-get install git 安装git）   
     执行以下命令进入升级目录。    
     **cd tools/update_200dk**    

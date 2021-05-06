@@ -10,7 +10,7 @@
   
 
 **2、配置Atlas200DK连接网络**    
-参考[开发者板设置联网](https://gitee.com/ascend/samples/blob/master/cplusplus/environment/prepare_ENV/README_200DK_CN.md)
+参考[开发者板设置联网](https://github.com/Ascend/samples/blob/master/cplusplus/environment/prepare_ENV/README_200DK_CN.md)
 
 **3、更换apt源（可选）**
 

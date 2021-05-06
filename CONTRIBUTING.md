@@ -12,7 +12,7 @@ Ascend Tools，欢迎各位开发者！
 
 1. 工具的源码需符合第五部分编码规范。
 
-2. 工具提交样例规范请参考[sample](https://gitee.com/ascend/tools/tree/master/msame)。
+2. 工具提交样例规范请参考[sample](https://github.com/Ascend/tools/tree/master/msame)。
 
 3. 贡献者工程代码目录规则：目录名即为工具名，需能体现出工具的作用。   
     
@@ -73,7 +73,7 @@ readme用于指导用户理解和使用工具，要包含如下内容：
 
  **四、PR提交规范**
 
-1. 提交PR操作可以参考[如何fork仓库并提交PR_wiki](https://gitee.com/ascend/samples/wikis/%E5%A6%82%E4%BD%95fork%E4%BB%93%E5%BA%93%E5%B9%B6%E6%8F%90%E4%BA%A4PR?sort_id=3271318)。
+1. 提交PR操作可以参考[如何fork仓库并提交PR_wiki](https://github.com/Ascend/samples/wikis/%E5%A6%82%E4%BD%95fork%E4%BB%93%E5%BA%93%E5%B9%B6%E6%8F%90%E4%BA%A4PR?sort_id=3271318)。
 
 2. 如需上传图片、视频、模型等大文件，请提供归档OBS、网盘链接或联系管理员存放到固定的obs地址，不要将大文件上传至tools仓中。
 

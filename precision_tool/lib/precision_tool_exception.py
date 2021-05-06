@@ -13,9 +13,12 @@ class PrecisionToolException(Exception):
 
 def catch_tool_exception(fuc):
     def handle(*args, **kwargs):
+        log = logging.getLogger()
         try:
             return fuc(*args, **kwargs)
         except PrecisionToolException as pte:
-            log = logging.getLogger()
             log.warning(pte.error_info)
+        except SystemExit:
+            # do not exit
+            log.debug("Exit")
     return handle

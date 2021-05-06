@@ -5,6 +5,8 @@ cli
 import os
 import sys
 import argparse
+import time
+
 from termcolor import colored
 from lib.precision_tool import PrecisionTool
 from lib.interactive_cli import InteractiveCli
@@ -18,19 +20,41 @@ INTRODUCE_DOC = \
     "Usage:\n" \
     "  Single mode:\n" \
     "    Exp:\n" \
-    "      python3.7.5 precision_tool/cli.py tf_dump \"sh cpu_train.sh param1 param2\"" \
+    "      Dump TF data:\n" \
+    "       > python3.7.5 precision_tool/cli.py tf_dump \"sh cpu_train.sh param1 param2\" \n" \
+    "      Dump NPU data:\n" \
+    "       > python3.7.5 precision_tool/cli.py npu_dump \"sh npu_train.sh param1 param2\" \n" \
+    "      Check NPU overflow:\n" \
+    "       > python3.7.5 precision_tool/cli.py npu_overflow \"sh npu_train.sh param1 param2\" \n" \
     "  Interactive mode:\n" \
-    "    Exp:\n"
+    "    Exp:\n" \
+    "      Start command line:\n" \
+    "       > python3.7.5 precision_tool/cli.py\n"
 
 
 def _run_tf_dbg_dump(argv):
     """Run tf train script to get dump data."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', type=str, help="tf train command")
-    parser.add_argument('-r', '--run_times', dest='run_times', help="Dump data after run command after start tf_debug",
-                        type=int, default=2)
+    parser.add_argument('command', type=str, default=None, help="tf train command")
     args = parser.parse_args(argv)
-    _do_run_tf_dbg_dump(args.command, args.run_times)
+    log = util.get_log()
+    if os.path.exists(cfg.DUMP_FILES_CPU_DEBUG) and len(os.listdir(cfg.DUMP_FILES_CPU_DEBUG)) != 0:
+        log.info("TF offline debug path [%s] is not empty, will analyze it directly." % cfg.DUMP_FILES_CPU_DEBUG)
+    elif args.command is not None:
+        log.info("Run command: %s" % args.command)
+        util.execute_command(args.command)
+        log.info("Run finish, start analyze TF dump.")
+    if not os.path.exists(cfg.DUMP_FILES_CPU_DEBUG) or len(os.listdir(cfg.DUMP_FILES_CPU_DEBUG)) == 0:
+        raise PrecisionToolException("Empty tf debug dir. %s" % cfg.DUMP_FILES_CPU_DEBUG)
+    run_dirs = os.listdir(cfg.DUMP_FILES_CPU_DEBUG)
+    run_dirs.sort()
+    # extra the last run dir
+    run_dir = run_dirs[-1]
+    log.info("Find %s run dirs, will chose the last one: %s" % (run_dirs, run_dir))
+    time.sleep(1)
+    command = "python3 -m tensorflow.python.debug.cli.offline_analyzer --ui_type readline --dump_dir %s" % \
+              os.path.join(cfg.DUMP_FILES_CPU_DEBUG, run_dir)
+    _do_run_tf_dbg_dump(command, 0)
 
 
 def _do_run_tf_dbg_dump(cmd_line, run_times=2):
@@ -44,6 +68,7 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
                   import_err)
         raise PrecisionToolException("Import module error.")
     log.info("======< Auto run tf train process to dump data >======")
+    log.info("Send run times: %d", run_times)
     tf_dbg = pexpect.spawn(cmd_line)
     # tf_dbg.logfile = open(cfg.DUMP_FILES_CPU_LOG, 'wb')
     tf_dbg.logfile = sys.stdout.buffer
@@ -59,7 +84,7 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
         log.error("Failed to get tensor name in tf_debug.")
         raise PrecisionToolException("Get tensor name in tf_debug failed.")
     log.info("Save tensor name success. Generate tf dump commands from file: %s", cfg.DUMP_FILES_CPU_NAMES)
-    convert_cmd = "timestamp=$[$(date +%s%N)/1000]; cat " + cfg.DUMP_FILES_CPU_NAMES + \
+    convert_cmd = "timestamp=$($(date +%s%N)/1000); cat " + cfg.DUMP_FILES_CPU_NAMES + \
                   " | awk '{print \"pt\",$4,$4}'| awk '{gsub(\"/\", \"_\", $3); gsub(\":\", \".\", $3);" \
                   "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + "/" + \
                   "\"$3\".\"\"'$timestamp'\"\".npy\")}' > " + cfg.DUMP_FILES_CPU_CMDS
@@ -121,8 +146,8 @@ def main():
         elif sys.argv[1] == 'npu_overflow':
             _run_npu_overflow(cmd_line)
         else:
-            log.warning("Unknown command:", sys.argv[1])
-            print(INTRODUCE_DOC)
+            precision_tool = PrecisionTool()
+            precision_tool.single_cmd(sys.argv)
         exit(0)
     log.info("Interactive command mode.")
     cli = InteractiveCli()

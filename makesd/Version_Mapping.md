@@ -13,8 +13,9 @@ The following table describes the version mapping between the Atlas 200 DK Drive
 
 <table>
 <tr><td width="25%"><b>Driver and Firmware Version</b></td><td width="75%"><b>CANN Version</b></td></tr>
-<tr><td rowspan="2" valign="top">1.0.9.alpha</td><td>3.3.0.alpha001</td>
-</tr>
+<tr><td rowspan="3" valign="top">1.0.9.alpha</td><td>3.3.0.alpha006</td></tr>
+<tr><td>3.3.0.alpha005</td></tr>
+<tr><td>3.3.0.alpha001</td></tr>
 <tr><td>3.2.0.alpha001<br/>Note: The 20.2.alpha001 version number is deprecated.</td>
 </tr>
 <tr><td>1.0.8.alpha</td>
@@ -22,3 +23,5 @@ The following table describes the version mapping between the Atlas 200 DK Drive
 </tr>
 <tr><td>1.0.7.alpha</td><td>20.0.0</td></tr>
 </table>
+
+**Note: Atlas 200 DK supports only the versions listed in the preceding table. Versions not listed in the table are not supported.**

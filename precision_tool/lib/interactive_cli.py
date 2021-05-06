@@ -52,16 +52,16 @@ class InteractiveCli(cmd.Cmd):
     def do_ni(self, line=''):
         """Print node info:\n usage: ni (-n) [op_name]"""
         argv = line.split(' ') if line != '' else []
-        if len(argv) == 1:
+        if '-n' not in argv:
             argv.insert(0, '-n')
         self.precision_tool.do_node_info(argv)
 
     def do_dc(self, line=''):
         """Convert npu dump by op names:\n usage: dc (-n) [npu dump file] -f [target format]"""
         argv = line.split(' ') if line != '' else []
-        if len(argv) == 0:
-            return self.precision_tool.do_convert_all_npu_dump()
-        if argv[0] != '-n':
+        # if len(argv) == 0:
+        #    return self.precision_tool.do_convert_all_npu_dump()
+        if '-n' not in argv:
             argv.insert(0, '-n')
         self.precision_tool.do_convert_npu_dump(argv)
 
@@ -69,6 +69,11 @@ class InteractiveCli(cmd.Cmd):
         """Do vector compare: \n usage: vc """
         argv = line.split(' ') if line != '' else []
         self.precision_tool.do_vector_compare(argv)
+
+    def do_vcs(self, line=''):
+        """Do vector compare summary"""
+        argv = line.split(' ') if line != '' else []
+        self.precision_tool.do_vector_compare_summary(argv)
 
     def do_pt(self, line=''):
         """Print data info:\n usage: pt (-n) [*.npy] (-c)\n   -c: convert and save to txt file"""

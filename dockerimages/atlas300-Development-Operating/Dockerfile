@@ -100,7 +100,7 @@ RUN set -ex && echo 'HwHiAiUser' | sudo -S apt-get install autoconf automake lib
     && echo 'HwHiAiUser' | sudo make install \
     && export DDK_PATH=$HOME/Ascend/ascend-toolkit/latest/arm64-linux \
     && cd $HOME \
-    && git clone https://gitee.com/ascend/samples.git \
+    && git clone https://github.com/Ascend/samples.git \
     && cd $HOME/samples/cplusplus/common/presenteragent \
     && make -j8 \
     && make install 

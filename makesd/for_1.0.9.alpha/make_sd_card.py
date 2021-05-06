@@ -1,6 +1,4 @@
-#
-#   =======================================================================
-#
+"""
 # Copyright (C) 2018, Hisilicon Technologies Co., Ltd. All Rights Reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,8 +26,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#   =======================================================================
-#
+"""
+
 import os
 import platform
 import signal
@@ -44,23 +42,22 @@ NETWORK_CARD_DEFAULT_IP="192.168.0.2"
 USB_CARD_DEFAULT_IP="192.168.1.2"
 CANN_VERSION_LIST = ["20.2", "3.3.0"]
 
-VERSION_INFO_URL = "https://raw.githubusercontent.com/Ascend/tools/master/versioninfo.yaml"
-
 CURRENT_PATH = os.path.dirname(
     os.path.realpath(__file__))
 
 SD_CARD_MAKING_PATH = os.path.join(CURRENT_PATH, "sd_card_making")
-
+LOG_PATH = "{path}_log".format(path=SD_CARD_MAKING_PATH)
+MAKE_SD_LOG_PATH = os.path.join(LOG_PATH, "make_ubuntu_sd.log")
 MIN_DISK_SIZE = 7 * 1024 * 1024 * 1024
 
 MAKING_SD_CARD_COMMAND = "bash {path}/make_ubuntu_sd.sh " + " {dev_name}" + \
     " {pkg_path} {ubuntu_file_name} {cann_package}" + \
     " " + NETWORK_CARD_DEFAULT_IP + " " + USB_CARD_DEFAULT_IP + " {sector_num}" + " {sector_size}" \
-    " > {log_path}/make_ubuntu_sd.log "
+    " >> {log_path}/make_ubuntu_sd.log "
 
 
 def execute(cmd, timeout=3600, cwd=None):
-    '''execute os command'''
+    """execute os command"""
 
     is_linux = platform.system() == 'Linux'
 
@@ -106,77 +103,24 @@ def execute(cmd, timeout=3600, cwd=None):
 
     return True, std_output_lines_last
 
-def print_process(string, is_finished=False):
-    if string == "" or string is None or is_finished:
-        print(".......... .......... .......... .......... 100%")
-        print("")
-    else:
-        string = string.split(".......... ", 1)[1]
-        string = string.split("%")[0] + "%"
-        print(string)
-
-def execute_wget(cmd, timeout=86400, cwd=None):
-    '''execute os command'''
-    # print(cmd)
-    is_linux = platform.system() == 'Linux'
-
-    if not cwd:
-        cwd = os.getcwd()
-    process = subprocess.Popen(cmd, cwd=cwd, bufsize=1, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, shell=True,
-                               preexec_fn=os.setsid if is_linux else None)
-
-    t_beginning = time.time()
-
-    # cycle times
-    time_gap = 0.01
-
-    str_std_output = ""
-    process_str = ""
-    while True:
-
-        str_out = str(process.stdout.readline())
-        if "......" in str_out:
-            process_str = str_out
-            print_process(process_str)
-
-        str_std_output = str_std_output + str_out
-
-        if process.poll() is not None:
-            break
-        seconds_passed = time.time() - t_beginning
-
-        if timeout and seconds_passed > timeout:
-
-            if is_linux:
-                os.kill(process.pid, signal.SIGTERM)
-            else:
-                process.terminate()
-            print("")
-            return False
-        time.sleep(time_gap)
-        
-    if process.returncode != 0 or "Traceback" in str_std_output:
-        print("")
-        return False
-    print_process(process_str, True)
-    return True
 
 def C_trans_to_E(string):
     E_PUN = u',.!?:[]()<>"\''
     C_PUN = u'，。！？：【】（）《》“‘'
 
-    table= {ord(f):ord(t) for f,t in zip(C_PUN,E_PUN)}
+    table= {ord(f): ord(t) for f, t in zip(C_PUN, E_PUN)}
 
     return string.translate(table)
 
 
 def remove_chn_and_charactor(str1):
+    """remove Special charactors""" 
     C_PUN = u'，。！？：【】（）《》“‘'
     stren = ''
 
-    if not isinstance(str1,str):
+    if not isinstance(str1, str):
         print("The input is not string")
+        execute("echo 'The input is not string' >> %s" % (MAKE_SD_LOG_PATH))
         return stren
 
     for i in range(len(str1)):
@@ -203,28 +147,35 @@ def remove_chn_and_charactor(str1):
 
     return stren
 
+
 def get_disk_size_and_sectors(disk_info):
+    """get disk infomation""" 
     disk_size_info = disk_info.split(":")[1]
     disk_size_info = disk_size_info.replace(",", ".")
     disk_size_list = re.findall(r"\b\d+\.?\d+\b", disk_size_info)
     if (len(disk_size_list) != 3):
         print("[ERROR] Get disk size failed ", disk_info)
-        return 0,0
+        execute("echo '[ERROR] Get disk size failed %s' >> %s" % (disk_info, MAKE_SD_LOG_PATH))
+        return 0, 0
     return int(disk_size_list[1]), int(disk_size_list[2])
 
+
 def check_sd(dev_name):
-    ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'"%(dev_name))
+    """check sd card""" 
+    ret, disk = execute("fdisk -l 2>/dev/null | grep -P 'Disk %s[\\x{FF1A}:]'" % (dev_name))
     disk[0] = remove_chn_and_charactor(disk[0])    
     if not ret or len(disk) > 1:
-        print(
-            "[ERROR] Can not get disk, please use fdisk -l to check available disk name!")
-        return False,None,None
+        print("[ERROR] Can not get disk, please use fdisk -l to check available disk name!")
+        execute("echo '[ERROR] Can not get disk, please use fdisk -l to check available disk name!'\
+        >> %s" % (MAKE_SD_LOG_PATH))
+        return False, None, None
 
     ret, mounted_list = execute("df -h")
 
     if not ret:
         print("[ERROR] Can not get mounted disk list!")
-        return False,None,None
+        execute("echo '[ERROR] Can not get mounted disk list!' >> %s" % (MAKE_SD_LOG_PATH))
+        return False, None, None
 
     unchanged_disk_list = []
     for each_mounted_disk in mounted_list:
@@ -235,72 +186,33 @@ def check_sd(dev_name):
     unchanged_disk = " ".join(unchanged_disk_list)
 
     disk_size, sector_num = get_disk_size_and_sectors(disk[0])
-    print("disk %s size %d, sector num %d"%(dev_name, disk_size, sector_num))
+    print("disk %s size %d, sector num %d" % (dev_name, disk_size, sector_num))
+    execute("echo 'disk %s size %d, sector num %d' >> %s" % (dev_name, disk_size, sector_num, MAKE_SD_LOG_PATH))
     if dev_name  in unchanged_disk or disk_size < MIN_DISK_SIZE:
         print("[ERROR] Invalid SD card or size is less then 8G, please check SD Card.")
-        return False,None,None
+        execute("echo '[ERROR] Invalid SD card or size is less then 8G, please check SD Card.' >> %s"\
+            % (MAKE_SD_LOG_PATH))
+        return False, None, None
 
-    ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P '[\\x{5355}\\x{5143}]|Units'"%(dev_name))
+    ret, sector = execute("fdisk -l 2>/dev/null | grep -PA 2 'Disk %s[\\x{FF1A}:]' | grep -P \
+    '[\\x{5355}\\x{5143}]|Units'" % (dev_name))
     if not ret or len(sector) > 1:
         print("[ERROR] Can not get sector size , please use fdisk -l to check available disk name!")
-        return False,None,None
+        execute("echo '[ERROR] Can not get sector size , please use fdisk -l to check available disk name!' \
+            >> %s" % (MAKE_SD_LOG_PATH))
+        return False, None, None
 
     sector[0] = remove_chn_and_charactor(sector[0])    
     sector_size_str=sector[0].split('*')[1].split('=')[0].strip()
     sector_size=int(sector_size_str)
 
-    print("sector size %d"%(sector_size))
+    print("sector size %d" % (sector_size))
+    execute("echo 'sector size %d' >> %s" % (sector_size, MAKE_SD_LOG_PATH))
+    return True, sector_num, sector_size
 
-    return True,sector_num,sector_size
 
-
-def parse_download_info(ascend_version):
-    version_info_file_name = os.path.basename(VERSION_INFO_URL)
-    version_info_path = os.path.join(
-        CURRENT_PATH, version_info_file_name)
-    ret = execute_wget("wget -O {name} {url} --no-check-certificate".format(
-        name=version_info_path, url=VERSION_INFO_URL))
-
-    if not ret or not os.path.exists(version_info_path):
-        print(
-            "[ERROR] Can not download versioninfo.yaml, please check your network connection.")
-        execute("rm -rf {path}".format(path=version_info_path))
-        return False, "", "", ""
-
-    version_info_file = open(
-        version_info_path, 'r', encoding='utf-8')
-    version_info_dict = yaml.load(
-        version_info_file)
-
-    ascend_version_dict = version_info_dict.get("mini_developerkit")
-    if ascend_version == "" or ascend_version == ascend_version_dict.get("latest_version"):
-        ascend_developerkit_url = ascend_version_dict.get("url")
-        ascend_sd_making_url = ascend_version_dict.get("sd_making_url")
-        ubuntu_version = ascend_version_dict.get(
-            "compatibility").get("ubuntu")[0]
-    else:
-        version_list = ascend_version_dict.get("archived_versions")
-        for each_version in version_list:
-            if ascend_version == each_version.get("version"):
-                ascend_developerkit_url = each_version.get("url")
-                ascend_sd_making_url = each_version.get("sd_making_url")
-                ubuntu_version = each_version.get(
-                    "compatibility").get("ubuntu")[0]
-                break
-    ubuntu_version_dict = version_info_dict.get("ubuntu")
-    for each_version in ubuntu_version_dict:
-        if ubuntu_version == each_version.get("version"):
-            ubuntu_url = each_version.get("url")
-            break
-
-    version_info_file.close()
-
-    if ascend_developerkit_url == "" or ascend_sd_making_url == "" or ubuntu_url == "":
-        return False, "", "", ""
-
-    return True, ascend_developerkit_url, ascend_sd_making_url, ubuntu_url
-
-def process_local_installation(dev_name,sector_num,sector_size):
+def process_local_installation(dev_name, sector_num, sector_size):
+    """Installation process""" 
     confirm_tips = "Please make sure you have installed dependency packages:" + \
         "\n\t apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n" + \
         "Please input Y: continue, other to install them:"
@@ -309,11 +221,7 @@ def process_local_installation(dev_name,sector_num,sector_size):
 
     if confirm != "Y" and confirm != "y":
         return False
-
-    execute("rm -rf {path}_log/*".format(path=SD_CARD_MAKING_PATH))
-    execute("mkdir -p {path}_log".format(path=SD_CARD_MAKING_PATH))
-    log_path = "{path}_log".format(path=SD_CARD_MAKING_PATH)
-    
+        
     cann_package_list = []
     for CANN_VERSION in CANN_VERSION_LIST:
         ret, cann_package_list_tmp = execute(
@@ -323,6 +231,7 @@ def process_local_installation(dev_name,sector_num,sector_size):
             cann_package_list += cann_package_list_tmp
     if not ret or len(cann_package_list[0]) == 0:
         print("[ERROR] Can not find cann nnrt in current path")
+        execute("echo '[ERROR] Can not find cann nnrt in current path' >> %s" % (MAKE_SD_LOG_PATH))
         return False
 
     if ret and len(cann_package_list) > 1:
@@ -338,6 +247,7 @@ def process_local_installation(dev_name,sector_num,sector_size):
         choice_time=1
         while (confirm not in package_index):
             print ("[ERROR] Input CANN_CHOICE Error, Please check your input.")
+            execute("[ERROR] Input CANN_CHOICE Error, Please check your input.' >> %s" % (MAKE_SD_LOG_PATH))
             if (choice_time >= 3):
                 break
             else:
@@ -351,149 +261,81 @@ def process_local_installation(dev_name,sector_num,sector_size):
             cann_pkg_file = cann_package_list[confirm-1]
     elif ret and len(cann_package_list) == 1:
         cann_pkg_file = cann_package_list[0]
-
+        
     ret, paths = execute(
         "find {path} -name \"make_ubuntu_sd.sh\"".format(path=CURRENT_PATH))
     if not ret or len(paths[0]) == 0:
         print("[ERROR] Can not find make_ubuntu_sd.sh in current path")
-        return False    
+        execute("echo '[ERROR] Can not find make_ubuntu_sd.sh in current path' >> %s" % (MAKE_SD_LOG_PATH))
+        return False
 
     ret, paths = execute(
         "find {path} -name \"ubuntu*server*arm*.iso\"".format(path=CURRENT_PATH))
     if not ret or len(paths[0])==0:
         print("[ERROR] Can not find ubuntu*server*arm*.iso package in current path")
+        execute("echo '[ERROR] Can not find ubuntu*server*arm*.iso package in current path' >> %s" % (MAKE_SD_LOG_PATH))
         return False
 
     if len(paths) > 1:
         print("[ERROR] Too many ubuntu packages, please delete redundant packages.")
+        execute("echo '[ERROR] Too many ubuntu packages, please delete redundant packages.' >> %s" % (MAKE_SD_LOG_PATH))
         return False
     ubuntu_path = paths[0]
     ubuntu_file_name = os.path.basename(ubuntu_path)
 
     print("Step: Start to make SD Card. It need some time, please wait...")
-    
+    execute("echo 'Step: Start to make SD Card. It need some time, please wait...' >> %s" % (MAKE_SD_LOG_PATH))
     print("Command:")
-    print(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,
-                                                ubuntu_file_name=ubuntu_file_name, cann_package=cann_pkg_file, log_path=log_path,sector_num=sector_num,sector_size=sector_size ))
+    execute("echo 'Command:' >> %s" % (MAKE_SD_LOG_PATH))
 
-    execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,
-                                                ubuntu_file_name=ubuntu_file_name, cann_package=cann_pkg_file, log_path=log_path,sector_num=sector_num,sector_size=sector_size))
-    ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=log_path))
+    making_sd_card_command_str = MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, \
+    pkg_path=CURRENT_PATH, ubuntu_file_name=ubuntu_file_name,  cann_package=cann_pkg_file, log_path=LOG_PATH, sector_num=sector_num,\
+    sector_size=sector_size)
+
+    print(making_sd_card_command_str)
+    execute("echo '%s' >> %s" % (making_sd_card_command_str, MAKE_SD_LOG_PATH))
+
+    execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name, pkg_path=CURRENT_PATH,\
+        ubuntu_file_name=ubuntu_file_name,  cann_package=cann_pkg_file, log_path=LOG_PATH, sector_num=sector_num, \
+        sector_size=sector_size))
+
+    ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=LOG_PATH))
     if not ret[0]:
-        print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % log_path)
+        print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % LOG_PATH)
+        execute("echo '[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!' >> %s" \
+        % (LOG_PATH, MAKE_SD_LOG_PATH))
         return False
-
-    return True
-
-
-def process_internet_installation(dev_name, ascend_version):
-    print("Step: Downloading version information...")
-    ret = parse_download_info(ascend_version)
-
-    if not ret[0]:
-        print("Can not find valid versions, please try to get valid version: python3 sd_card_making.py list")
-        return False
-
-    ascend_developerkit_url = ret[1]
-    ascend_sd_making_url = ret[2]
-    ubuntu_url = ret[3]
-
-    execute("rm -rf {path}_log/*".format(path=SD_CARD_MAKING_PATH))
-    execute("mkdir -p {path}_log".format(path=SD_CARD_MAKING_PATH))
-    log_path = "{path}_log".format(path=SD_CARD_MAKING_PATH)
-
-    print("Step: Downloading developerkit package...")
-    ascend_developerkit_file_name = os.path.basename(ascend_developerkit_url)
-    ascend_developerkit_path = os.path.join(
-        CURRENT_PATH, ascend_developerkit_file_name)
-    if os.path.exists(ascend_developerkit_path):
-        print("%s is already downloaded, skip to download it." %
-              ascend_developerkit_path)
-    else:
-        ret = execute_wget("wget -O {name} {url} --no-check-certificate".format(
-            name=ascend_developerkit_path, url=ascend_developerkit_url))
-        if not ret or not os.path.exists(ascend_developerkit_path):
-            print("[ERROR] Download develperkit package failed, Please check %s connection." %
-                  ascend_developerkit_url)
-            execute("rm -rf {path}".format(path=ascend_developerkit_path))
-            return False
-
-    print("Step: Downloading SD Card making scripts...")
-    ascend_sd_making_file_name = os.path.basename(ascend_sd_making_url)
-    ascend_sd_making_path = os.path.join(
-        CURRENT_PATH, ascend_sd_making_file_name)
-    ret = execute_wget("wget -O {name} {url} --no-check-certificate".format(
-        name=ascend_sd_making_path, url=ascend_sd_making_url))
-    if not ret or not os.path.exists(ascend_developerkit_path):
-        print("[ERROR] Download SD Card making scripts failed, Please check %s connection." %
-              ascend_sd_making_url)
-        execute("rm -rf {path}".format(path=ascend_sd_making_path))
-        return False
-
-    print("Step: Downloading Ubuntu iso...")
-    ubuntu_file_name = os.path.basename(ubuntu_url)
-    ubuntu_path = os.path.join(CURRENT_PATH, ubuntu_file_name)
-    if os.path.exists(ubuntu_path):
-        print("%s is already downloaded, skip to download it." % ubuntu_path)
-    else:
-        ret = execute_wget(
-            "wget -O {name} {url} --no-check-certificate".format(name=ubuntu_path, url=ubuntu_url))
-        if not ret or not os.path.exists(ascend_developerkit_path):
-            print(
-                "[ERROR] Download Ubuntu iso failed, Please check %s connection." % ubuntu_url)
-            execute("rm -rf {path}".format(path=ubuntu_path))
-            return False
-
-    print("Step: Installing system dependency...")
-    ret = execute(
-        "apt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu")
-    if not ret[0]:
-        print("[ERROR] Install system dependency failed, please check:" +
-              "\n\tapt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu\n\tapt-get install -y qemu-user-static binfmt-support gcc-aarch64-linux-gnu g++-aarch64-linux-gnu")
-
-    print("Step: Start to make SD Card. It need some time, please wait...")
-    execute(MAKING_SD_CARD_COMMAND.format(path=CURRENT_PATH, dev_name=dev_name,
-                                                pkg_path=CURRENT_PATH, ubuntu_file_name=ubuntu_file_name,
-                                                ascend_developerkit_file_name=ascend_developerkit_file_name,
-                                                log_path=log_path))
-    ret = execute("grep Success {log_path}/make_ubuntu_sd.result".format(log_path=log_path))
-    if not ret[0]:
-        print("[ERROR] Making SD Card failed, please check %s/make_ubuntu_sd.log for details!" % log_path)
-        return False
-        
     return True
 
 
 def print_usage():
+    """print usage"""
     print("Usage: ")
-    print("\t[internet]: python3 make_sd_card.py internet [SD Name]")
-    print("\t                 Use latest version to make SD card.")
-    print("\t[internet]: python3 make_sd_card.py internet [SD Name] [Version]")
-    print("\t                 Use given version to make SD card.")
     print("\t[local   ]: python3 make_sd_card.py local [SD Name]")
     print("\t                 Use local given packages to make SD card.")
+    execute("echo 'Usage: ' >> %s" % (MAKE_SD_LOG_PATH))
+    execute("echo '\t[local   ]: python3 make_sd_card.py local [SD Name]' >> %s" % (MAKE_SD_LOG_PATH))
+    execute("echo '\t                 Use local given packages to make SD card.' >> %s" % (MAKE_SD_LOG_PATH))
 
 
 def main():
-    '''sd card making'''
+    """sd card making"""
     command = ""
     dev_name = ""
-    version = ""
     sector_num=None
     sector_size=None
+    execute("rm -rf {path}_log/*".format(path=SD_CARD_MAKING_PATH))
+    execute("mkdir -p {path}_log".format(path=SD_CARD_MAKING_PATH))
     if (len(sys.argv) >= 3):
         command = sys.argv[1]
         dev_name = sys.argv[2]
 
-    if (len(sys.argv) >= 4):
-        version = sys.argv[3]
-
-    if command == "internet" and (len(sys.argv) == 3 or len(sys.argv) == 4):
+    if command == "local" and len(sys.argv) == 3:
         print("Begin to make SD Card...")
-    elif command == "local" and len(sys.argv) == 3:
-        print("Begin to make SD Card...")
+        execute("echo 'Begin to make SD Card...' >> %s" % (MAKE_SD_LOG_PATH))
     else:
         print("Invalid Command!")
+        execute("echo 'Invalid Command!' >> %s" % (MAKE_SD_LOG_PATH))
         print_usage()
         exit(-1)
 
@@ -501,13 +343,11 @@ def main():
     if not ret:
         exit(-1)
 
-    if command == "internet":
-        result = process_internet_installation(dev_name, version)
-    else:
-        result = process_local_installation(dev_name,sector_num,sector_size)
+    result = process_local_installation(dev_name, sector_num, sector_size)
 
     if result:
         print("Make SD Card successfully!")
+        execute("echo 'Make SD Card successfully!' >> %s" % (MAKE_SD_LOG_PATH))
         exit(0)
     else:
         exit(-1)
@@ -515,4 +355,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

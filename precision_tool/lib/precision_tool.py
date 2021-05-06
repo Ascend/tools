@@ -42,13 +42,12 @@ class PrecisionTool(object):
     def do_auto_check(self, argv):
         """auto check"""
         parser = argparse.ArgumentParser()
-        parser.add_argument('-c', '--name', dest='vector_compare', help='auto check', action='store_true')
+        parser.add_argument('-c', '--vector_compare', dest='vector_compare', help='auto check', action='store_true')
         args = parser.parse_args(argv)
         # vector compare
         if args.vector_compare:
             self.do_vector_compare()
-        else:
-            self.compare.vector_summary()
+        self.do_vector_compare_summary()
         self.do_check_fusion()
         self.do_check_overflow()
         self.do_check_cast()
@@ -83,7 +82,7 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-lt', '--left', dest='lt', default=None, help='left path(npu dump path)')
         parser.add_argument('-rt', '--right', dest='rt', default=None, help='right path(cpu/npu dump path)')
-        parser.add_argument('-g', '--graph', dest='graph', default=None, help='graph json file')
+        parser.add_argument('-g', '--graph', dest='graph', required=False, default=None, help='graph json file')
         args = parser.parse_args() if argv is None else parser.parse_args(argv)
         if args.lt is None:
             lh_path = self.dump.sub_graph_path
@@ -94,6 +93,14 @@ class PrecisionTool(object):
             rh_path = args.rt
             graph_json = args.graph
         self.compare.vector_compare(lh_path, rh_path, graph_json)
+
+    @catch_tool_exception
+    def do_vector_compare_summary(self, argv=None):
+        parser = argparse.ArgumentParser(description="show vector compare result summary.")
+        parser.add_argument('-f', '--file', dest='file', default=None, required=False, help='compare_result file')
+        parser.add_argument('-c', '--cos_sim', dest='cos_sim', type=float, help='cos_sim_threshold', default=0.98)
+        args = parser.parse_args() if argv is None else parser.parse_args(argv)
+        error_ops = self.compare.vector_summary(args.file, args.cos_sim)
 
     @catch_tool_exception
     def do_print_data(self, argv=None):
@@ -124,19 +131,24 @@ class PrecisionTool(object):
 
     @catch_tool_exception
     def do_node_info(self, argv):
-        """print op node info"""
+        """Print op node info"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
+        parser.add_argument('-d', '--dump', dest='dump', help='show dump files info', action='store_true')
+        parser.add_argument('-s', '--save', dest='save', type=int, default=0,
+                            help='save subgraph, param gives the deep of subgraph')
         args = parser.parse_args(argv)
-        self.graph.print_op(args.name)
+        # print graph op info
+        self.graph.print_op(args.name, args.dump, args.save, dump_manager=self.dump, compare_manager=self.compare)
 
     @catch_tool_exception
     def do_convert_npu_dump(self, argv):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', help='op name')
         parser.add_argument('-f', '--format', dest='format', help='target format')
+        parser.add_argument('-o', '--output', dest='output', required=False, default=None, help='output path')
         args = parser.parse_args(argv)
-        self.dump.convert_npu_dump(args.name, args.format)
+        self.dump.convert_npu_dump(args.name, args.format, args.output)
 
     @catch_tool_exception
     def do_convert_all_npu_dump(self):
@@ -148,14 +160,23 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='names', type=str, default=[], help='op name', nargs='+')
         parser.add_argument('-p', '--print', dest='count', default=20, type=int, help='print err data num')
+        parser.add_argument('-s', '--save', dest='save', action='store_true', help='print err data num')
         parser.add_argument('-al', '--atol', dest='atol', default=0.001, type=float, help='set rtol')
         parser.add_argument('-rl', '--rtol', dest='rtol', default=0.001, type=float, help='set atol')
         args = parser.parse_args(argv)
         if len(args.names) != 2:
             self.log.error("compare files should be 2.")
         else:
-            self.compare.compare_data(args.names[0], args.names[1], args.rtol, args.atol, args.count)
+            self.compare.compare_data(args.names[0], args.names[1], args.save, args.rtol, args.atol, args.count)
 
     @catch_tool_exception
     def check_graph_similarity(self):
         """ Check graph similarity """
+
+    def single_cmd(self, argv):
+        cmd_func_map = {'compare': self.do_compare_data,
+                        'vector_compare': self.do_vector_compare}
+        if argv[1] in cmd_func_map:
+            func = cmd_func_map[argv[1]]
+            return func(argv[2:])
+        raise PrecisionToolException("cmd %s is not supported or cmd should be run in interactive mode.", argv[1])

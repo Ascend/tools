@@ -478,8 +478,9 @@ chmod 755 /etc/rc.local
 echo \"RuntimeMaxUse=50M\" >> /etc/systemd/journald.conf
 echo \"SystemMaxUse=50M\" >> /etc/systemd/journald.conf
 echo \"config journald ok\"
-echo \"export LD_LIBRARY_PATH=/home/HwHiAiUser/Ascend/acllib/lib64\" >> /home/HwHiAiUser/.bashrc
+echo \"export LD_LIBRARY_PATH=/home/HwHiAiUser/Ascend/acllib/lib64:/usr/lib64\" >> /home/HwHiAiUser/.bashrc
 echo \"export PYTHONPATH=/home/HwHiAiUser/Ascend/pyACL/python/site-packages/acl\" >> /home/HwHiAiUser/.bashrc
+echo \"export ASCEND_AICPU_PATH=/home/HwHiAiUser/Ascend\" >> /home/HwHiAiUser/.bashrc
 echo \"config bashrc ok\"
 exit
 # end" > ${LogPath}squashfs-root/chroot_install.sh

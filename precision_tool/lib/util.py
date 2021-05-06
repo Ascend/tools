@@ -15,7 +15,6 @@ try:
     from rich.table import Table
     from rich import print as rich_print
     from rich.columns import Columns
-    # from rich import print as rich_print
     install()
 except ImportError as import_err:
     install = None
@@ -31,10 +30,6 @@ try:
     readline.parse_and_bind('tab: complete')
 except ImportError as import_error:
     print("Unable to import module: readline. Run 'pip3 install gnureadline pyreadline' to fix it.")
-
-logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
-                    datefmt="%Y-%m-%d %H:%M:%S")
-LOG = logging.getLogger()
 
 # patterns
 # GE_PROTO_BUILD_GRAPH_PATTERN = '^ge_proto.*_Build.*txt$'
@@ -55,24 +50,26 @@ VECTOR_COMPARE_RESULT_PATTERN = r"result_([0-9]{1,255})\.csv"
 TIMESTAMP_DIR_PATTERN = '[0-9]{1,255}'
 CSV_SHUFFIX = '.csv'
 NUMPY_SHUFFIX = '.npy'
+CKPT_META_SHUFFIX = r".*.meta$"
 
 
 class Util(object):
     def __init__(self):
         self.atc = None
         self.ms_accu_cmp = None
-        self.log = LOG
+        logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
+                            datefmt="%Y-%m-%d %H:%M:%S")
+        self.log = logging.getLogger()
 
     def get_log(self):
         return self.log
 
-    @staticmethod
-    def execute_command(cmd: str):
+    def execute_command(self, cmd: str):
         """ Execute shell command
         :param cmd: command
         :return: status code
         """
-        LOG.debug("[Run CMD]: %s", cmd)
+        self.log.debug("[Run CMD]: %s", cmd)
         complete_process = subprocess.run(cmd, shell=True)
         return complete_process.returncode
 
@@ -97,7 +94,7 @@ class Util(object):
         src_file = os.path.join(cfg.GRAPH_DIR_ALL, proto_file)
         json_file = proto_file + '.json'
         dst_file = os.path.join(cfg.GRAPH_DIR_BUILD, json_file)
-        if os.path.exists(dst_file):
+        if os.path.exists(dst_file) and os.path.getmtime(dst_file) > os.path.getmtime(src_file):
             self.log.debug("GE graph build json already exist.")
             return json_file
         cmd = '%s --mode=5 --om=%s --json=%s' % (self._get_atc(), src_file, dst_file)
@@ -131,11 +128,11 @@ class Util(object):
         """
         self.create_dir(result_path)
         if graph_json is None:
-            cmd = '%s %s compare -m %s -f %s -out %s >> %s/log.txt' % (
-                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path, result_path)
+            cmd = '%s %s compare -m %s -g %s -out %s' % (
+                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path)
         else:
-            cmd = '%s %s compare -m %s -g %s -f %s -out %s >> %s/log.txt' % (
-                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path, result_path)
+            cmd = '%s %s compare -m %s -g %s -f %s -out %s' % (
+                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -180,6 +177,10 @@ class Util(object):
         return self._list_file_with_pattern(path, CPU_DUMP_DECODE_PATTERN, extern_pattern,
                                             self._gen_cpu_dump_decode_file_info)
 
+    def list_cpu_graph_files(self, path, extern_pattern=''):
+        return self._list_file_with_pattern(path, CKPT_META_SHUFFIX, extern_pattern,
+                                            self._gen_cpu_graph_files_info)
+
     def list_vector_compare_result_files(self, path, extern_pattern=''):
         return self._list_file_with_pattern(path, VECTOR_COMPARE_RESULT_PATTERN, extern_pattern,
                                             self._gen_vector_compare_result_file_info)
@@ -203,8 +204,7 @@ class Util(object):
             return False
         return True
 
-    @staticmethod
-    def clear_dir(path: str, pattern=''):
+    def clear_dir(self, path: str, pattern=''):
         """Clear dir with pattern (file/path name match pattern will be removed)
         :param path: path
         :param pattern: pattern
@@ -222,7 +222,7 @@ class Util(object):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
         except OSError as err:
-            LOG.error("Failed to remove %s. %s", path, str(err))
+            self.log.error("Failed to remove %s. %s", path, str(err))
 
     @staticmethod
     def npy_info(path):
@@ -231,10 +231,17 @@ class Util(object):
         :return: (shape, dtype)
         """
         if not str(path).endswith(NUMPY_SHUFFIX):
-            LOG.error("Npy file [%s] is invalid", path)
-            return
+            raise PrecisionToolException("Npy file [%s] is invalid" % path)
         data = np.load(path, allow_pickle=True)
         return data.shape, data.dtype, data.max(), data.min(), data.mean()
+
+    def gen_npy_info_txt(self, file_name):
+        """ Generate numpy info txt.
+        :param file_name:
+        :return: txt
+        """
+        shape, dtype, max_data, min_data, mean = self.npy_info(file_name)
+        return '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (shape, dtype, max_data, min_data, mean)
 
     def print_npy_summary(self, path, file_name, is_convert=False, extern_content=''):
         """Print summary of npy data
@@ -246,11 +253,10 @@ class Util(object):
         """
         target_file = os.path.join(path, file_name)
         if not os.path.exists(target_file):
-            LOG.warning("File [%s] not exist", target_file)
-        data = np.load(target_file)
-        # content = 'Array: %s\n========' % np.array2string(data)
+            raise PrecisionToolException("File [%s] not exist" % target_file)
+        shape, dtype, max_data, min_data, mean = self.npy_info(target_file)
         content = "Shape: %s\nDtype: %s\nMax: %s\nMin: %s\nMean: %s\nPath: %s" % (
-            data.shape, data.dtype, np.max(data), np.min(data), np.mean(data), target_file)
+            shape, dtype, max_data, min_data, mean, target_file)
         if is_convert:
             content += '\nTxtFile: %s.txt' % target_file
         if extern_content != '':
@@ -283,14 +289,13 @@ class Util(object):
             data = np.append(data, pad_array)
         np.savetxt(dst_file, data.reshape((-1, align)), delimiter=' ', fmt='%g')
 
-    @staticmethod
-    def read_csv(path):
+    def read_csv(self, path):
         """Read csv file to list.
         :param path: csv file path
         :return: list
         """
         if not str(path).endswith(CSV_SHUFFIX):
-            LOG.error("csv path [%s] is invalid", path)
+            self.log.error("csv path [%s] is invalid", path)
             return
         rows = []
         with open(path) as f:
@@ -339,35 +344,34 @@ class Util(object):
         result = []
         for dir_path, dir_names, file_names in os.walk(root_dir, followlinks=True):
             for name in file_names:
-                if name == file_name:
-                    result.append(dir_path)
+                if re.match(file_name, name):
+                    result.append(os.path.join(dir_path, name))
         return result
 
     def _detect_file_if_not_exist(self, target_file):
         """Find specific file in cmd root path"""
-        LOG.info("Try to auto detect file with name: %s.", target_file)
+        self.log.info("Try to auto detect file with name: %s.", target_file)
         res = self._detect_file(target_file, cfg.CMD_ROOT_PATH)
         if len(res) == 0:
             raise PrecisionToolException("Cannot find any file named %s in dir %s" % (target_file, cfg.CMD_ROOT_PATH))
-        LOG.info("Detect [%s] success. %s", target_file, res)
-        return res[0], str(os.path.join(res[0], target_file))
+        self.log.info("Detect [%s] success. %s", target_file, res)
+        return res[0]
 
     def _get_atc(self):
         if self.atc is None:
-            atc_path, self.atc = self._detect_file_if_not_exist('atc')
-            os.environ['PATH'] = os.environ['PATH'] + ':' + atc_path
+            self.atc = self._detect_file_if_not_exist('^atc$')
+            # os.environ['PATH'] = os.environ['PATH'] + ':' + atc_path
         return self.atc
 
     def _get_ms_accu_cmp(self):
         if self.ms_accu_cmp is None:
-            _, self.ms_accu_cmp = self._detect_file_if_not_exist(cfg.MS_ACCU_CMP)
+            self.ms_accu_cmp = self._detect_file_if_not_exist(cfg.MS_ACCU_CMP)
         return self.ms_accu_cmp
 
-    @staticmethod
-    def _get_newest_dir(path: str):
+    def _get_newest_dir(self, path: str):
         """Find the newest subdir in specific path, subdir should named by timestamp."""
         if not os.path.isdir(path):
-            LOG.warning("Path [%s] not exists", path)
+            self.log.warning("Path [%s] not exists", path)
             return ''
         paths = os.listdir(path)
         sub_paths = []
@@ -375,14 +379,16 @@ class Util(object):
             if re.match(TIMESTAMP_DIR_PATTERN, p):
                 sub_paths.append(p)
         if len(sub_paths) == 0:
-            LOG.debug("Path [%s] has no timestamp dirs.", path)
+            self.log.debug("Path [%s] has no timestamp dirs.", path)
             return ''
         newest_sub_path = sorted(sub_paths)[-1]
-        LOG.info("Sub path num:[%d]. Dump dirs[%s], choose[%s]", len(sub_paths), str(sub_paths), newest_sub_path)
+        self.log.info("Sub path num:[%d]. Dump dirs[%s], choose[%s]", len(sub_paths), str(sub_paths), newest_sub_path)
         return newest_sub_path
 
     @staticmethod
     def _list_file_with_pattern(path, pattern, extern_pattern, gen_info_func):
+        if path is None or not os.path.exists(path):
+            raise PrecisionToolException("Path %s not exist." % path)
         file_list = {}
         re_pattern = re.compile(pattern)
         for dir_path, dir_names, file_names in os.walk(path, followlinks=True):
@@ -438,6 +444,15 @@ class Util(object):
             "idx": int(match.group(2)),
             "path": os.path.join(dir_path, name),
             "dir_path": dir_path
+        }
+
+    @staticmethod
+    def _gen_cpu_graph_files_info(name, match, dir_path):
+        return {
+            "file_name": name,
+            "path": os.path.join(dir_path, name),
+            "dir_path": dir_path,
+            "timestamp": os.path.getmtime(os.path.join(dir_path, name))
         }
 
     @staticmethod
