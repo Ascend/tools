@@ -49,12 +49,13 @@ def _run_tf_dbg_dump(argv):
     run_dirs = os.listdir(cfg.DUMP_FILES_CPU_DEBUG)
     run_dirs.sort()
     # extra the last run dir
-    run_dir = run_dirs[-1]
-    log.info("Find %s run dirs, will chose the last one: %s" % (run_dirs, run_dir))
-    time.sleep(1)
-    command = "python3 -m tensorflow.python.debug.cli.offline_analyzer --ui_type readline --dump_dir %s" % \
-              os.path.join(cfg.DUMP_FILES_CPU_DEBUG, run_dir)
-    _do_run_tf_dbg_dump(command, 0)
+    # run_dir = run_dirs[-1]
+    # log.info("Find %s run dirs, will choose the last one: %s" % (run_dirs, run_dir))
+    for run_dir in run_dirs:
+        time.sleep(1)
+        command = "%s -m tensorflow.python.debug.cli.offline_analyzer --ui_type readline --dump_dir %s" % (
+            cfg.PYTHON, os.path.join(cfg.DUMP_FILES_CPU_DEBUG, run_dir))
+        _do_run_tf_dbg_dump(command, 0)
 
 
 def _do_run_tf_dbg_dump(cmd_line, run_times=2):
@@ -84,7 +85,7 @@ def _do_run_tf_dbg_dump(cmd_line, run_times=2):
         log.error("Failed to get tensor name in tf_debug.")
         raise PrecisionToolException("Get tensor name in tf_debug failed.")
     log.info("Save tensor name success. Generate tf dump commands from file: %s", cfg.DUMP_FILES_CPU_NAMES)
-    convert_cmd = "timestamp=$($(date +%s%N)/1000); cat " + cfg.DUMP_FILES_CPU_NAMES + \
+    convert_cmd = "timestamp=" + str(int(time.time())) + "; cat " + cfg.DUMP_FILES_CPU_NAMES + \
                   " | awk '{print \"pt\",$4,$4}'| awk '{gsub(\"/\", \"_\", $3); gsub(\":\", \".\", $3);" \
                   "print($1,$2,\"-n 0 -w " + cfg.DUMP_FILES_CPU + "/" + \
                   "\"$3\".\"\"'$timestamp'\"\".npy\")}' > " + cfg.DUMP_FILES_CPU_CMDS

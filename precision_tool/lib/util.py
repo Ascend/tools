@@ -7,6 +7,7 @@ import numpy as np
 import logging
 import subprocess
 from .precision_tool_exception import PrecisionToolException
+from .file_desc import *
 import config as cfg
 
 try:
@@ -144,7 +145,7 @@ class Util(object):
         """
         parent_dirs = {}
         dump_files = {}
-        newest_sub_path = self._get_newest_dir(path) if sub_path == '' else sub_path
+        newest_sub_path = self.get_newest_dir(path) if sub_path == '' else sub_path
         dump_pattern = re.compile(OFFLINE_DUMP_PATTERN)
         for dir_path, dir_names, file_names in os.walk(os.path.join(path, newest_sub_path), followlinks=True):
             for name in file_names:
@@ -171,7 +172,7 @@ class Util(object):
 
     def list_debug_decode_files(self, path, extern_pattern=''):
         return self._list_file_with_pattern(path, OP_DEBUG_DECODE_PATTERN, extern_pattern,
-                                            self._gen_overflow_decode_file_info)
+                                            self._gen_overflow_debug_decode_file_info)
 
     def list_cpu_dump_decode_files(self, path, extern_pattern=''):
         return self._list_file_with_pattern(path, CPU_DUMP_DECODE_PATTERN, extern_pattern,
@@ -189,8 +190,7 @@ class Util(object):
         return self._list_file_with_pattern(path, OFFLINE_DUMP_CONVERT_PATTERN, extern_pattern,
                                             self._gen_npu_dump_convert_file_info)
 
-    @staticmethod
-    def create_dir(path: str):
+    def create_dir(self, path):
         """Create dir if not exist
         :param path: path
         :return: bool
@@ -200,7 +200,7 @@ class Util(object):
         try:
             os.makedirs(path, mode=0o700)
         except OSError as err:
-            LOG.error("Failed to create %s. %s", path, str(err))
+            self.log.error("Failed to create %s. %s", path, str(err))
             return False
         return True
 
@@ -360,7 +360,6 @@ class Util(object):
     def _get_atc(self):
         if self.atc is None:
             self.atc = self._detect_file_if_not_exist('^atc$')
-            # os.environ['PATH'] = os.environ['PATH'] + ':' + atc_path
         return self.atc
 
     def _get_ms_accu_cmp(self):
@@ -368,7 +367,7 @@ class Util(object):
             self.ms_accu_cmp = self._detect_file_if_not_exist(cfg.MS_ACCU_CMP)
         return self.ms_accu_cmp
 
-    def _get_newest_dir(self, path: str):
+    def get_newest_dir(self, path: str):
         """Find the newest subdir in specific path, subdir should named by timestamp."""
         if not os.path.isdir(path):
             self.log.warning("Path [%s] not exists", path)
@@ -382,7 +381,7 @@ class Util(object):
             self.log.debug("Path [%s] has no timestamp dirs.", path)
             return ''
         newest_sub_path = sorted(sub_paths)[-1]
-        self.log.info("Sub path num:[%d]. Dump dirs[%s], choose[%s]", len(sub_paths), str(sub_paths), newest_sub_path)
+        self.log.info("Sub path num:[%d]. Dirs[%s], choose[%s]", len(sub_paths), str(sub_paths), newest_sub_path)
         return newest_sub_path
 
     @staticmethod
@@ -403,97 +402,43 @@ class Util(object):
 
     @staticmethod
     def _gen_build_graph_file_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "path": os.path.join(dir_path, name),
-            "graph_id": int(match.group(1)),
-            "graph_name": match.group(2)
-        }
+        return BuildGraphFileDesc(name, dir_path, -1, int(match.group(1)), match.group(2))
 
     @staticmethod
     def _gen_dump_file_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "op_name": match.group(2),
-            "op_type": match.group(1),
-            "task_id": int(match.group(3)),
-            "dir_path": dir_path,
-            "path": os.path.join(dir_path, name),
-            "timestamp": int(match.groups()[-1])
-        }
+        return NpuDumpFileDesc(name, dir_path, int(match.groups()[-1]), op_name=match.group(2), op_type=match.group(1),
+                               task_id=int(match.group(3)))
 
     @staticmethod
     def _gen_npu_dump_decode_file_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "op_type": match.group(1),
-            "op_name": match.group(2),
-            "task_id": int(match.group(3)),
-            "type": match.groups()[-2],
-            "idx": int(match.groups()[-1]),
-            "timestamp": int(match.groups()[-3]),
-            "dir_path": dir_path,
-            "path": os.path.join(dir_path, name)
-        }
+        return DumpDecodeFileDesc(name, dir_path, int(match.groups()[-3]), op_name=match.group(2),
+                                  op_type=match.group(1), task_id=int(match.group(3)),
+                                  anchor_type=match.groups()[-2], anchor_idx=int(match.groups()[-1]))
 
     @staticmethod
     def _gen_cpu_dump_decode_file_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "op_name": match.group(1),
-            "idx": int(match.group(2)),
-            "path": os.path.join(dir_path, name),
-            "dir_path": dir_path
-        }
+        return DumpDecodeFileDesc(name, dir_path, -1, op_name=match.group(1), op_type='', task_id=0,
+                                  anchor_type='output', anchor_idx=int(match.group(2)))
 
     @staticmethod
     def _gen_cpu_graph_files_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "path": os.path.join(dir_path, name),
-            "dir_path": dir_path,
-            "timestamp": os.path.getmtime(os.path.join(dir_path, name))
-        }
+        return FileDesc(name, dir_path, -1)
 
     @staticmethod
-    def _gen_overflow_decode_file_info(name, match, dir_path):
-        # return FileDesc(file_name=name, task_id=int(match.group(1)), anchor_type=match.groups()[-2],
-        #                idx=int(match.groups()[-1]), dir_path=dir_path, path=os.path.join(dir_path, name),
-        #                timestamp=int(match.groups()[-3]))
-        return {
-            "file_name": name,
-            "dir_path": dir_path,
-            'task_id': int(match.group(1)),
-            "path": os.path.join(dir_path, name),
-            "type": match.groups()[-2],
-            "idx": match.groups()[-1],
-            "timestamp": int(match.groups()[-3])
-        }
+    def _gen_overflow_debug_decode_file_info(name, match, dir_path):
+        return DumpDecodeFileDesc(name, dir_path, int(match.groups()[-3]), op_name='Node_OpDebug', op_type='Opdebug',
+                                  task_id=int(match.group(1)), anchor_type=match.groups()[-2],
+                                  anchor_idx=int(match.groups()[-1]))
 
     @staticmethod
     def _gen_vector_compare_result_file_info(name, match, dir_path):
-        # return FileDesc(file_name=name, dir_path=dir_path, path=os.path.join(dir_path, name),
-        #                timestamp=int(match.group(1)))
-        return {
-            "file_name": name,
-            "dir_path": dir_path,
-            "path": os.path.join(dir_path, name),
-            "timestamp": int(match.group(1))
-        }
+        return FileDesc(name, dir_path, int(match.group(1)))
 
     @staticmethod
     def _gen_npu_dump_convert_file_info(name, match, dir_path):
-        return {
-            "file_name": name,
-            "op_type": match.group(1),
-            "op_name": match.group(2),
-            "task_id": int(match.group(3)),
-            "type": match.groups()[-3],
-            "idx": int(match.groups()[-2]),
-            "timestamp": int(match.groups()[-4]),
-            "dir_path": dir_path,
-            "path": os.path.join(dir_path, name)
-        }
+        return DumpDecodeFileDesc(name, dir_path, int(match.groups()[-4]), op_name=match.group(2),
+                                  op_type=match.group(1), task_id=int(match.group(3)), anchor_type=match.groups()[-3],
+                                  anchor_idx=int(match.groups()[-2]))
 
 
 util = Util()

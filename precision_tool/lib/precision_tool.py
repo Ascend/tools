@@ -99,8 +99,10 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser(description="show vector compare result summary.")
         parser.add_argument('-f', '--file', dest='file', default=None, required=False, help='compare_result file')
         parser.add_argument('-c', '--cos_sim', dest='cos_sim', type=float, help='cos_sim_threshold', default=0.98)
+        parser.add_argument('-l', '--limit', dest='limit', type=int, help='limit', default=3)
         args = parser.parse_args() if argv is None else parser.parse_args(argv)
-        error_ops = self.compare.vector_summary(args.file, args.cos_sim)
+        error_ops = self.compare.vector_summary(args.file, args.cos_sim, args.limit)
+        # parse error_ops
 
     @catch_tool_exception
     def do_print_data(self, argv=None):

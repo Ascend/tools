@@ -6,6 +6,7 @@ from lib.desc import InputDesc
 from lib.desc import OutputDesc
 from lib.dump import Dump
 from lib.util import util
+from lib.constant import Constant
 
 NO_INPUT_NODES = ['Data', 'AtomicAddrClean', 'Recv', 'Constant']
 NO_OUTPUT_NODES = ['Send', 'Recv', 'NetOutput']
@@ -59,23 +60,27 @@ class Op(object):
         return self.output_list
 
     def pass_name(self):
+        return self._attr(JSON_KEY_PASS_NAME)
+
+    def kernel_name(self):
+        return self._attr(self.name() + "_kernelname")
+
+    def _attr(self, key):
         if JSON_KEY_ATTR in self.op_json:
             for attr in self.op_json[JSON_KEY_ATTR]:
-                if JSON_KEY_PASS_NAME == attr[JSON_KEY]:
+                if key == attr[JSON_KEY]:
                     return attr[JSON_VALUE][JSON_KEY_STR]
         return ''
 
     def summary(self, origin_txt=False):
         """Summary of current op"""
-        input_txt = ''
-        output_txt = ''
+        res_str = ['[%s] %s' % (self.type(), self.name()), 'KernelName: %s' % self.kernel_name(), 'Input:']
         for i in self.inputs():
-            input_txt += '\n -' + i.summary(origin_txt)
+            res_str.append(' -' + i.summary(origin_txt))
+        res_str.append('Output:')
         for i in self.outputs():
-            output_txt += '\n -' + i.summary(origin_txt)
-        res_str = "[%s] %s\nInput:%s\nOutput:%s" % (
-            self.type(), self.name(), input_txt, output_txt)
-        return res_str
+            res_str.append(' -' + i.summary(origin_txt))
+        return Constant.NEW_LINE.join(res_str)
 
     def _parse_inputs(self):
         """ parse input desc in graph """

@@ -239,13 +239,13 @@ class Graph(ToolObject):
         """Copy ge graphs to graph dir. """
         # move graphs to precision data dir
         graph_files = util.list_ge_graph_files(cfg.GRAPH_DIR_ALL)
-        build_files = sorted(filter(lambda x: x['graph_name'] == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
-                             key=lambda x: x['graph_id'])
+        build_files = sorted(filter(lambda x: x.graph_name == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
+                             key=lambda x: x.graph_id)
         if len(build_files) == 0:
             self.log.warning("Can not find any build files in dir: %s", cfg.GRAPH_DIR_ALL)
             return
-        self.log.info("Choose [%s] as default GE build file.", build_files[-1]['file_name'])
-        self.build_file = util.convert_proto_to_json(build_files[-1]['file_name'])
+        self.log.info("Choose [%s] as default GE build file.", build_files[-1].file_name)
+        self.build_file = util.convert_proto_to_json(build_files[-1].file_name)
 
     def _parse_ops(self):
         """Parse *_Build.txt.json to op objects."""
@@ -260,13 +260,18 @@ class Graph(ToolObject):
                 raise PrecisionToolException("No graph in file: %s" % graph_path)
             if len(graph_json['graph']) != 1:
                 self.log.warning("There are more then one graph in ge build file, find %d" % len(graph_json['graph']))
-            # cur_max_ops = 0
-            # for graph in graph_json['graph']:
-            #     self.log.debug("Graph %s operator count: %d" % len(graph['op']))
-            item = graph_json['graph'][0]
-            self.log.info("Find graph [%s] in %s", item['name'], graph_name)
-            self.sub_graph = item['name']
-            for op_json in item['op']:
+            cur_max_ops = 0
+            graph = graph_json['graph'][0]
+            # select the sub graph with most operations as the default graph
+            for item in graph_json['graph']:
+                self.log.debug("Graph %s operator count: %d" % (item['name'], len(item['op'])))
+                if len(item['op']) > cur_max_ops:
+                    cur_max_ops = len(item['op'])
+                    graph = item
+            # item = graph_json['graph'][0]
+            self.log.info("Select graph [%s] with [%s] ops in %s", graph['name'], len(graph['op']), graph_name)
+            self.sub_graph = graph['name']
+            for op_json in graph['op']:
                 op_name = op_json['name']
                 op_type = op_json['type']
                 op = Op(op_json, self.ops_list)

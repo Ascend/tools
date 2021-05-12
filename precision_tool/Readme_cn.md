@@ -17,9 +17,6 @@
 6. 查询算子列表/节点信息【手动】
 7. 查询/解析Dump数据信息【手动】
 8. 数据比对【手动】
-#### TODO
-1. NPU单算子自验证【自动/手动】
-2. UB融合/图融合开启关闭分析【自动/手动】
 ### 工具获取
 1. 下载压缩包的方式获取
    将https://github.com/Ascend/tools 以压缩包形式下载
@@ -35,6 +32,33 @@ sudo yum install graphviz
 ```
 ### 工具执行依赖
 * 一般直接在NPU训练环境上部署该脚本，环境上能够正常执行CPU和NPU训练脚本
+* 如果需要进行数据Dump比对，则需要先检查并去除训练脚本内部使用到的随机处理，避免由于输入数据不一致导致数据比对结果不可用
+    ```python
+    # 此处给出一些典型示例，需要根据自己的脚本进行排查
+    # 1. 对输入数据做shuffle操作
+    dataset = tf.data.TFRecordDataset(tf_data)
+    dataset = dataset.shuffle(batch_size*10)    # 直接注释掉该行
+    
+    # 2. 使用dropout
+    net = slim.dropout(net, keep_prob=dropout_keep_prob, scope='Dropout_1b') # 建议注释该行
+    
+    # 3. 图像预处理使用随机的操作(根据实际情况注释，或者替换成其他固定的预处理操作)
+    # Random rotate
+    random_angle = tf.random_uniform([], - self.degree * 3.141592 / 180, self.degree * 3.141592 / 180)
+    image = tf.contrib.image.rotate(image, random_angle, interpolation='BILINEAR')
+    depth_gt = tf.contrib.image.rotate(depth_gt, random_angle, interpolation='NEAREST')
+  
+    # Random flipping
+    do_flip = tf.random_uniform([], 0, 1)
+    image = tf.cond(do_flip > 0.5, lambda: tf.image.flip_left_right(image), lambda: image)
+    depth_gt = tf.cond(do_flip > 0.5, lambda: tf.image.flip_left_right(depth_gt), lambda: depth_gt)
+    
+    # Random crop
+    mage_depth = tf.concat([image, depth_gt], 2)
+    image_depth_cropped = tf.random_crop(image_depth, [self.params.height, self.params.width, 4])
+    
+    # 其他......
+    ```
 * 该工具基于**NPU的计算图**，**NPU的DUMP数据**，**NPU的溢出检测数据**，**TF的计算图meta文件**，**TF的DUMP数据**进行数据解析和分析。
 这几类依赖数据可以通过以下方式获取：
 #### 1. NPU的计算图获取
@@ -69,14 +93,14 @@ sudo yum install graphviz
     ```shell
     python3.7.5 precision_tool/cli.py npu_dump "sh run_train.sh param1 param2"
     ```
-* 【不推荐】方法二：参考[精度比对工具使用指南](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0004.html) 修改训练脚本。
+* 【不推荐】方法二：参考[精度比对工具使用指南](https://www.hiascend.com/document?tag=community-developer) 修改训练脚本。
    执行训练脚本，并将dump的数据拷贝到【precision_data/dump/npu/】目录
 #### 3. NPU的溢出检测数据的获取（缺少该数据将无法展示溢出检测结果）
 * 【推荐】方法一：在训练脚本中**import precision_tool.tf_config**，并按【2. NPU的DUMP数据获取】中修改训练代码，使用precision_tool中提供的辅助命令行执行训练脚本
     ```shell
     python3.7.5 precision_tool/cli.py npu_overflow "sh run_train.sh param1 param2"
     ```
-* 【不推荐】方法二：参考[使用溢出检测工具分析算子溢出](https://support.huaweicloud.com/tensorflowdevg-cann330alphaXtraining/atlasmprtg_13_0037.html) 修改训练脚本，
+* 【不推荐】方法二：参考[使用溢出检测工具分析算子溢出](https://www.hiascend.com/document?tag=community-developer) 修改训练脚本，
    并将溢出数据拷贝至【precision_tool/dump/overflow/】目录
 
 #### 4. TF的DUMP数据获取（缺少该数据无法使用数据比对功能）
@@ -102,7 +126,7 @@ sudo yum install graphviz
    # 执行以下命令重新生成
    rm -rf precision_data/dump/cpu/* && python3.7.5 precision_tool/cli.py tf_dump
    ```
-* 【不推荐】方法二：参考[准备基于GPU/CPU运行生成的npy数据](https://support.huaweicloud.com/developmenttg-cann330alphaXtraining/atlasacctrain_16_0005.html)
+* 【不推荐】方法二：参考[准备基于GPU/CPU运行生成的npy数据](https://www.hiascend.com/document?tag=community-developer)
    获取CPU/GPU的TF数据，并拷贝至【precision/dump/cpu/】目录
 #### 5. TF计算图Meta文件的获取（可选）
 * 通过saver保存ckpt获取

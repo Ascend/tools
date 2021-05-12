@@ -70,14 +70,14 @@ class Compare(ToolObject):
             raise PrecisionToolException("Can not find any vector compare result in dir:%s" % cfg.VECTOR_COMPARE_PATH)
         if file_name is None:
             # find the latest result
-            file_list = sorted(vector_compare_result.values(), key=lambda x: x['timestamp'])
-            file_names = [x['file_name'] for x in file_list]
+            file_list = sorted(vector_compare_result.values(), key=lambda x: x.timestamp)
+            file_names = [x.file_name for x in file_list]
             file_name = file_names[-1]
             self.log.debug("Find %s result files. Choose [%s]", file_names, file_name)
         if file_name not in vector_compare_result:
             raise PrecisionToolException("Can not find file:%s in dir:%s" % (file_name, cfg.VECTOR_COMPARE_PATH))
         file_info = vector_compare_result[file_name]
-        compare_result = CompareResult(file_info['path'])
+        compare_result = CompareResult(file_info.path)
         self.vector_compare_results[file_name] = compare_result
         return compare_result
 
@@ -89,7 +89,9 @@ class Compare(ToolObject):
         if len(error_ops) == 0:
             self.log.info("Can not find any compare result over threshold: %s" % cos_sim_threshold)
         else:
-            error_ops[0].summary()
+            for i, error_op in enumerate(error_ops):
+                if i < limit:
+                    error_op.summary()
         return error_ops
             # graph.print_op(first_error_op[0].op_name, is_dump=True, save_graph_level=3)
             # analyse the inputs
@@ -152,14 +154,6 @@ class Compare(ToolObject):
         err_percent = float(err_cnt / total_cnt)
         util.print(util.create_columns([err_table, top_table]))
         return total_cnt, all_close, cos_sim, err_percent
-
-    '''
-    def _parse_result_files(self):
-        self.vector_compare_result = util.list_vector_compare_result_files(cfg.VECTOR_COMPARE_PATH)
-        if len(self.vector_compare_result) == 0:
-            raise PrecisionToolException("Can not find any vector compare result in dir:%s" % cfg.VECTOR_COMPARE_PATH)
-        self.log.info("Find vector compare result files. %s", self.vector_compare_result.keys())
-    '''
 
     @staticmethod
     def _detect_file(file_name):

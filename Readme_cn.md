@@ -44,7 +44,7 @@ Ascend tools，昇腾工具仓库。
 9. [dockerimages](./dockerimages)    
    **docker 镜像**：Atlas200DK/Atlas300开发/开发运行环境的docker镜像。 
 
-10. [dockerimages](./precision_tool)    
+10. [precision_tool](./precision_tool)    
    **精度问题分析工具**：该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景，同时提供Dump数据/图信息的交互式查询和操作入口。 
 #### 贡献
 

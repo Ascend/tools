@@ -1,13 +1,11 @@
 # coding=utf-8
 import os
 import re
-from lib.tool_object import ToolObject
 from lib.util import util
+from lib.constant import Constant
 import config as cfg
 from lib.precision_tool_exception import catch_tool_exception
 from lib.precision_tool_exception import PrecisionToolException
-
-NEW_LINE = '\n'
 
 
 class NpuDumpDecodeFile(object):
@@ -26,48 +24,48 @@ class NpuDumpDecodeFile(object):
         if not self._check(file_info):
             self.log.warning('Invalid NpuDumpDecodeFile: %s', file_info)
             return
-        if file_info['type'] == 'input':
-            self.input_files[file_info['idx']] = file_info
+        if file_info.type == 'input':
+            self.input_files[file_info.idx] = file_info
         else:
-            self.output_files[file_info['idx']] = file_info
+            self.output_files[file_info.idx] = file_info
 
     def summary(self):
-        txt = '[yellow][%s][TaskID: %d][/yellow][green][%s][/green] %s' % (
-            self.timestamp, self.task_id, self.op_type, self.op_name)
+        txt = ['[yellow][%s][TaskID: %d][/yellow][green][%s][/green] %s' % (
+            self.timestamp, self.task_id, self.op_type, self.op_name)]
         if len(self.input_files) > 0:
             info = self.input_files[0]
-            shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
-            txt += '\n - Input:  [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                shape, dtype, max_data, min_data, mean, info['file_name'])
+            shape, dtype, max_data, min_data, mean = util.npy_info(info.path)
+            txt.append(' - Input:  [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                shape, dtype, max_data, min_data, mean, info.file_name))
             for idx in range(1, len(self.input_files)):
                 info = self.input_files[idx]
-                shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
-                txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                    idx, shape, dtype, max_data, min_data, mean, info['file_name'])
+                shape, dtype, max_data, min_data, mean = util.npy_info(info.path)
+                txt.append('           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                    idx, shape, dtype, max_data, min_data, mean, info.file_name))
         if len(self.output_files) > 0:
             info = self.output_files[0]
-            shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
-            txt += '\n - Output: [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                shape, dtype, max_data, min_data, mean, info['file_name'])
+            shape, dtype, max_data, min_data, mean = util.npy_info(info.path)
+            txt.append(' - Output: [green][0][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                shape, dtype, max_data, min_data, mean, info.file_name))
             for idx in range(1, len(self.output_files)):
                 info = self.output_files[idx]
-                shape, dtype, max_data, min_data, mean = util.npy_info(info['path'])
-                txt += '\n           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
-                    idx, shape, dtype, max_data, min_data, mean, info['file_name'])
-        return txt
+                shape, dtype, max_data, min_data, mean = util.npy_info(info.path)
+                txt.append('           [green][%d][/green][yellow][%s][%s][Max:%d][Min:%d][Mean:%d][/yellow] %s' % (
+                    idx, shape, dtype, max_data, min_data, mean, info.file_name))
+        return Constant.NEW_LINE.join(txt)
 
     def _check(self, file_info):
         if self.timestamp == -1:
-            self.timestamp = file_info['timestamp']
-            self.op_name = file_info['op_name']
-            self.op_type = file_info['op_type']
-            self.task_id = file_info['task_id']
+            self.timestamp = file_info.timestamp
+            self.op_name = file_info.op_name
+            self.op_type = file_info.op_type
+            self.task_id = file_info.task_id
             # self.stream_id = file_info['stream']
             return True
         return self.timestamp == file_info['timestamp']
 
 
-class Dump(ToolObject):
+class Dump(object):
 
     def __init__(self):
         """Init"""
@@ -133,31 +131,28 @@ class Dump(ToolObject):
         """ print op dump info"""
         if op is None:
             raise PrecisionToolException("Get None operator")
-        # title = '[yellow]NPU/CPU-DumpFiles[/yellow][green][%s][/green]%s' % (op.type(), op.name())
         # search npu dump file by op name
         npu_dump_files = self.get_npu_dump_decode_files_by_op(op)
-        npu_dump_files = sorted(npu_dump_files.values(), key=lambda x: x['idx'])
+        npu_dump_files = sorted(npu_dump_files.values(), key=lambda x: x.idx)
         input_txt = ['NpuDumpInput:']
         output_txt = ['NpuDumpOutput:']
         for npu_dump_file in npu_dump_files:
-            if npu_dump_file['type'] == 'input':
-                input_txt.append(' -[green][%s][/green] %s' % (npu_dump_file['idx'], npu_dump_file['file_name']))
-                input_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(npu_dump_file['path']))
-                # npu_dump_input_txt += '\n -[green][%s][/green] %s' % (npu_dump_file['idx'], npu_dump_file['file_name'])
+            if npu_dump_file.type == 'input':
+                input_txt.append(' -[green][%s][/green] %s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                input_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(npu_dump_file.path))
             else:
-                output_txt.append(' -[green][%s][/green] %s' % (npu_dump_file['idx'], npu_dump_file['file_name']))
-                output_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(npu_dump_file['path']))
-        # npu_dump_info = 'NpuDumpInput:%s\nNpuDumpOutput:%s' % (npu_dump_input_txt, npu_dump_output_txt)
+                output_txt.append(' -[green][%s][/green] %s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                output_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(npu_dump_file.path))
         input_txt.extend(output_txt)
-        npu_dump_info = NEW_LINE.join(input_txt)
+        npu_dump_info = Constant.NEW_LINE.join(input_txt)
         # cpu dump info
         cpu_dump_txt = ['CpuDumpOutput:']
         cpu_dump_files = self.get_cpu_dump_files_by_op(op)
         for cpu_dump_file in cpu_dump_files.values():
-            cpu_dump_txt.append(' -[green][%s][/green] %s' % (cpu_dump_file['idx'], cpu_dump_file['file_name']))
-            cpu_dump_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(cpu_dump_file['path']))
-        cpu_dump_info = NEW_LINE.join(cpu_dump_txt)
-        return NEW_LINE.join([npu_dump_info, cpu_dump_info])
+            cpu_dump_txt.append(' -[green][%s][/green] %s' % (cpu_dump_file.idx, cpu_dump_file.file_name))
+            cpu_dump_txt.append('  |- [yellow]%s[/yellow]' % util.gen_npy_info_txt(cpu_dump_file.path))
+        cpu_dump_info = Constant.NEW_LINE.join(cpu_dump_txt)
+        return Constant.NEW_LINE.join([npu_dump_info, cpu_dump_info])
 
     def print_data(self, file_name, is_convert):
         """Print numpy data file"""
@@ -220,29 +215,29 @@ class Dump(ToolObject):
         elif self.npu_files is not None and name in self.npu_files:
             self.log.info("Decode npu dump file: %s in default dump path", name)
             file_info = self.npu_files[name]
-            file_name = file_info['file_name']
-            file_path = file_info['path']
+            file_name = file_info.file_name
+            file_path = file_info.path
         else:
             # maybe op name
             file_info = self._get_file_by_op_name(name)
             if file_info is None:
                 raise PrecisionToolException("Can not find any op/dump file named %s" % name)
-            file_name = file_info['file_name']
-            file_path = file_info['path']
+            file_name = file_info.file_name
+            file_path = file_info.path
         dst_path = cfg.DUMP_FILES_CONVERT if dst_path is None else dst_path
         util.convert_dump_to_npy(file_path, dst_path, data_format)
         dump_convert_files = util.list_npu_dump_convert_files(dst_path, file_name)
         # print result info
 
-        summary_txt = 'SrcFile: %s' % name
+        summary_txt = ['SrcFile: %s' % name]
         for convert_file in dump_convert_files.values():
-            summary_txt += '\n - %s' % convert_file['file_name']
-        util.print_panel(summary_txt)
+            summary_txt.append(' - %s' % convert_file.file_name)
+        util.print_panel(Constant.NEW_LINE.join(summary_txt))
 
     def _get_file_by_op_name(self, op_name):
         """Get dump file info by op name"""
         for file_info in self.npu_files.values():
-            if file_info['op_name'] == op_name:
+            if file_info.op_name == op_name:
                 return file_info
         return None
 
@@ -251,8 +246,8 @@ class Dump(ToolObject):
         self.npu_files = util.list_npu_dump_files(self.sub_graph_path)
         parent_dirs = []
         for file_info in self.npu_files.values():
-            if file_info['dir_path'] not in parent_dirs:
-                parent_dirs.append(file_info['dir_path'])
+            if file_info.dir_path not in parent_dirs:
+                parent_dirs.append(file_info.dir_path)
         if len(parent_dirs) == 0:
             raise PrecisionToolException("Can not find any npu files in dir: %s" % self.sub_graph_path)
         if len(parent_dirs) > 1:
@@ -266,14 +261,14 @@ class Dump(ToolObject):
     def _decode_npu_dump_files_by_op(self, op):
         dump_files = self.get_npu_dump_files_by_op(op)
         for dump_file in dump_files.values():
-            util.convert_dump_to_npy(dump_file['path'], cfg.DUMP_FILES_DECODE)
+            util.convert_dump_to_npy(dump_file.path, cfg.DUMP_FILES_DECODE)
 
     @staticmethod
     def _detect_cpu_file_name(file_name):
         match_name = file_name.replace('/', '_').replace('.', '_') + '\\.'
         cpu_files = util.list_cpu_dump_decode_files(cfg.DUMP_FILES_CPU, match_name)
-        summary = 'CPU_DUMP:'
+        summary = ['CPU_DUMP:']
         for file_name in cpu_files.keys():
-            summary += '\n - %s' % file_name
-        util.print_panel(summary)
+            summary.append(' - %s' % file_name)
+        util.print_panel(Constant.NEW_LINE.join(summary))
         return cpu_files
