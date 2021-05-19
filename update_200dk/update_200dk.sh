@@ -39,13 +39,9 @@ function CheckPackage()
 { 
     declare -a cann_array
     declare -i cann_array_item=0
-    for i in $(ls Ascend-cann-nnrt_20.2.*.run 2>/dev/null);do
+    for i in $(ls Ascend-cann-nnrt_*.run 2>/dev/null);do
         cann_array[$((cann_array_item++))]=${i}
     done
-    for i in $(ls Ascend-cann-nnrt_3.3.0.*.run 2>/dev/null);do
-        cann_array[$((cann_array_item++))]=${i}
-    done
-
     length=${#cann_array[@]}
     if [[ ${length} -gt 1 ]];then
         echo "There are multiple cann packages"

@@ -229,7 +229,7 @@ def process_local_installation(dev_name, sector_num, sector_size):
         cann_package_list_tmp = list(filter(None, cann_package_list_tmp))
         if cann_package_list_tmp != []:
             cann_package_list += cann_package_list_tmp
-    if not ret or len(cann_package_list[0]) == 0:
+    if not ret or cann_package_list == []:
         print("[ERROR] Can not find cann nnrt in current path")
         execute("echo '[ERROR] Can not find cann nnrt in current path' >> %s" % (MAKE_SD_LOG_PATH))
         return False
