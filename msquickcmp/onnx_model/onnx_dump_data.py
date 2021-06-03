@@ -20,11 +20,30 @@ from skl2onnx.helpers.onnx_helper import save_onnx_model
 from common import utils
 from common.utils import AccuracyCompareException
 
+NODE_TYPE_TO_DTYPE_MAP = {
+    "tensor(int)": np.int32,
+    "tensor(int8)": np.int8,
+    "tensor(int16)": np.int16,
+    "tensor(int32)": np.int32,
+    "tensor(int64)": np.int64,
+    "tensor(uint8)": np.uint8,
+    "tensor(uint16)": np.uint16,
+    "tensor(uint32)": np.uint32,
+    "tensor(uint64)": np.uint64,
+    "tensor(float)": np.float32,
+    "tensor(float16)": np.float16,
+    "tensor(double)": np.double,
+    "tensor(bool)": np.bool_,
+    "tensor(complex64)": np.complex64,
+    "tensor(complex128)": np.complex_
+}
+
 
 class OnnxDumpData(DumpData):
     """
     This class is used to generate GUP dump data of the ONNX model.
     """
+
     def __init__(self, arguments):
         self.args = arguments
 
@@ -46,11 +65,7 @@ class OnnxDumpData(DumpData):
     def _modify_model_add_outputs_nodes(self, model_dir):
         old_onnx_model = onnx.load(self.args.model_path)
         utils.print_info_log("load model success")
-
-        outputs_name = []
-        for name in enumerate_model_node_outputs(old_onnx_model):
-            outputs_name.append(name)
-
+        outputs_name = [name for name in enumerate_model_node_outputs(old_onnx_model)]
         new_onnx_model = select_model_inputs_outputs(old_onnx_model, outputs_name)
         new_onnx_model_path = os.path.join(model_dir, "new_" + os.path.basename(self.args.model_path))
         save_onnx_model(new_onnx_model, new_onnx_model_path)
@@ -73,6 +88,7 @@ class OnnxDumpData(DumpData):
         inputs_map = {}
         if "" == self.args.input_path:
             for i, tensor_info in enumerate(inputs_tensor_info):
+                utils.check_dynamic_shape(tensor_info["shape"])
                 input_data = np.random.random(tensor_info["shape"]).astype(
                     self._convert_to_numpy_type(tensor_info["type"]))
                 inputs_map[tensor_info["name"]] = input_data
@@ -85,9 +101,10 @@ class OnnxDumpData(DumpData):
             if len(inputs_tensor_info) != len(input_path):
                 utils.print_error_log("the number of model inputs tensor_info is not equal the number of "
                                       "inputs data, inputs tensor_info is: {}, inputs data is: {}".format(
-                                          len(inputs_tensor_info), len(input_path)))
+                    len(inputs_tensor_info), len(input_path)))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
             for i, tensor_info in enumerate(inputs_tensor_info):
+                utils.check_dynamic_shape(tensor_info["shape"])
                 input_data = np.fromfile(input_path[i], self._convert_to_numpy_type(tensor_info["type"])).reshape(
                     tensor_info["shape"])
                 inputs_map[tensor_info["name"]] = input_data
@@ -96,14 +113,12 @@ class OnnxDumpData(DumpData):
         return inputs_map
 
     def _convert_to_numpy_type(self, tensor_type):
-        # Currently, only the int32 and float32 types are supported. Other types can be added as required.
-        if "tensor(int)" == tensor_type:
-            return np.int32
-        elif "tensor(float)" == tensor_type:
-            return np.float32
+        numpy_data_type = NODE_TYPE_TO_DTYPE_MAP.get(tensor_type)
+        if numpy_data_type:
+            return numpy_data_type
         else:
             utils.print_error_log(
-                "unsupported tensor type: {}, current only support: tensor(int), tensor(float)".format(tensor_type))
+                "unsupported tensor type: {}".format(tensor_type))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_TENSOR_TYPE_ERROR)
 
     def _load_session(self, new_onnx_model_path):
@@ -114,10 +129,12 @@ class OnnxDumpData(DumpData):
         return session.run(outputs_name, inputs_map)
 
     def _save_dump_data(self, dump_bins, onnx_dump_data_dir, old_onnx_model):
-        for i, node in enumerate(old_onnx_model.graph.node):
+        res_idx = 0
+        for node in old_onnx_model.graph.node:
             for j, output in enumerate(node.output):
                 file_name = node.name + "." + str(j) + "." + str(round(time.time() * 1000000)) + ".npy"
-                np.save(os.path.join(onnx_dump_data_dir, file_name), dump_bins[i])
+                np.save(os.path.join(onnx_dump_data_dir, file_name), dump_bins[res_idx])
+                res_idx += 1
         utils.print_info_log("dump data success")
 
     def generate_dump_data(self):

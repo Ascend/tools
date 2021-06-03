@@ -4,16 +4,13 @@ Graph Manager
 """
 import json
 import os
-import re
-import shutil
 import collections
 import time
 
 import config as cfg
-from lib.tool_object import ToolObject
-from lib.tf_graph import TensorflowGraph
 from lib.op import Op
 from lib.util import util
+from lib.constant import Constant
 from lib.precision_tool_exception import catch_tool_exception
 from lib.precision_tool_exception import PrecisionToolException
 
@@ -27,25 +24,25 @@ CKPT_META_SHUFFIX='.meta'
 OP_CAST = 'Cast'
 
 
-class Graph(ToolObject):
-    def __init__(self):
-        super(Graph, self).__init__()
-        self._init_dirs()
-        self.build_file = None
-        self.sub_graph = None
-        self.ops_list = collections.OrderedDict()
-        self.cpu_ops_list = collections.OrderedDict()
-        self.tf_graph = TensorflowGraph()
-        self.ops_type_list = {}
+class NpuGraph(object):
+    def __init__(self, debug_id=Constant.DEFAULT_DEBUG_ID):
         self.log = util.get_log()
+        self.build_files = None
+        self.build_json_files = []
+        self.debug_id = debug_id
+        self.npu_root = os.path.join(cfg.NPU_DIR, debug_id)
+        self.graph_root = os.path.join(self.npu_root, Constant.GRAPH)
+        self.ops_list = collections.OrderedDict()
+        self.ops_type_list = {}
+        util.create_dir(self.graph_root)
 
     @catch_tool_exception
     def prepare(self):
         """prepare"""
         self._prepare_npu_graphs()
-        self._parse_ops()
-        # parse tf ops
-        # self.cpu_ops_list = self.tf_graph.get_op_list(cfg.GRAPH_CPU)
+        if self.build_files is not None:
+            for build_file in self.build_files:
+                self._parse_ops(build_file)
 
     def check_cast(self):
         """Check cast op type"""
@@ -84,6 +81,7 @@ class Graph(ToolObject):
     def check_similarity(self):
         """Check graph similarity."""
 
+    '''
     @catch_tool_exception
     def print_op(self, op_name, is_dump=False, save_graph_level=0, dump_manager=None, compare_manager=None):
         """Print op detail info"""
@@ -101,6 +99,7 @@ class Graph(ToolObject):
         if save_graph_level > 0:
             self.save_sub_graph(op, save_graph_level, dump_manager, compare_manager)
         return op
+    '''
 
     def save_sub_graph(self, op, deep=0, dump_manager=None, compare_manager=None):
         """Save sub graph"""
@@ -108,7 +107,9 @@ class Graph(ToolObject):
             raise PrecisionToolException("Save sub graph failed as root operator is None.")
         try:
             from graphviz import Digraph
-            file_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '.' + str(deep) + '.gv'
+            file_name_list = [self.debug_id, op.type(), op.name().replace('/', '_').replace('.', '_'),
+                              str(deep), 'gv']
+            file_name = '.'.join(file_name_list)
             path = os.path.join(cfg.OP_GRAPH_DIR, file_name)
             dot = Digraph(file_name, filename=path, node_attr={'shape': 'Mrecord'}, format='svg')
             dot_list = []
@@ -175,12 +176,10 @@ class Graph(ToolObject):
         desc_str = r'%s\n%s' % (desc_str, desc.shape()) if len(desc.shape()) != 0 else desc_str
         return desc_str
 
-    def list_ops(self):
+    def list_ops(self, op_type='', op_name='', pass_name='', kernel_name=''):
         """list ops in graph"""
-        return self.ops_list
-
-    def list_ops_type(self):
-        return self.ops_type_list
+        return filter(lambda op: op_type in op.type() and op_name in op.name() and pass_name in op.pass_name()
+                                 and kernel_name in op.kernel_name(), self.ops_list.values())
 
     def get_op(self, name):
         """get op by name"""
@@ -198,23 +197,27 @@ class Graph(ToolObject):
         util.print_panel('\n'.join(guess_op_name_list), title='Possible Operators')
         return guess_op_list[0]
 
-    def print_op_list(self, op_type='', op_name='', pass_name=''):
+    '''
+    def print_op_list(self, op_type='', op_name='', pass_name='', kernel_name=''):
         """Print op list"""
-        if op_type == '' and op_name == '' and pass_name == '':
+        if op_type == '' and op_name == '' and pass_name == '' and kernel_name == '':
             table = util.create_table("Operation Summary", ["OpType", "Count"])
             for op_type in self.ops_type_list.keys():
                 table.add_row(op_type, str(len(self.ops_type_list[op_type])))
             util.print(table)
             return
         for op in self.ops_list.values():
-            if op_type in op.type() and op_name in op.name() and pass_name in op.pass_name():
+            if op_type in op.type() and op_name in op.name() and pass_name in op.pass_name() \
+                    and kernel_name in op.kernel_name():
                 self._print_single_op(op)
+    
 
     @staticmethod
     def _print_single_op(op):
         """Print Single op"""
         op_pass_name = '' if op.pass_name() == '' else '[yellow][%s][/yellow]' % op.pass_name()
         util.print('[green][%s][/green]%s %s' % (op.type(), op_pass_name, op.name()))
+    '''
 
     @staticmethod
     def _is_dangerous_cast(cast_type):
@@ -227,56 +230,48 @@ class Graph(ToolObject):
                 return True
         return False
 
-    @staticmethod
-    def _init_dirs():
-        """Create graph dirs."""
-        util.create_dir(cfg.GRAPH_DIR)
-        util.create_dir(cfg.GRAPH_DIR_ALL)
-        util.create_dir(cfg.GRAPH_DIR_BUILD)
-        util.create_dir(cfg.GRAPH_CPU)
-
     def _prepare_npu_graphs(self):
         """Copy ge graphs to graph dir. """
         # move graphs to precision data dir
-        graph_files = util.list_ge_graph_files(cfg.GRAPH_DIR_ALL)
-        build_files = sorted(filter(lambda x: x.graph_name == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
-                             key=lambda x: x.graph_id)
-        if len(build_files) == 0:
-            self.log.warning("Can not find any build files in dir: %s", cfg.GRAPH_DIR_ALL)
-            return
-        self.log.info("Choose [%s] as default GE build file.", build_files[-1].file_name)
-        self.build_file = util.convert_proto_to_json(build_files[-1].file_name)
+        graph_files = util.list_ge_graph_files(self.graph_root)
+        self.build_files = sorted(filter(lambda x: x.graph_name == cfg.BUILD_JSON_GRAPH_NAME, graph_files.values()),
+                                  key=lambda x: x.graph_id)
+        if len(self.build_files) == 0:
+            self.log.warning("Can not find any build files in dir: %s", self.graph_root)
+        self.log.info("Find [%d] GE build files.", len(self.build_files))
 
-    def _parse_ops(self):
+    @catch_tool_exception
+    def _parse_ops(self, build_file):
         """Parse *_Build.txt.json to op objects."""
-        # only parse the last build graph
-        if self.build_file is None:
-            raise PrecisionToolException("Cannot find any ge_proto_*_Build.json in %s." % cfg.GRAPH_DIR_BUILD)
-        graph_name = self.build_file
-        graph_path = os.path.join(cfg.GRAPH_DIR_BUILD, graph_name)
-        with open(graph_path, 'r') as f:
+        build_file_json = build_file.path + '.json'
+        build_file_json = util.convert_proto_to_json(build_file.path, build_file_json)
+        if build_file_json is not None:
+            self.build_json_files.append(build_file_json)
+        with open(build_file_json, 'r') as f:
             graph_json = json.load(f)
             if 'graph' not in graph_json:
-                raise PrecisionToolException("No graph in file: %s" % graph_path)
+                raise PrecisionToolException("No graph in file: %s" % build_file.file_name)
             if len(graph_json['graph']) != 1:
                 self.log.warning("There are more then one graph in ge build file, find %d" % len(graph_json['graph']))
-            cur_max_ops = 0
-            graph = graph_json['graph'][0]
-            # select the sub graph with most operations as the default graph
-            for item in graph_json['graph']:
-                self.log.debug("Graph %s operator count: %d" % (item['name'], len(item['op'])))
-                if len(item['op']) > cur_max_ops:
-                    cur_max_ops = len(item['op'])
-                    graph = item
-            # item = graph_json['graph'][0]
-            self.log.info("Select graph [%s] with [%s] ops in %s", graph['name'], len(graph['op']), graph_name)
-            self.sub_graph = graph['name']
-            for op_json in graph['op']:
-                op_name = op_json['name']
-                op_type = op_json['type']
-                op = Op(op_json, self.ops_list)
-                if op_type not in self.ops_type_list:
-                    self.ops_type_list[op_type] = {}
-                self.ops_list[op_name] = op
-                self.ops_type_list[op_type][op_name] = op
+            sub_graphs = []
+            for graph in graph_json['graph']:
+                self.log.debug("Graph %s operator count: %d" % (graph['name'], len(graph['op'])))
+                sub_graphs.append(graph['name'])
+                replace_count = 0
+                for op_json in graph['op']:
+                    op_name = op_json['name']
+                    op_type = op_json['type']
+                    if op_name in self.ops_list:
+                        # self.log.warning("Op %s exist, will replace.", op_name)
+                        # util.print_panel(self.ops_list[op_name].summary(), op_name)
+                        replace_count += 1
+                    op = Op(op_json, self.ops_list)
+                    # if op_name in self.ops_list:
+                    #    util.print_panel(op.summary(), op_name)
+                    if op_type not in self.ops_type_list:
+                        self.ops_type_list[op_type] = {}
+                    self.ops_list[op_name] = op
+                    self.ops_type_list[op_type][op_name] = op
+                self.log.info("Replace [%d] ops of previous graph.", replace_count)
+            # self.sub_graphs[build_file.file_name] = sub_graphs
         self.log.info("Finish parse npu ops from ge graph, find [%d] ops.", len(self.ops_list))

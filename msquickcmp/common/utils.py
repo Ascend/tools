@@ -25,6 +25,7 @@ ACCURACY_COMPARISON_INVALID_KEY_ERROR = 11
 ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR = 12
 ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR = 14
+ACCURACY_COMPARISON_NOT_SUPPORT_ERROR = 15
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 
 
@@ -204,5 +205,24 @@ def check_input_bin_file_path(input_path):
         input_path: input path directory
     """
     input_bin_files = input_path.split(',')
+    bin_file_path_array = []
     for input_item in input_bin_files:
-        check_file_or_directory_path(input_item)
+        input_item_path = os.path.realpath(input_item)
+        check_file_or_directory_path(input_item_path)
+        bin_file_path_array.append(input_item_path)
+    return bin_file_path_array
+
+
+def check_dynamic_shape(shape):
+    """
+    Function Description:
+        check dynamic shpae
+    Parameter:
+        shape:shape
+    Return Value:
+        False or True
+    """
+    for item in shape:
+        if isinstance(item, str):
+            print_error_log("dynamic shape {} are not supported".format(shape))
+            raise AccuracyCompareException(ACCURACY_COMPARISON_NOT_SUPPORT_ERROR)

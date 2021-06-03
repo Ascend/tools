@@ -2,6 +2,7 @@
 import collections
 import logging
 import os
+import config as cfg
 from lib.util import util
 from lib.precision_tool_exception import catch_tool_exception
 from lib.precision_tool_exception import PrecisionToolException
@@ -9,17 +10,18 @@ from lib.precision_tool_exception import PrecisionToolException
 CKPT_META_SHUFFIX='.meta'
 
 
-class TensorflowGraph(object):
-    def __init__(self):
+class TfGraph(object):
+    def __init__(self, graph_root=cfg.TF_GRAPH_DIR):
         """"""
-        self.cpu_op_list = None
+        self.graph_root = graph_root
         self.log = util.get_log()
+        self.op_list = collections.OrderedDict()
 
     @catch_tool_exception
     def get_op_list(self, ckpt_path=None):
-        if self.cpu_op_list is None:
+        if self.op_list is None:
             self._convert_ckpt_to_graph(ckpt_path)
-        return self.cpu_op_list
+        return self.op_list
 
     def _convert_ckpt_to_graph(self, ckpt_path):
         log_level = self.log.level
@@ -36,8 +38,8 @@ class TensorflowGraph(object):
         file_list = sorted(meta_files.values(), key=lambda x: x['timestamp'])
         ckpt_file = file_list[-1]
         self.log.info("Find %d tf ckpt meta files, choose [%s]" % (len(meta_files), ckpt_file['file_name']))
-        self.cpu_op_list = collections.OrderedDict()
+        self.op_list = collections.OrderedDict()
         saver = tf.train.import_meta_graph(ckpt_file['path'], clear_devices=True)
         graph = tf.get_default_graph()
         for op in graph.get_operations():
-            self.cpu_op_list[op.name] = op
+            self.op_list[op.name] = op

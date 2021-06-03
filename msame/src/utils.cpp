@@ -18,17 +18,12 @@
 #include "acl/acl.h"
 #include <sys/time.h>
 using namespace std;
-extern bool g_isDevice;
-extern bool f_isTXT;
-extern int32_t device;
-extern bool is_profi;
-extern bool is_dump;
+extern bool g_is_device;
 
 void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
 {
     std::ifstream binFile(fileName, std::ifstream::binary);
     if (binFile.is_open() == false) {
-        cout<<"qwe"<<endl;
         ERROR_LOG("open file %s failed", fileName.c_str());
         return nullptr;
     }
@@ -45,7 +40,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
 
     void* binFileBufferData = nullptr;
     aclError ret = ACL_ERROR_NONE;
-    if (!g_isDevice) {
+    if (!g_is_device) {
         ret = aclrtMallocHost(&binFileBufferData, binFileBufferLen);
         if (binFileBufferData == nullptr) {
             ERROR_LOG("malloc binFileBufferData failed");
@@ -74,7 +69,7 @@ void* Utils::GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize)
     if (inputHostBuff == nullptr) {
         return nullptr;
     }
-    if (!g_isDevice) {
+    if (!g_is_device) {
         void* inBufferDev = nullptr;
         uint32_t inBufferSize = inputHostBuffSize;
         aclError ret = aclrtMalloc(&inBufferDev, inBufferSize, ACL_MEM_MALLOC_NORMAL_ONLY);
@@ -186,12 +181,13 @@ void Utils::printHelpLetter()
     cout << endl;
     cout << "Usage:" << endl;
     cout << "generate offline model inference output file example:" << endl;
-    cout << "./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl
-         << endl;
+    cout << "./msame --model /home/HwHiAiUser/ljj/colorization.om --input /home/HwHiAiUser/ljj/colorization_input.bin \
+    --output /home/HwHiAiUser/ljj/AMEXEC/out/output1 --outfmt TXT --loop 2" << endl << endl;
 
     cout << "arguments explain:" << endl;
     cout << "  --model       Model file path" << endl;
-    cout << "  --input	Input data path(only accept binary data file) 	If there are several file, please seprate by ','" << endl;
+    cout << "  --input	Input data path(only accept binary data file) 	\
+    If there are several file, please seprate by ','" << endl;
     cout << "  --output	Output path(User needs to have permission to create directories)" << endl;
     cout << "  --outfmt	Output file format (TXT or BIN)" << endl;
     cout << "  --loop 	loop time(must in 1 to 100)" << endl;
@@ -199,12 +195,8 @@ void Utils::printHelpLetter()
     cout << "  --profiler	Enable profiler (true or false)" << endl;
     cout << "  --device      Designated the device ID(must in 0 to 255)" << endl;
     cout << "  --debug       Debug switch,print model information (true or false)" << endl;
-    cout << "  --dymBatch 	dynamic batch (Do not support now)" << endl
-         << endl
-         << endl;
+    cout << "  --dymDims 	dynamic dims (example: 1,3,512,512)" << endl << endl << endl;
 }
-
-
 
 double Utils::printDiffTime(time_t begin, time_t end)
 {
@@ -257,7 +249,7 @@ void Utils::ProfilerJson(bool isprof, map<char, string>& params)
 
 void Utils::DumpJson(bool isdump, map<char, string>& params)
 {
-    if (is_dump) {
+    if (isdump) {
         std::string modelPath = params['m'].c_str();
         std::string modelName = Utils::modelName(modelPath);
         std::string out_path = params['o'].c_str();
@@ -301,4 +293,13 @@ int Utils::ScanFiles(std::vector<std::string> &fileList, std::string inputDirect
         printf("[ERROR] No file in the directory[%s]", str);
     }
     return fileList.size();
+}
+
+int Utils::SplitStringSimple(string str, vector<string> &out, char split)
+{
+    istringstream block(str);
+    string cell;
+    while (getline(block, cell, split)) {
+        out.push_back(cell);
+    }
 }

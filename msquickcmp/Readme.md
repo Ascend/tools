@@ -2,7 +2,8 @@
 
 ### Overview
 
-This readme describes the **main.py** tool, or One-Click Accuracy Analyzer, for inference scenarios. This tool enables one-click network-wide accuracy analysis of TensorFlow and ONNX models. You only need to prepare the original model, offline model equivalent, and model input file. Beware that the offline model must be an .om model converted using the Ascend Tensor Compiler (ATC) tool, and the .bin input file must meet the input requirements of the model (multi-input models are supported).
+This readme describes the **main.py** tool, or One-Click Accuracy Analyzer, for inference scenarios. This tool enables one-click network-wide accuracy analysis of TensorFlow and ONNX models. You only need to prepare the original model, offline model equivalent, and model input file. Beware that the offline model must be an .om model converted using the Ascend Tensor Compiler (ATC) tool, and the .bin input file must meet the input requirements of the model (multi-input models are supported).  
+The tool uses a constraint scenario description,and the reference link is https://support.huaweicloud.com/tg-cannApplicationDev330/atlasaccuracy_16_0011.html
 
 ### Environment Setup
 

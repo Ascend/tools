@@ -22,15 +22,12 @@
 #include <sys/types.h>
 
 using namespace std;
-extern bool g_isDevice;
-extern bool f_isTXT;
+extern bool g_is_device;
+extern bool g_is_txt;
+extern size_t g_dymindex;
 
 ModelProcess::ModelProcess()
     : modelId_(0)
-    , modelMemSize_(0)
-    , modelWeightSize_(0)
-    , modelMemPtr_(nullptr)
-    , modelWeightPtr_(nullptr)
     , loadFlag_(false)
     , modelDesc_(nullptr)
     , input_(nullptr)
@@ -48,35 +45,14 @@ ModelProcess::~ModelProcess()
     DestroyOutput();
 }
 
-Result ModelProcess::LoadModelFromFileWithMem(const string& modelPath)
+Result ModelProcess::LoadModelFromFile(const string& modelPath)
 {
     if (loadFlag_) {
         ERROR_LOG("has already loaded a model");
         return FAILED;
     }
 
-    aclError ret = aclmdlQuerySize(modelPath.c_str(), &modelMemSize_, &modelWeightSize_);
-    if (ret != ACL_ERROR_NONE) {
-        ERROR_LOG("query model failed, model file is %s", modelPath.c_str());
-        return FAILED;
-    }
-
-    ret = aclrtMalloc(&modelMemPtr_, modelMemSize_, ACL_MEM_MALLOC_HUGE_FIRST);
-    INFO_LOG("malloc buffer for mem , require size is %zu", modelMemSize_);
-    if (ret != ACL_ERROR_NONE) {
-        ERROR_LOG("malloc buffer for mem failed, require size is %zu", modelMemSize_);
-        return FAILED;
-    }
-
-    ret = aclrtMalloc(&modelWeightPtr_, modelWeightSize_, ACL_MEM_MALLOC_HUGE_FIRST);
-    INFO_LOG("malloc buffer for weight,  require size is %zu", modelWeightSize_);
-    if (ret != ACL_ERROR_NONE) {
-        ERROR_LOG("malloc buffer for weight failed, require size is %zu", modelWeightSize_);
-        return FAILED;
-    }
-
-    ret = aclmdlLoadFromFileWithMem(modelPath.c_str(), &modelId_, modelMemPtr_,
-        modelMemSize_, modelWeightPtr_, modelWeightSize_);
+    aclError ret = aclmdlLoadFromFile(modelPath.c_str(), &modelId_);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("load model from file failed, model file is %s", modelPath.c_str());
         return FAILED;
@@ -86,7 +62,6 @@ Result ModelProcess::LoadModelFromFileWithMem(const string& modelPath)
     INFO_LOG("load model %s success", modelPath.c_str());
     return SUCCESS;
 }
-
 
 Result ModelProcess::CreateDesc()
 {
@@ -105,6 +80,107 @@ Result ModelProcess::CreateDesc()
     INFO_LOG("create model description success");
 
     return SUCCESS;
+}
+
+Result ModelProcess::GetDynamicGearCount(size_t &dymGearCount)
+{
+    aclError ret; 
+    ret = aclmdlGetInputDynamicGearCount(modelDesc_, -1, &dymGearCount);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get input dynamic gear count failed");
+        return FAILED;
+    }
+    
+    INFO_LOG("get input dynamic gear count success");
+
+    return SUCCESS;
+}
+
+Result ModelProcess::GetDynamicIndex(size_t &dymTensorIndex)
+{
+    aclError ret; 
+    ret = aclmdlGetInputIndexByName(modelDesc_, ACL_DYNAMIC_TENSOR_NAME, &dymTensorIndex);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get input index by name failed %d", ret);
+        return FAILED;
+    }
+
+    INFO_LOG("get input index by name success");
+    return SUCCESS;
+}
+
+Result ModelProcess::CheckDynamicDims(vector<string> dymDims, size_t gearCount, aclmdlIODims *dims)
+{
+    aclmdlGetInputDynamicDims(modelDesc_, -1, dims, gearCount);
+    bool if_same = false;
+    for (size_t i = 0; i < gearCount; i++)
+    {
+        if ((size_t)dymDims.size() != dims[i].dimCount){
+            ERROR_LOG("the dynamic_dims parameter is not correct");
+            GetDimInfo(gearCount, dims);
+            return FAILED;
+        }
+        for (size_t j = 0; j < dims[i].dimCount; j++)
+        {  
+            if (dims[i].dims[j] != atoi(dymDims[j].c_str()))
+            {
+                break;
+            }
+            if (j == dims[i].dimCount - 1)
+            {
+                if_same = true;
+            }
+        }
+        
+    }
+
+    if(! if_same){
+        ERROR_LOG("the dynamic_dims parameter is not correct");
+        GetDimInfo(gearCount, dims);
+        return FAILED;  
+    }
+    INFO_LOG("check dynamic dims success");
+    return SUCCESS;
+ 
+}
+
+Result ModelProcess::SetDynamicDims(vector<string> dymDims)
+{   
+    aclmdlIODims dims;
+    dims.dimCount = dymDims.size();
+    for (size_t i = 0; i < dims.dimCount; i++)
+    {   
+        dims.dims[i] = atoi(dymDims[i].c_str());
+    }
+
+    aclError ret = aclmdlSetInputDynamicDims(modelId_, input_, g_dymindex, &dims);
+ 
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("aclmdlSetInputDynamicDims failed %d", ret);
+        return FAILED;
+    }
+    INFO_LOG("set dynamic dims success");
+    return SUCCESS; 
+}
+
+void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims *dims)
+{
+    aclmdlGetInputDynamicDims(modelDesc_, -1, dims, gearCount);
+
+    for (size_t i = 0; i < gearCount; i++)
+    {
+        if (i == 0)
+        {
+            INFO_LOG("model has %zu gear of dims", gearCount); 
+        }
+        stringstream ss;
+        ss << "dims[" << i << "]:";
+        for (size_t j = 0; j < dims[i].dimCount; j++)
+        {
+            ss << "[" << dims[i].dims[j] << "]";  
+        }
+        INFO_LOG("%s", ss.str().c_str()); 
+    }
 }
 
 Result ModelProcess::PrintDesc()
@@ -191,6 +267,41 @@ void ModelProcess::DestroyDesc()
     }
 }
 
+Result ModelProcess::CreateDymInput(size_t index)
+{
+    if (input_ == nullptr) {
+        input_ = aclmdlCreateDataset();
+        if (input_ == nullptr) {
+            ERROR_LOG("can't create dataset, create input failed");
+            return FAILED;
+        }
+    } 
+    size_t buffer_size = aclmdlGetInputSizeByIndex(modelDesc_, index);
+    void* inBufferDev = nullptr;
+    aclError ret = aclrtMalloc(&inBufferDev, buffer_size, ACL_MEM_MALLOC_NORMAL_ONLY);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size);
+        return FAILED;
+    }
+    aclDataBuffer* inputData = aclCreateDataBuffer(inBufferDev, buffer_size);
+    if (inputData == nullptr) {
+        ERROR_LOG("can't create data buffer, create input failed");
+        aclrtFree(inBufferDev);
+        inBufferDev = nullptr;
+        return FAILED;
+    }
+    ret = aclmdlAddDatasetBuffer(input_, inputData);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("add input dataset buffer failed");
+        aclrtFree(inBufferDev);
+        inBufferDev = nullptr;
+        aclDestroyDataBuffer(inputData);
+        inputData = nullptr;
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
 Result ModelProcess::CreateInput(void* inputDataBuffer, size_t bufferSize)
 {
     if (input_ == nullptr) {
@@ -218,7 +329,7 @@ Result ModelProcess::CreateInput(void* inputDataBuffer, size_t bufferSize)
 }
 
 Result ModelProcess::CreateZeroInput()
-{
+{   
     if (input_ == nullptr) {
         input_ = aclmdlCreateDataset();
         if (input_ == nullptr) {
@@ -226,38 +337,32 @@ Result ModelProcess::CreateZeroInput()
             return FAILED;
         }
     }
+    aclError ret;
     numInputs_ = aclmdlGetNumInputs(modelDesc_);
     for (size_t i = 0; i < numInputs_; i++) {
+
+        const char *name = aclmdlGetInputNameByIndex(modelDesc_, i);
+        if (name == nullptr) {
+            ERROR_LOG("get input name failed, index = %zu.", i);
+            return FAILED;
+        }
+
         size_t buffer_size_zero = aclmdlGetInputSizeByIndex(modelDesc_, i);
         void* inBufferDev = nullptr;
-        if (!g_isDevice) {
-            void* binFileBufferData = nullptr;
-            aclError ret = aclrtMallocHost(&binFileBufferData, buffer_size_zero);
+
+        ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
+        if (ret != ACL_ERROR_NONE) {
+            ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
+            return FAILED;
+        }
+        if (strcmp(name, ACL_DYNAMIC_TENSOR_NAME) != 0) {
+            ret = aclrtMemset(inBufferDev, buffer_size_zero, 0, buffer_size_zero);
             if (ret != ACL_ERROR_NONE) {
-                ERROR_LOG("malloc host buffer failed. size is %zu", buffer_size_zero);
-                return FAILED;
-            }
-            memset(binFileBufferData, 0, buffer_size_zero);
-            ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
-            if (ret != ACL_ERROR_NONE) {
-                ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
-                return FAILED;
-            }
-            ret = aclrtMemcpy(inBufferDev, buffer_size_zero, binFileBufferData, buffer_size_zero, ACL_MEMCPY_HOST_TO_DEVICE);
-            if (ret != ACL_ERROR_NONE) {
-                ERROR_LOG("memcpy failed. device buffer size is %zu, input host buffer size is %zu", buffer_size_zero, buffer_size_zero);
+                ERROR_LOG("memory set failed");\
                 aclrtFree(inBufferDev);
-                aclrtFreeHost(binFileBufferData);
+                inBufferDev = nullptr;
                 return FAILED;
             }
-			aclrtFreeHost(binFileBufferData);
-        } else {
-            aclError ret = aclrtMalloc(&inBufferDev, buffer_size_zero, ACL_MEM_MALLOC_NORMAL_ONLY);
-            if (ret != ACL_ERROR_NONE) {
-                ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size_zero);
-                return FAILED;
-            }
-            memset(inBufferDev, 0, buffer_size_zero);
         }
 
         aclDataBuffer* inputData = aclCreateDataBuffer(inBufferDev, buffer_size_zero);
@@ -267,7 +372,7 @@ Result ModelProcess::CreateZeroInput()
             inBufferDev = nullptr;
             return FAILED;
         }
-        aclError ret = aclmdlAddDatasetBuffer(input_, inputData);
+        ret = aclmdlAddDatasetBuffer(input_, inputData);
         if (ret != ACL_ERROR_NONE) {
             ERROR_LOG("add input dataset buffer failed");
             aclrtFree(inBufferDev);
@@ -288,8 +393,8 @@ void ModelProcess::DestroyInput()
 
     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(input_); ++i) {
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(input_, i);
-		void* data = aclGetDataBufferAddr(dataBuffer);
-		(void)aclrtFree(data);
+        void* data = aclGetDataBufferAddr(dataBuffer);
+        (void)aclrtFree(data);
         (void)aclDestroyDataBuffer(dataBuffer);
     }
     aclmdlDestroyDataset(input_);
@@ -351,7 +456,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
         void* dims = nullptr;
         aclmdlIODims* dim = nullptr;
         aclError ret = ACL_ERROR_NONE;
-        if (!g_isDevice) {
+        if (!g_is_device) {
             ret = aclrtMallocHost(&dims, sizeof(aclmdlIODims));
             if (ret != ACL_ERROR_NONE) {
                 ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
@@ -374,7 +479,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
         void* outHostData = NULL;
         ret = ACL_ERROR_NONE;
         void* outData = NULL;
-        if (!g_isDevice) {
+        if (!g_is_device) {
             ret = aclrtMallocHost(&outHostData, len);
             if (ret != ACL_ERROR_NONE) {
                 ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
@@ -431,7 +536,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
         } else {
             outData = reinterpret_cast<float*>(data);
         }
-        if (f_isTXT) {
+        if (g_is_txt) {
             ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
             int amount_onebatch = 1;
             for (int j = 1; j < dim->dimCount; j++) {
@@ -445,10 +550,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 1:
@@ -462,8 +567,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                             outstr << "\n";
                         }
                     }
-
-		        }
+                }
                 break;
             case 2:
                 for (int i = 0; i < len / sizeof(int8_t); i++) {
@@ -476,7 +580,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                             outstr << "\n";
                         }
                     }
-		        }
+                }
                 break;
             case 3:
                 for (int i = 0; i < len / sizeof(int); i++) {
@@ -485,10 +589,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-   		            }
+                    }
                 }
                 break;
             case 4:
@@ -498,10 +602,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 6:
@@ -511,10 +615,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-	                }
+                    }
                 }
                 break;
             case 7:
@@ -524,10 +628,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 8:
@@ -537,10 +641,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		            if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 9:
@@ -550,10 +654,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-			        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 10:
@@ -563,10 +667,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 11:
@@ -576,10 +680,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-		                if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             case 12:
@@ -589,10 +693,10 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                     if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
                         outstr << "\n\n";
                     } else{
-	                    if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
                             outstr << "\n";
                         }
-		            }
+                    }
                 }
                 break;
             default:
@@ -607,7 +711,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
             outstr.close();
         }
 
-        if (!g_isDevice) {
+        if (!g_is_device) {
             ret = aclrtFreeHost(outHostData);
             if (ret != ACL_ERROR_NONE) {
                 ERROR_LOG("aclrtFreeHost failed, ret[%d]", ret);
@@ -664,18 +768,6 @@ void ModelProcess::Unload()
         (void)aclmdlDestroyDesc(modelDesc_);
         modelDesc_ = nullptr;
     }
-
-    if (modelMemPtr_ != nullptr) {
-        aclrtFree(modelMemPtr_);
-        modelMemPtr_ = nullptr;
-        modelMemSize_ = 0;
-    }
-    if (modelWeightPtr_ != nullptr) {
-        aclrtFree(modelWeightPtr_);
-        modelWeightPtr_ = nullptr;
-        modelWeightSize_ = 0;
-    }
-
     loadFlag_ = false;
     INFO_LOG("unload model success, model Id is %u", modelId_);
 }

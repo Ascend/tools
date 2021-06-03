@@ -19,21 +19,24 @@
 #include <getopt.h>
 using namespace std;
 
-bool f_isTXT = false;
-bool g_isDevice = false;
-int loop = 1;
-int32_t device = 0;
-bool is_profi = false;
-bool is_dump = false;
-bool is_debug = false;
-string input_Ftype = ".bin";
-string model_Ftype = ".om";
-string check = "";
+bool g_is_txt = false;
+bool g_is_device = false;
+int g_loop = 1;
+int32_t g_device_id = 0;
+bool g_is_profi = false;
+bool g_is_dump = false;
+bool g_is_debug = false;
+bool g_is_dymdims = false;
+size_t g_dymindex = -1;
+size_t g_dym_gear_count = 0;
 
 void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vector<string>& inputs)
 {
     const char* optstring = "m::i::o::f::hd::p::l::y::e::g::";
-    int c, deb, index;
+    string model_file_type = ".om";
+    string check = "";
+    int c = -1;
+    int index = 0;
     struct option opts[] = { { "model", required_argument, NULL, 'm' },
         { "input", required_argument, NULL, 'i' },
         { "output", required_argument, NULL, 'o' },
@@ -43,6 +46,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
         { "profiler", required_argument, NULL, 'p' },
         { "loop", required_argument, NULL, 'l' },
         { "dymBatch", required_argument, NULL, 'y' },
+        { "dymDims", required_argument, NULL, 'h' },
         { "device", required_argument, NULL, 'e' },
         { "debug", required_argument, NULL, 'g' },
         { 0, 0, 0, 0 } };
@@ -50,11 +54,11 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
         switch (c) {
         case 'm':
             check = optarg;
-            if (check.find(model_Ftype) != string::npos) {
+            if (check.find(model_file_type) != string::npos) {
                 params['m'] = optarg;
                 break;
             } else {
-                printf("input model file type is not .om , please check your model type!\n");
+                ERROR_LOG("input model file type is not .om , please check your model type!\n");
                 exit(0);
             }
         case 'i':
@@ -69,8 +73,8 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             params['f'] = optarg;
             break;
         case '?':
-            printf("unknown paramenter\n");
-            printf("Execute sample failed.\n");
+            ERROR_LOG("unknown paramenter\n");
+            ERROR_LOG("Execute sample failed.\n");
             Utils::printHelpLetter();
             exit(0);
         case 'd':
@@ -80,10 +84,9 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             params['p'] = optarg;
             break;
         case 'l':
-            loop = Utils::str2num(optarg);
-            cout << "loop:" << loop << endl;
-            if (loop > 100 || loop < 1) {
-                printf("loop must in 1 to 100\n");
+            g_loop = Utils::str2num(optarg);
+            if (g_loop > 100 || g_loop < 1) {
+                ERROR_LOG("loop must in 1 to 100\n");
                 exit(0);
             }
             break;
@@ -91,22 +94,24 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             params['y'] = optarg;
             break;
         case 'e':
-            device = Utils::str2num(optarg);
-            cout << "device:" << device << endl;
-            if (device > 255 || device < 0) {
-                printf("device id must in 0 to 255\n");
+            g_device_id = Utils::str2num(optarg);
+            if (g_device_id > 255 || g_device_id < 0) {
+                ERROR_LOG("device id must in 0 to 255\n");
                 exit(0);
             }
             break;
         case 'g':
             params['g'] = optarg;
             break;
+        case 'h':
+            params['h'] = optarg;
+            break;
         case 1:
             Utils::printHelpLetter();
             exit(0);
         default:
-            printf("unknown paramenter\n");
-            printf("Execute sample failed.\n");
+            ERROR_LOG("unknown paramenter\n");
+            ERROR_LOG("Execute sample failed.\n");
             Utils::printHelpLetter();
             exit(0);
         }
@@ -118,32 +123,30 @@ int main(int argc, char* argv[])
     map<char, string> params;
     vector<string> inputs;
     InitAndCheckParams(argc, argv, params, inputs);
-    printf("******************************\n");
-    printf("Test Start!\n");
 
     if (params.empty()) {
-        printf("Invalid params.\n");
-        printf("Execute sample failed.\n");
+        ERROR_LOG("Invalid params.\n");
+        ERROR_LOG("Execute sample failed.\n");
         Utils::printHelpLetter();
         return FAILED;
     }
 
     if (params['d'].compare("true") == 0) {
-        is_dump = true;
+        g_is_dump = true;
     }
     if (params['p'].compare("true") == 0) {
-        is_profi = true;
+        g_is_profi = true;
     }
     if (params['g'].compare("true") == 0) {
-        is_debug = true;
+        g_is_debug = true;
     }
-    if (is_profi && is_dump) {
+    if (g_is_profi && g_is_dump) {
         ERROR_LOG("dump and profiler can not both be true");
         return FAILED;
     }
 
-    Utils::ProfilerJson(is_profi, params);
-    Utils::DumpJson(is_dump, params);
+    Utils::ProfilerJson(g_is_profi, params);
+    Utils::DumpJson(g_is_dump, params);
 
     SampleProcess processSample;
 
@@ -160,8 +163,6 @@ int main(int argc, char* argv[])
     }
 
     INFO_LOG("Execute sample success.");
-    printf("Test Finish!\n");
-    printf("******************************\n");
 
     return SUCCESS;
 }

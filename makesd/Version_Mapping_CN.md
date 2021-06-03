@@ -12,7 +12,8 @@ Atlas 200 DK的驱动包与CANN包的版本配套关系如下所示：
 
 <table>
 <tr><td width="25%"><b>驱动与固件版本</b></td><td width="75%"><b>CANN版本</b></td></tr>
-<tr><td rowspan="4" valign="top">1.0.9.alpha</td><td>3.3.0.alpha006</td></tr>
+<tr><td rowspan="5" valign="top">1.0.9.alpha</td><td>5.0.2.alpha002</td></tr>
+<tr><td>3.3.0.alpha006</td></tr>
 <tr><td>3.3.0.alpha005</td></tr>
 <tr><td>3.3.0.alpha001</td></tr>
 <tr><td>3.2.0.alpha001<br/>备注：曾用版本号“20.2.alpha001”</td>

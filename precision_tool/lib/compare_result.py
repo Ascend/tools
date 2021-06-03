@@ -1,10 +1,10 @@
 import collections
 import os
+import numpy as np
 from lib.util import util
+from lib.constant import Constant
 from lib.precision_tool_exception import PrecisionToolException
 from lib.precision_tool_exception import catch_tool_exception
-
-NEW_LINE = "\n"
 
 
 class RowMap(object):
@@ -56,15 +56,31 @@ class CompareItem(object):
                 return True
         return False
 
-    def summary(self):
-        content = ["Left:  %s" % self.left, "Right: %s" % self.right, "Input:"]
+    @staticmethod
+    def _color_data(data, threshold):
+        try:
+            data = float(data)
+            if np.isnan(data):
+                raise ValueError
+            elif data <= threshold:
+                return "[red]%s[/red]" % data
+            else:
+                return "[green]%s[/green]" % data
+        except ValueError:
+            return "[yellow]%s[/yellow]" % data
+
+    def summary(self, threshold):
+        content = ["Left:  %s" % self.left, "Right: %s" % self.right, "Input: "]
+        input_txt = []
         for i, item in enumerate(self.input):
-            content.append("  - [%d]%s" % (i, item[RowMap.cosine_similarity]))
-        content.append("Output:")
+            input_txt.append(" - [%d]%s" % (i, self._color_data(item[RowMap.cosine_similarity], threshold)))
+        content.extend([Constant.TAB_LINE.join(input_txt), "Output:"])
+        output_txt = []
         for i, item in enumerate(self.output):
-            content.append("  - [%d]%s" % (i, item[RowMap.cosine_similarity]))
+            output_txt.append(" - [%d]%s" % (i, self._color_data(item[RowMap.cosine_similarity], threshold)))
+        content.append(Constant.TAB_LINE.join(output_txt))
         title = "[%d] %s" % (self.index, self.op_name)
-        util.print_panel(NEW_LINE.join(content), title=title)
+        util.print_panel(Constant.NEW_LINE.join(content), title=title)
 
 
 class CompareResult(object):

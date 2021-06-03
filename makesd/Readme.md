@@ -6,6 +6,24 @@ English|[中文](Readme_cn.md)
 
 Select the software packages for SD card making based on the version used, or click either of the following links to select them as required.
 
+#### Imprint
+
+Please refer to the table below for version matching relationship, **For detailed description, please refer to [Version_Mapping](./Version_Mapping.md)。**
+
+<table>
+<tr><td width="25%"><b>Driver and Firmware Version</b></td><td width="75%"><b>CANN Version</b></td></tr>
+<tr><td rowspan="5" valign="top">1.0.9.alpha</td><td>5.0.2.alpha002</td></tr>
+<tr><td>3.3.0.alpha006</td></tr>
+<tr><td>3.3.0.alpha005</td></tr>
+<tr><td>3.3.0.alpha001</td></tr>
+<tr><td>3.2.0.alpha001<br/>Note: The 20.2.alpha001 version number is deprecated.</td>
+</tr>
+<tr><td>1.0.8.alpha</td>
+<td>3.1.0.alpha00<br/>Note: The 20.1.alpha001 version number is deprecated.</td>
+</tr>
+<tr><td>1.0.7.alpha</td><td>20.0.0</td></tr>
+</table>
+
 #### explain
 
 1. [for_20.0](https://github.com/Ascend/tools/tree/master/makesd/for_20.0)

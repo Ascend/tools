@@ -3,6 +3,7 @@
 ### 功能介绍
 
 本文介绍一键式全流程精度比对（推理）工具，该工具适用于TensorFlow和ONNX模型，用户只需要输入原始模型，对应的离线模型和输入，就能出整网比对的结果，离线模型必须是通过ATC工具转换的om模型，输入bin文件需要符合模型的输入要求（支持模型多输入）。
+该工具使用约束场景说明，参考链接：https://support.huaweicloud.com/tg-cannApplicationDev330/atlasaccuracy_16_0011.html
 
 ### 环境准备
 

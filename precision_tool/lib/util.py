@@ -6,8 +6,10 @@ import shutil
 import numpy as np
 import logging
 import subprocess
-from .precision_tool_exception import PrecisionToolException
-from .file_desc import *
+from lib.constant import Constant
+from lib.precision_tool_exception import PrecisionToolException
+from lib.precision_tool_exception import catch_tool_exception
+from lib.file_desc import *
 import config as cfg
 
 try:
@@ -40,7 +42,7 @@ OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.npy$"
 OFFLINE_DUMP_CONVERT_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})" \
-    r"\.([a-z]+)\.([0-9]{1,255})\.([x0-9]+)\.npy$"
+    r"\.([a-z]+)\.([0-9]{1,255})(\.[x0-9]+)?\.npy$"
 OFFLINE_FILE_NAME = 'op_type.op_name.task_id(.stream_id).timestamp'
 OP_DEBUG_NAME = 'OpDebug.Node_OpDebug.taskid.timestamp'
 CPU_DUMP_DECODE_PATTERN = r"^([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.npy$"
@@ -70,6 +72,9 @@ class Util(object):
         :param cmd: command
         :return: status code
         """
+        if cmd is None:
+            self.log.error("Command is None.")
+            return -1
         self.log.debug("[Run CMD]: %s", cmd)
         complete_process = subprocess.run(cmd, shell=True)
         return complete_process.returncode
@@ -86,28 +91,29 @@ class Util(object):
             return True
         return False
 
-    def convert_proto_to_json(self, proto_file):
+    def convert_proto_to_json(self, src_file, dst_file):
         """Convert GE proto graphs to json format.
         command: atc --mode=5 --om=ge_proto_Build.txt --json=xxx.json
-        :param proto_file: proto file
+        :param src_file: proto file
+        :param dst_file: output json file
         :return: result json file
         """
-        src_file = os.path.join(cfg.GRAPH_DIR_ALL, proto_file)
-        json_file = proto_file + '.json'
-        dst_file = os.path.join(cfg.GRAPH_DIR_BUILD, json_file)
+        if not os.path.exists(src_file):
+            raise PrecisionToolException("Source proto file %s not exist." % src_file)
+        # src_file = os.path.join(cfg.GRAPH_DIR_ALL, proto_file)
+        # json_file = proto_file + '.json'
+        # dst_file = os.path.join(cfg.GRAPH_DIR_BUILD, json_file)
         if os.path.exists(dst_file) and os.path.getmtime(dst_file) > os.path.getmtime(src_file):
             self.log.debug("GE graph build json already exist.")
-            return json_file
+            return dst_file
         cmd = '%s --mode=5 --om=%s --json=%s' % (self._get_atc(), src_file, dst_file)
         self.execute_command(cmd)
         if not os.path.isfile(dst_file):
-            self.log.error("Convert GE build graph to json failed. can not find any json file in %s",
-                           cfg.GRAPH_DIR_BUILD)
-            return None
-        self.log.info('Finish convert [%s] build graph from proto to json format.', proto_file)
-        return json_file
+            raise PrecisionToolException("Convert GE build graph to json failed. can not find any json file.")
+        self.log.info('Finish convert [%s] build graph from proto to json format.', src_file)
+        return dst_file
 
-    def convert_dump_to_npy(self, src_file, dst_path, data_format=''):
+    def convert_dump_to_npy(self, src_file, dst_path, data_format=None):
         """Convert npu dump files to npy format.
         :param src_file: src file
         :param dst_path: dst path
@@ -115,7 +121,7 @@ class Util(object):
         :return: status code
         """
         self.create_dir(dst_path)
-        format_cmd = '' if data_format == '' else '-f %s' % data_format
+        format_cmd = '' if data_format is None else '-f %s' % data_format
         cmd = '%s %s convert -d %s -out %s %s' % (cfg.PYTHON, self._get_ms_accu_cmp(), src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
@@ -225,22 +231,27 @@ class Util(object):
             self.log.error("Failed to remove %s. %s", path, str(err))
 
     @staticmethod
-    def npy_info(path):
+    def npy_info(source_data):
         """Get npy information
-        :param path: npy path
+        :param source_data: npy path
         :return: (shape, dtype)
         """
-        if not str(path).endswith(NUMPY_SHUFFIX):
-            raise PrecisionToolException("Npy file [%s] is invalid" % path)
-        data = np.load(path, allow_pickle=True)
+        if isinstance(source_data, str):
+            if not str(source_data).endswith(NUMPY_SHUFFIX):
+                raise PrecisionToolException("Npy file [%s] is invalid" % source_data)
+            data = np.load(source_data, allow_pickle=True)
+        elif isinstance(source_data, np.ndarray):
+            data = source_data
+        else:
+            raise PrecisionToolException("invalid source data:%s" % source_data)
         return data.shape, data.dtype, data.max(), data.min(), data.mean()
 
-    def gen_npy_info_txt(self, file_name):
+    def gen_npy_info_txt(self, source_data):
         """ Generate numpy info txt.
-        :param file_name:
+        :param source_data: source path or np.ndarray
         :return: txt
         """
-        shape, dtype, max_data, min_data, mean = self.npy_info(file_name)
+        shape, dtype, max_data, min_data, mean = self.npy_info(source_data)
         return '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (shape, dtype, max_data, min_data, mean)
 
     def print_npy_summary(self, path, file_name, is_convert=False, extern_content=''):
@@ -254,19 +265,21 @@ class Util(object):
         target_file = os.path.join(path, file_name)
         if not os.path.exists(target_file):
             raise PrecisionToolException("File [%s] not exist" % target_file)
-        shape, dtype, max_data, min_data, mean = self.npy_info(target_file)
-        content = "Shape: %s\nDtype: %s\nMax: %s\nMin: %s\nMean: %s\nPath: %s" % (
-            shape, dtype, max_data, min_data, mean, target_file)
+        data = np.load(target_file, allow_pickle=True)
+        table = self.create_table('', ['Index', 'Data'])
+        flatten_data = data.flatten()
+        for i in range(min(16, int(np.ceil(flatten_data.size / 8)))):
+            table.add_row(str(i * 8), ' '.join(flatten_data[i: i+8].astype('str').tolist()))
+        summary = ['[yellow]%s[/yellow]' % self.gen_npy_info_txt(data), 'Path: %s' % target_file]
         if is_convert:
-            content += '\nTxtFile: %s.txt' % target_file
+            summary.append('TxtFile: %s.txt' % target_file)
         if extern_content != '':
-            content += '\n %s' % extern_content
-        self.print_panel(content)
+            summary.append('%s' % extern_content)
+        self.print_panel(self.create_columns([table, Constant.NEW_LINE.join(summary)]), file_name)
         if is_convert:
-            self.save_npy_to_txt(target_file)
+            self.save_npy_to_txt(data, target_file + '.txt')
 
-    @staticmethod
-    def save_npy_to_txt(src_file, dst_file='', align=0):
+    def save_npy_to_txt(self, src_file, dst_file='', align=0):
         """save numpy file to txt file.
         default data will be aligned to the last axis of data.shape
         :param src_file: src file name
@@ -276,7 +289,15 @@ class Util(object):
         """
         if dst_file == '':
             dst_file = src_file + '.txt'
-        data = np.load(src_file)
+        if os.path.exists(dst_file):
+            self.log.debug("Dst file %s exists, will not save new one.", dst_file)
+            return
+        if isinstance(src_file, str):
+            data = np.load(src_file, allow_pickle=True)
+        elif isinstance(src_file, np.ndarray):
+            data = src_file
+        else:
+            raise PrecisionToolException("invalid src_file: %s", src_file)
         shape = data.shape
         data = data.flatten()
         if align == 0:
@@ -284,8 +305,8 @@ class Util(object):
                 align = 1
             else:
                 align = shape[-1]
-        elif data.size() % align != 0:
-            pad_array = np.zeros((align - data.size() % align,))
+        elif data.size % align != 0:
+            pad_array = np.zeros((align - data.size % align,))
             data = np.append(data, pad_array)
         np.savetxt(dst_file, data.reshape((-1, align)), delimiter=' ', fmt='%g')
 

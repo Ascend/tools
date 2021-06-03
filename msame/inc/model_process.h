@@ -40,7 +40,7 @@ public:
     * @param [in] modelPath: model path
     * @return result
     */
-    Result LoadModelFromFileWithMem(const std::string& modelPath);
+    Result LoadModelFromFile(const std::string& modelPath);
 
     /**
     * @brief unload model
@@ -59,9 +59,40 @@ public:
     Result PrintDesc();
 
     /**
+    * @brief get dynamic gear conut
+    */
+    Result GetDynamicGearCount(size_t &dymGearCount);
+
+    /**
+    * @brief get dynamic index
+    */
+    Result GetDynamicIndex(size_t &dymTensorIndex);    
+
+    /**
+    * @brief check dynamic input dims valid
+    */
+    Result CheckDynamicDims(std::vector<std::string> dymDims, size_t gearCount, aclmdlIODims *dims);
+    
+    /**
+    * @brief set dynamic input dims 
+    */    
+    Result SetDynamicDims(std::vector<std::string> dymDims);
+
+    /**
+    * @brief get dynamic input dims info
+    */
+    void GetDimInfo(size_t gearCount, aclmdlIODims *dims);
+
+    /**
     * @brief destroy desc
     */
     void DestroyDesc();
+    
+    /**
+    * @brief create model input
+    * @return result
+    */
+    Result CreateDymInput(size_t index);
 
     /**
     * @brief create model input
@@ -111,10 +142,6 @@ public:
 
 private:
     uint32_t modelId_;
-    size_t modelMemSize_;
-    size_t modelWeightSize_;
-    void* modelMemPtr_;
-    void* modelWeightPtr_;
     bool loadFlag_; // model load flag
     aclmdlDesc* modelDesc_;
     aclmdlDataset* input_;

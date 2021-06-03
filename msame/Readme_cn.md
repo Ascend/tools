@@ -8,7 +8,7 @@
 模型必须是通过atc工具转换的om模型，输入bin文件需要符合模型的输入要求（支持模型多输入）。
 
 ### 使用环境
-已安装运行环境的昇腾AI推理设备，如需重新编译，还需安装开发环境。  
+已安装开发运行环境的昇腾AI推理设备。  
 
 ### 获取
 - 命令行方式下载
@@ -27,24 +27,8 @@
 
 
 ### 使用方法
-#### a. 使用已编译好的工具直接运行。   
-
- **环境要求：架构为arm、已安装运行环境。如环境不符，请使用方法b，进行源码编译。**  
-
-进入msame目录
-```
-cd $HOME/tools/msame/
-```
-工具在out目录下,进入out目录
-```
-cd out
-```
-
-
-#### b. 源码编译运行。
- **环境要求：已安装开发运行环境，分设合设都可以。**   
-工具也支持源码编译，或者使用者需要添加或者修改代码，使用者重新编译  
-
+**环境要求：已安装开发运行环境。**   
+ 
 设置环境变量  
 (如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。) 
  
@@ -114,8 +98,9 @@ b.每个输入为一个包含bin文件的目录，每个目录中的bin文件名
 | --output | 推理数据输出路径                |
 | --outfmt | 输出数据的格式，TXT或者BIN      |
 | --loop   | 推理次数 [1,100]，可选参数，默认1，profiler为true时，推荐为1 |
-| --debug   | 调试开关，可打印model的desc信息，true或者false，可选参数，默认false |
+| --debug  | 调试开关，可打印model的desc信息，true或者false，可选参数，默认false |
 | --profiler   | profiler开关，true或者false, 可选参数，默认false。<br>profiler数据在--output参数指定的目录下的profiler文件夹内。不能与--dump同时为true。 |  
 | --dump   | dump开关，true或者false, 可选参数，默认false。<br>dump数据在--output参数指定的目录下的dump文件夹内。不能与--profiler同时为true。 |
 | --device   | 指定运行设备 [0,255]，可选参数，默认0 |
+| --dymDims  | 动态维度参数，指定模型输入的实际shape。 <br>如atc模型转换时设置 --input_shape="data:1,-1,-1,3;img_info:1,3" --dynamic_dims="224,224;600,600" , dymDims参数可设置为：--dymDims 1,600,600,3,1,3|
 | --help   | 工具使用帮助信息                  |

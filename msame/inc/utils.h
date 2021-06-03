@@ -37,7 +37,6 @@
 #define WARN_LOG(fmt, args...) fprintf(stdout, "[WARN] " fmt "\n", ##args)
 #define ERROR_LOG(fmt, args...) fprintf(stdout, "[ERROR] " fmt "\n", ##args)
 
-//static size_t loop = 1;
 typedef enum Result {
     SUCCESS = 0,
     FAILED = 1
@@ -65,6 +64,8 @@ public:
     static void* ReadBinFile(std::string fileName, uint32_t& fileSize);
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
+
+    static  int SplitStringSimple(std::string str, std::vector<std::string> &out, char split);
 
     static int str2num(char* str);
 
