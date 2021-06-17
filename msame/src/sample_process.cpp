@@ -135,7 +135,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
     if (params.count('h')) {
         
         aclmdlIODims *dims = new aclmdlIODims[g_dym_gear_count];
-        Utils::SplitStringSimple(params['h'], dymDims, ',');
+        Utils::SplitStringSimple(params['h'], dymDims, ';', ':', ',');
 
         if (g_dym_gear_count <= 0){
             ERROR_LOG("the dynamic_dims parameter is not specified for model conversion");

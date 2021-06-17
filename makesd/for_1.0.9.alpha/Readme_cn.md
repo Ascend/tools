@@ -4,18 +4,13 @@
 
 ## 配套关系
 
-制卡需要固件与驱动包和社区版cann_nnrt包，分别有对应的固件与驱动版本号和CANN版本号。    
-下表为**硬件版本与CANN版本配套表**，请根据硬件版本选择对应的CANN版本包进行制卡。
+制卡需要驱动固件包。  
 
-<table>
-<tr><td width="25%"><b>驱动与固件版本</b></td><td width="75%"><b>CANN版本</b></td></tr>
-<tr><td rowspan="5" valign="top">1.0.9.alpha</td><td>5.0.2.alpha002</td></tr>
-<tr><td>3.3.0.alpha006</td></tr>
-<tr><td>3.3.0.alpha005</td></tr>
-<tr><td>3.3.0.alpha001</td></tr>
-<tr><td>3.2.0.alpha001<br/>备注：曾用版本号“20.2.alpha001”</td>
-</tr>
-</table>
+Atlas 200 DK开发者套件包含：  
+- 驱动固件包：包含AI软件栈及维测相关软件的驱动、固件及Device侧的文件系统镜像。
+- CANN包：AI异构计算架构。CANN是华为公司针对AI场景推出的异构并行计算架构，通过提供多层次的编程接口，支持用户快速构建基于Ascend平台的AI应用和业务。  
+
+Atlas 200 DK的驱动包与CANN包的版本配套关系请参见：[版本配套说明](../Version_Mapping_CN.md)
 
 ## 文件介绍
 

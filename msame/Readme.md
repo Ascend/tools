@@ -59,7 +59,7 @@ Example 1: without the **input** option
 Fake data (all 0s) is constructed and fed to the model for inference.
 
 ```
-./msame --model /home/HwHiAiUser/msame/colorization.om  --output /home/HwHiAiUser/msame/out/ --outfmt TXT --loop 1
+./msame --model "/home/HwHiAiUser/msame/colorization.om"  --output "/home/HwHiAiUser/msame/out/" --outfmt TXT --loop 1
 ```
 
 Example 2: model inference on a single input
@@ -67,13 +67,13 @@ Example 2: model inference on a single input
 a. Specify a binary input file.
 
 ```
-./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data/colorization_input.bin --output /home/HwHiAiUser/msame/out/ --outfmt TXT --loop 1
+./msame --model "/home/HwHiAiUser/msame/colorization.om" --input "/home/HwHiAiUser/msame/data/colorization_input.bin" --output "/home/HwHiAiUser/msame/out/" --outfmt TXT --loop 1
 ```
 
 b. Specify an input directory containing binary files. In this case, the **--loop** option is invalid.
 
 ```
-./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data --output /home/HwHiAiUser/msame/out/ --outfmt TXT
+./msame --model "/home/HwHiAiUser/msame/colorization.om" --input "/home/HwHiAiUser/msame/data" --output "/home/HwHiAiUser/msame/out/" --outfmt TXT
 ```
 
 Example 3: model inference on multiple inputs
@@ -81,13 +81,13 @@ Example 3: model inference on multiple inputs
 a. Specify multiple binary input files separated by commas (,). No space is allowed before or after the commas.
 
 ```
-./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1/a.bin,/home/HwHiAiUser/ljj/data2/a.bin --output /home/HwHiAiUser/msame/out/ --outfmt TXT  --loop 1
+./msame --model "/home/HwHiAiUser/msame/colorization.om" --input "/home/HwHiAiUser/msame/data1/a.bin,/home/HwHiAiUser/ljj/data2/a.bin" --output "/home/HwHiAiUser/msame/out/" --outfmt TXT  --loop 1
 ```
 
 b. Specify multiple input directories separated by commas (,). No space is allowed before or after the commas. The binary files in the directories must have consistent file names. In this case, the **--loop** option is invalid.
 
 ```
-./msame --model /home/HwHiAiUser/msame/colorization.om --input /home/HwHiAiUser/msame/data1,/home/HwHiAiUser/msame/data2 --output /home/HwHiAiUser/msame/out/ --outfmt TXT
+./msame --model "/home/HwHiAiUser/msame/colorization.om" --input "/home/HwHiAiUser/msame/data1,/home/HwHiAiUser/msame/data2" --output "/home/HwHiAiUser/msame/out/" --outfmt TXT
 ```
 
 For details about all available options, run the **--help** command.
@@ -109,5 +109,5 @@ Dynamic batched inference is not supported.
 | --debug| (Optional) Debug switch for printing the model description, either true or false. Defaults to false.
 | --profiler| (Optional) Profiler switch, either true or false. Defaults to false.<br> The profiler data is stored in the profiler folder under the directory specified by the --output argument. This option and --dump must not be set to true at the same time.
 | --dump| (Optional) Dump switch, either true or false. Defaults to false.<br> The dump data is stored in the dump folder under the directory specified by the --output argument. This option and --profiler must not be set to true at the same time.
-| --dymDims  | Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1,-1,3;img_info:1,3" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims 1,600,600,3,1,3.
+| --dymDims  | Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1,-1,3;img_info:1,3" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600,600,3;img_info:1,3".
 | --help| Help information.

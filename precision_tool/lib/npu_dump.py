@@ -72,22 +72,21 @@ class NpuDump(object):
         self.debug_id = debug_id
         npu_root = os.path.join(cfg.NPU_DIR, debug_id)
         self.dump_root = os.path.join(npu_root, Constant.DUMP)
+        self.decode_dir = os.path.join(cfg.DUMP_DECODE_DIR, debug_id)
         self.dump_files = None
-        # self.cpu_files = None
         self._init_dirs()
 
     def prepare(self):
         """Prepare npu/cpu dump files"""
-        # self.sub_graph = sub_graph
         self._parse_dump_files()
-        # self._parse_cpu_dump_files()
 
     def get_dump_files_by_op(self, op):
         """Get npu dump files by Op"""
         npu_files = {}
         match_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '\\.'
         for f in self.dump_files:
-            if re.match(match_name, f):
+            # match op name and graph name
+            if re.match(match_name, f) and op.graph_name in self.dump_files[f].path:
                 npu_files[f] = self.dump_files[f]
         return npu_files
 
@@ -98,7 +97,7 @@ class NpuDump(object):
             raise PrecisionToolException("Get None operator")
         # search npu dump file by op name
         npu_dump_files = self.get_npu_dump_decode_files_by_op(op)
-        npu_dump_files = sorted(npu_dump_files.values(), key=lambda x: x.idx)
+        npu_dump_files = sorted(npu_dump_files.values(), key=lambda x: (x.idx, x.timestamp))
         input_txt = ['NpuDumpInput:']
         output_txt = ['NpuDumpOutput:']
         for npu_dump_file in npu_dump_files:
@@ -113,6 +112,7 @@ class NpuDump(object):
 
     def _init_dirs(self):
         util.create_dir(self.dump_root)
+        util.create_dir(self.decode_dir)
 
     @catch_tool_exception
     def _parse_dump_files(self):
@@ -126,12 +126,15 @@ class NpuDump(object):
 
     def get_npu_dump_decode_files_by_op(self, op):
         """Get npu dump decode files by op"""
-        match_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '\\.'
-        dump_decode_files = util.list_npu_dump_decode_files(cfg.DUMP_DECODE_DIR, match_name)
-        if len(dump_decode_files) == 0:
-            self._decode_npu_dump_files_by_op(op)
-            dump_decode_files = util.list_npu_dump_decode_files(cfg.DUMP_DECODE_DIR, match_name)
-        return dump_decode_files
+        dump_files = self.get_dump_files_by_op(op)
+        result = {}
+        for dump_file in dump_files.values():
+            dump_decode_files = util.list_npu_dump_decode_files(self.decode_dir, dump_file.file_name)
+            if len(dump_decode_files) == 0:
+                util.convert_dump_to_npy(dump_file.path, self.decode_dir)
+            dump_decode_files = util.list_npu_dump_decode_files(self.decode_dir, dump_file.file_name)
+            result.update(dump_decode_files)
+        return result
 
     def convert_npu_dump(self, name, data_format=None, dst_path=None):
         """Convert npu dump to npy of data_format"""
@@ -173,14 +176,6 @@ class NpuDump(object):
             if file_info.op_name == op_name:
                 return file_info
         return None
-
-    def _parse_cpu_dump_files(self):
-        self.cpu_files = util.list_cpu_dump_decode_files(cfg.TF_DUMP_DIR)
-
-    def _decode_npu_dump_files_by_op(self, op):
-        dump_files = self.get_dump_files_by_op(op)
-        for dump_file in dump_files.values():
-            util.convert_dump_to_npy(dump_file.path, cfg.DUMP_DECODE_DIR)
 
     @staticmethod
     def _detect_cpu_file_name(file_name):

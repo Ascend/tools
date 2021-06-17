@@ -40,8 +40,12 @@ class DumpManager(object):
         npu_result = collections.OrderedDict()
         for debug_id, op in ops.items():
             if debug_id in self.npu_dumps:
-                npu_result[debug_id] = self.npu_dumps[debug_id].op_dump_summary(op)
-        tf_result = self.tf_dump.op_dump_summary(ops[Constant.DEFAULT_DEBUG_ID]) if self.tf_dump is not None else None
+                npu_result[debug_id] = collections.OrderedDict()
+                for op_detail in op:
+                    npu_result[debug_id][op_detail.graph_name] = self.npu_dumps[debug_id].op_dump_summary(op_detail)
+        tf_result = None
+        if self.tf_dump is not None and len(ops[Constant.DEFAULT_DEBUG_ID]) != 0:
+            tf_result = self.tf_dump.op_dump_summary(ops[Constant.DEFAULT_DEBUG_ID][0])
         return npu_result, tf_result
 
     def print_tensor(self, file_name, is_convert):

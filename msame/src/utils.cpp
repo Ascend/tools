@@ -295,11 +295,31 @@ int Utils::ScanFiles(std::vector<std::string> &fileList, std::string inputDirect
     return fileList.size();
 }
 
-int Utils::SplitStringSimple(string str, vector<string> &out, char split)
+int Utils::SplitStringSimple(string str, vector<string> &out, char split1, char split2, char split3)
 {
     istringstream block(str);
     string cell;
-    while (getline(block, cell, split)) {
-        out.push_back(cell);
+    string cell1;
+    string cell2;
+    vector<string> split1_out;
+    vector<string> split2_out;
+    while (getline(block, cell, split1)) {
+        split1_out.push_back(cell);
+    }
+    for (size_t i = 0; i < split1_out.size(); ++i){
+        istringstream block_tmp(split1_out[i]);
+        int index = 0;
+        while (getline(block_tmp, cell1, split2)) {
+            if (index == 1){
+                split2_out.push_back(cell1);
+            }
+            index += 1;
+        }
+    }
+    for (size_t i = 0; i < split2_out.size(); ++i){
+        istringstream block_tmp1(split2_out[i]);
+        while (getline(block_tmp1, cell2, split3)) {
+            out.push_back(cell2); 
+        }
     }
 }

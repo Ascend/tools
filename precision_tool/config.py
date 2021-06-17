@@ -20,7 +20,7 @@ precision_data/
 ├── npu
 │   ├── debug_0
 |   |   ├── dump
-|   |       └── 20210510101133
+|   |   |   └── 20210510101133
 |   │   └── graph
 |   |       └── ge_proto_00000179_PreRunAfterBuild.txt
 │   └── debug_1
@@ -45,7 +45,6 @@ precision_data/
 
 # Static dirs, do not change
 DATA_ROOT_DIR = os.path.join(ROOT_DIR, 'precision_data')
-OP_DEBUG_DIR = os.path.join(DATA_ROOT_DIR, 'op_debug')
 
 # fusion
 FUSION_DIR = os.path.join(DATA_ROOT_DIR, 'fusion')
@@ -55,6 +54,7 @@ NPU_DIR = os.path.join(DATA_ROOT_DIR, 'npu')
 DEFAULT_NPU_DIR = os.path.join(NPU_DIR, 'debug_0')
 DEFAULT_NPU_DUMP_DIR = os.path.join(DEFAULT_NPU_DIR, 'dump')
 DEFAULT_NPU_GRAPH_DIR = os.path.join(DEFAULT_NPU_DIR, 'graph')
+DEFAULT_OP_DEBUG_DIR = DEFAULT_NPU_DIR
 
 # npu overflow dir
 OVERFLOW_DIR = os.path.join(DATA_ROOT_DIR, 'overflow')
@@ -87,6 +87,7 @@ PRECISION_TOOL_DUMP_FLAG = 'PRECISION_TOOL_DUMP'
 OP_DEBUG_LEVEL = 0
 DUMP_GE_GRAPH_VALUE = 2
 DUMP_GRAPH_LEVEL_VALUE = 2
+DUMP_SEED = 0
 
 # TF_DEBUG
 TF_DEBUG_TIMEOUT = 360

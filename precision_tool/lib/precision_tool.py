@@ -39,20 +39,21 @@ class PrecisionTool(object):
         """auto check"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--vector_compare', dest='vector_compare', help='auto check', action='store_true')
+        parser.add_argument('-l', '--limit', dest='limit', type=int, help='limit', default=3)
         args = parser.parse_args(argv)
         # vector compare
         if args.vector_compare:
             self.do_vector_compare()
         self.do_vector_compare_summary()
         self.do_check_fusion()
-        self.do_check_overflow()
+        self.do_check_overflow(args.limit)
         self.do_check_cast()
         self.do_check_graph_similarity()
 
     @catch_tool_exception
-    def do_check_overflow(self):
+    def do_check_overflow(self, limit=3):
         """check overflow"""
-        self.overflow.check()
+        self.overflow.check(limit)
 
     @catch_tool_exception
     def do_check_cast(self):
@@ -138,23 +139,25 @@ class PrecisionTool(object):
         """Print op node info"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
-        # parser.add_argument('-a', '--all', dest='all', help='show all infos', action='store_true')
+        parser.add_argument('-g', '--graph', dest='graph', help='graph name')
         # parser.add_argument('-d', '--dump', dest='dump', help='show dump files info', action='store_true')
         parser.add_argument('-s', '--save', dest='save', type=int, default=0,
                             help='save subgraph, param gives the deep of subgraph')
         args = parser.parse_args(argv)
         # print graph op info
-        npu_ops, _ = self.graph_manager.get_ops(args.name)
+        npu_ops, _ = self.graph_manager.get_ops(args.name, args.graph)
         npu_op_summary, tf_op_summary = self.graph_manager.op_graph_summary(npu_ops)
         npu_dump_summary, tf_dump_summary = self.dump_manager.op_dump_summary(npu_ops)
         # merge graph/dump/compare info
         for debug_id, graph_summary in npu_op_summary.items():
-            summary_txt = [graph_summary]
-            if debug_id in npu_dump_summary:
-                summary_txt.append(npu_dump_summary[debug_id])
-            if tf_dump_summary is not None:
-                summary_txt.append(tf_dump_summary)
-            util.print_panel(Constant.NEW_LINE.join(summary_txt), debug_id)
+            for graph_name, summary_detail in graph_summary.items():
+                summary_txt = [summary_detail]
+                if debug_id in npu_dump_summary and graph_name in npu_dump_summary[debug_id]:
+                    summary_txt.append(npu_dump_summary[debug_id][graph_name])
+                if tf_dump_summary is not None:
+                    summary_txt.append(tf_dump_summary)
+                title = "[green](%s)[/green] %s" % (debug_id, graph_name)
+                util.print_panel(Constant.NEW_LINE.join(summary_txt), title)
         if args.save != 0:
             self.graph_manager.save_sub_graph(npu_ops, args.save)
         # self.graph.print_op(args.name, args.dump, args.save, dump_manager=self.dump, compare_manager=self.compare)

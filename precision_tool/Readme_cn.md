@@ -161,6 +161,31 @@ sudo yum install graphviz
        # 保存ckpt
        saver.save(sess, saver_dir)
     ```
+#### 6. 关闭NPU的融合功能（根据情况启用）
+* NPU会对计算图中的算子进行融合，以提高网络性能，由于大多数融合是自动识别的，可能存在未考虑到的场景，导致精度问题，
+  因此，可以尝试关闭融合定界网络问题是否是由于融合导致。
+  ```python
+    # 关闭融合可以和溢出检测/数据Dump同时进行，启用方法也类似
+    # 引用 precision_tool/tf_config.py
+    import precision_tool.tf_config as npu_tf_config
+    
+    # 如果使用的是Estimator的NPURunConfig配置使能NPU，则可以参考以下修改
+    npu_config = NPURunConfig(fusion_switch_file=npu_tf_config.FUSION_OFF_FILE) # 修改行
+    # 如果需要关闭指定的融合规则，则可以修改precision_tool/fusion_switch.cfg, 并参考如下修改
+    npu_config = NPURunConfig(fusion_switch_file=npu_tf_config.FUSION_SWITCH_FILE) # 关闭特定融合修改行
+  
+    # 如果使用的是session.run或者使用tf.ConfigProto创建session_config传入tf.estimator.RunConfig的方式使能npu
+    # 可以参考如下修改(数据Dump和关闭融合同时使能)
+    session_config = npu_tf_config.session_dump_config(session_config, action='dump|fusion_off') # 新增行
+    session_config = npu_tf_config.session_dump_config(session_config, action='dump|fusion_switch') # 关闭特定融合新增行
+    # tf.estimator
+    run_config = tf.estimator.RunConfig(session_config=session_config,...)
+    # tf.keras
+    npu_keras_sess = set_keras_session_npu_config(config=session_config)
+    # session run
+    with tf.Session(config=npu_config_proto(session_config)):
+        ......
+  ```
 ## 使用说明
 1.  配置文件precision_tool/config.py（正常默认即可）
     ```python

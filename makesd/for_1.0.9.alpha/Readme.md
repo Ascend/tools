@@ -4,23 +4,14 @@ English|[中文](Readme_cn.md)
 
 ## Supporting relationship
 
-The business card requires the firmware and driver package and the community version cann_nnrt package, which have corresponding firmware and driver version numbers and CANN version numbers respectively.
-The following table shows the matching table of **hardware version and CANN version**. Please select the corresponding CANN version package for card making according to the hardware version.
+The business card requires the driver and firmware package. 
 
-<table>
-<tr><td width="25%"><b>Driver and firmware version</b></td><td width="75%"><b>CANN version</b></td></tr>
-<tr><td rowspan="5" valign="top">1.0.9.alpha</td><td>5.0.2.alpha002</td></tr>
-<tr><td>3.3.0.alpha006</td></tr>
-<tr><td>3.3.0.alpha005</td></tr>
-<tr><td>3.3.0.alpha001</td></tr>
-<tr><td>3.2.0.alpha001<br/>Remarks: used version number“20.2.alpha001”</td>
-</tr>
-</table>
-## File introduction
+Atlas 200 DK contains:
 
-- **make_sd_card.py**：Entry script for SD card making
+-   Driver and Firmware package: provides the drivers and firmware required by the AI software stack and maintenance and test software, and file system image on the device.
+-   CANN package: enables the Huawei-developed AI-oriented heterogeneous compute architecture. The architecture provides hierarchical APIs to streamline the development of AI applications and services on the Ascend platform.  
 
-- **make_ubuntu_sd.sh**：Make SD card operating system script
+For details about the version mapping between the Atlas 200 DK Driver and Firmware package and the CANN package, see [the version mapping](../Version_Mapping.md).
 
 ## Procedure
 

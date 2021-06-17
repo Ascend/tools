@@ -31,10 +31,11 @@ class Op(object):
         inputs: list of input descs
         outputs: list of output descs
     """
-    def __init__(self, op_json, op_list):
+    def __init__(self, op_json, op_list, graph_name):
         """Init"""
         self.op_json = op_json
         self.op_list = op_list
+        self.graph_name = graph_name
         self.input_list = None
         self.output_list = None
         self.log = util.get_log()
@@ -91,7 +92,8 @@ class Op(object):
         """Summary of current op"""
         res_str = ['Op(Type/Name): [green][%s][/green] %s' % (self.type(), self.name()),
                    'KernelName:    [yellow]%s[/yellow]' % self.kernel_name(),
-                   'KernelLibName: [yellow]%s[/yellow]' % self.ge_attr_op_kernel_lib_name()]
+                   'KernelLibName: [yellow]%s[/yellow]' % self.ge_attr_op_kernel_lib_name(),
+                   'GraphName:     [yellow]%s[/yellow]' % self.graph_name]
         pass_name = self.pass_name()
         if pass_name != '':
             res_str.append('PassName: [yellow]%s[/yellow]' % pass_name)

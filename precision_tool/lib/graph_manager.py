@@ -54,14 +54,15 @@ class GraphManager(object):
             raise PrecisionToolException("Get graphs failed with no debug_id:%s" % debug_id)
         return self.npu_graphs[debug_id].build_json_files
 
-    def get_ops(self, op_name):
+    def get_ops(self, op_name, graph_name=None):
         """ Get npu/tf ops by op_name
-        :param op_name:
+        :param op_name: op name
+        :param graph_name: graph name
         :return: npu op dict: debug_id->Op, tf op
         """
         npu_ops = collections.OrderedDict()
         for debug_id, npu_graph in self.npu_graphs.items():
-            npu_ops[debug_id] = npu_graph.get_op(op_name)
+            npu_ops[debug_id] = npu_graph.get_op(op_name, graph_name)
         # tf graph op
         return npu_ops, None
 
@@ -70,8 +71,11 @@ class GraphManager(object):
             table_list = []
             for debug_id, graph in self.npu_graphs.items():
                 table = util.create_table(debug_id, ["OpType", "Count"])
-                for op_types, op_list in graph.ops_type_list.items():
-                    table.add_row(op_types, str(len(op_list)))
+                op_type_counter = collections.Counter()
+                for op in graph.ops_list:
+                    op_type_counter[op.type()] += 1
+                for op_types, count in op_type_counter.items():
+                    table.add_row(op_types, str(count))
                 table_list.append(table)
             util.print(util.create_columns(table_list))
 
@@ -82,16 +86,17 @@ class GraphManager(object):
                     op.type(), op.pass_name(), op.name()) for op in ops]
                 util.print_panel(Constant.NEW_LINE.join(ops_txt), debug_id)
 
-    def op_graph_summary(self, ops):
+    @staticmethod
+    def op_graph_summary(ops):
         npu_summary = collections.OrderedDict()
         for debug_id, op in ops.items():
-            if op is None:
-                self.log.debug("Find no target node in [%s]", debug_id)
-                continue
-            npu_summary[debug_id] = op.summary()
+            npu_summary[debug_id] = collections.OrderedDict()
+            for op_detail in op:
+                npu_summary[debug_id][op_detail.graph_name] = op_detail.summary()
         return npu_summary, None
 
     def save_sub_graph(self, ops, deep):
         for debug_id, op in ops.items():
             if debug_id in self.npu_graphs:
-                self.npu_graphs[debug_id].save_sub_graph(op, deep)
+                for op_detail in op:
+                    self.npu_graphs[debug_id].save_sub_graph(op_detail, deep)

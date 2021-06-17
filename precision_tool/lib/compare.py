@@ -91,12 +91,21 @@ class Compare(object):
                 sub_graphs.append(graph['name'])
         return sub_graphs
 
+    '''
+    @staticmethod
+    def _get_ge_default_dirs(self, root_dir):
+        for dir_path, dir_names, file_names in os.walk(root_dir, followlinks=True):
+            for dir_name in dir_names:
+    '''
+
     def npu_vector_compare(self, debug_0_root_dir, debug_1_root_dir):
         """Compare two npu dump data
         :param debug_0_root_dir:
         :param debug_1_root_dir:
         :return:
         """
+        debug_0_sub_dirs = self._get_ge_default_dirs(debug_0_root_dir)
+        debug_1_sub_dirs = self._get_ge_default_dirs(debug_1_root_dir)
 
     def vector_compare(self, lh_path, rh_path, result_dir, graph_json=None):
         """Compare all ops"""
@@ -208,13 +217,13 @@ class Compare(object):
         util.print(util.create_columns([err_table, top_table]))
         return total_cnt, all_close, cos_sim, err_percent
 
-    @staticmethod
-    def _detect_file(file_name):
+    def _detect_file(self, file_name):
         """Find files in npu/overflow/cpu dump dir"""
         if os.path.isfile(file_name):
             return file_name
-        for parent_dir in [cfg.DUMP_DECODE_DIR, cfg.TF_DUMP_DIR, cfg.OVERFLOW_DECODE_DIR,
-                           cfg.DUMP_CONVERT_DIR]:
-            if os.path.isfile(os.path.join(parent_dir, file_name)):
-                return os.path.join(parent_dir, file_name)
+        for parent_dir in [cfg.TMP_DIR, cfg.TF_DUMP_DIR]:
+            file_infos = util.list_numpy_files(parent_dir, file_name)
+            if len(file_infos) > 0:
+                self.log.info("Find %s, choose first one.", list(file_infos.keys()))
+                return list(file_infos.values())[0].path
         return None

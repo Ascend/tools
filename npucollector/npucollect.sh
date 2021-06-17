@@ -6,13 +6,22 @@ if ps aux | grep .sh | grep running_process;then
     ps aux | grep .sh | grep running_process | awk '{print $2}' | xargs kill -9
 fi
 
-#argv check
-if [ $# -ne 2 ];then
-    echo "[error] argument must be 2"
+print_arg_error(){
+    for i in $*;
+    do
+        params=" $params $i"
+    done
+    echo "[error] $params"
     echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
     echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
     echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
     exit
+}
+
+#argv check
+if [ $# -ne 2 ];then
+    error_msg="argument must be 2"
+    print_arg_error $error_msg
 fi
 
 cmd=$1
@@ -21,26 +30,21 @@ path=${2%.tar.gz*}
 if [ ${path:0:1} != "/" ];then
     path=`pwd`/$path
 fi
-path=$path"_dir_for_npucollect"
 
+current=`date "+%Y%m%d%H%M%S%N"`
+path=$path$current
 
 if ! grep -q -E '\.tar\.gz$' <<< "$2";then
-    echo "[error] argument2 invalid, suffix must use .tar.gz"
-    echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
-    echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
-    echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
-    exit
+    error_msg="argument2 invalid, suffix must use .tar.gz"
+    print_arg_error $error_msg
 fi
 
 #path check and clear
 if [ -d $path ];then
     touch $path/check
     if [ $? -ne 0 ];then
-        echo "[error] path:$path permission limit, can't create file"
-        echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
-        echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
-        echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
-        exit
+        error_msg="path:$path permission limit, can't create file"
+        print_arg_error $error_msg
     fi
     echo "Target path [$path] is exist, stop to avoid data override."
     echo "If you want to use this path indeed, please rm the directory firstly"
@@ -48,11 +52,8 @@ if [ -d $path ];then
 else
     mkdir -p $path
     if [ $? -ne 0 ];then
-        echo "[error] path:$path permission limit, can't create dir"
-        echo "argument1: [cmd] cmd which execute origin task, including origin args, should be embraced by \""
-        echo "argument2: [tar_file_name] file name with absolute path which info will compress into. suffix must use .tar.gz"
-        echo "example: bash npucollect.sh \"echo 123\" /home/target.tar.gz"
-        exit
+        error_msg="path:$path permission limit, can't create file"
+        print_arg_error $error_msg
     fi
 fi
 

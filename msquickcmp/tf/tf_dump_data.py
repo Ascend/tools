@@ -35,6 +35,19 @@ class TfDumpData(DumpData):
 
     def __init__(self, arguments):
         self.args = arguments
+        self.input_shapes = self._parse_input_shape()
+
+    def _parse_input_shape(self):
+        """self.args.input_shape should be format like: tensor_name1:dim1,dim2;tensor_name2:dim1,dim2"""
+        input_shapes = {}
+        if self.args.input_shape == '':
+            return input_shapes
+        tensor_list = self.args.input_shape.split(';')
+        for tensor in tensor_list:
+            tensor_shape_list = tensor.split(':')
+            if len(tensor_shape_list) == 2:
+                input_shapes[tensor_shape_list[0]] = tensor_shape_list[1].split(',')
+        return input_shapes
 
     def _create_dir(self):
         # create input directory
@@ -73,12 +86,40 @@ class TfDumpData(DumpData):
                     tensor_index[op_name] = 0
 
                 tensor = global_graph.get_tensor_by_name(op.name + ":" + str(tensor_index[op_name]))
-
+                tensor = self._verify_and_adapt_dynamic_shape(op.name, tensor)
                 inputs_tensor.append(tensor)
 
         utils.print_info_log("model inputs tensor:\n{}\n".format(inputs_tensor))
 
         return inputs_tensor
+
+    def _verify_and_adapt_dynamic_shape(self, op_name, tensor):
+        try:
+            model_shape = list(tensor.shape)
+        except ValueError:
+            if op_name not in self.input_shapes:
+                utils.print_error_log("can not get model input tensor shape, and not set input shape in arguments.")
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+            tensor.set_shape(self.input_shapes[op_name])
+            return tensor
+        if op_name in self.input_shapes:
+            fixed_tensor_shape = self.input_shapes[op_name]
+            if len(fixed_tensor_shape) != len(model_shape):
+                utils.print_error_log("fixed input tensor shape not equal to model input shape."
+                                      " tensor_name:%s, %s vs %s" % (op_name, str(fixed_tensor_shape),
+                                                                     str(model_shape)))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+            for index, dim in enumerate(model_shape):
+                fixed_tensor_dim = fixed_tensor_shape[index]
+                if dim is not None and fixed_tensor_dim != dim:
+                    utils.print_error_log("fixed input tensor dim not equal to model input dim."
+                                          " tensor_name:%s, %s vs %s" % (op_name, str(fixed_tensor_shape),
+                                                                         str(model_shape)))
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+                model_shape[index] = fixed_tensor_dim
+            utils.print_info_log("Fix dynamic input shape of %s to %s" % (op_name, model_shape))
+        tensor.set_shape(model_shape)
+        return tensor
 
     def _get_outputs_tensor(self, global_graph):
         outputs_tensor = []

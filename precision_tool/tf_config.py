@@ -11,18 +11,31 @@ FLAG_DUMP_GE_GRAPH = 'DUMP_GE_GRAPH'
 FLAG_DUMP_GRAPH_LEVEL = 'DUMP_GRAPH_LEVEL'
 FLAG_DUMP_GRAPH_PATH = 'DUMP_GRAPH_PATH'
 
-# Fusion switch
+# Fusion switch file path
 FUSION_SWITCH_FILE = os.path.join(os.path.dirname(__file__), 'fusion_switch.cfg')
 FUSION_OFF_FILE = os.path.join(os.path.dirname(__file__), 'fusion_off.cfg')
-OP_DEBUG_DIR = cfg.OP_DEBUG_DIR
+
+DEFAULT_OP_DEBUG_DIR = cfg.DEFAULT_OP_DEBUG_DIR
+
+# set random seed
+tf.random.set_random_seed(cfg.DUMP_SEED)
+print("[PrecisionTool] Set Tensorflow random seed to %d success." % cfg.DUMP_SEED)
+try:
+    import numpy as np
+    np.random.seed(cfg.DUMP_SEED)
+    print("[PrecisionTool] Set numpy random seed to %d success." % cfg.DUMP_SEED)
+except ImportError as err:
+    np = None
+    print("[PrecisionTool] No numpy module.", err)
 
 
 def sess_dump(sess):
-    """In session run mode. Use sess=sess_dump(sess)
-    :param sess:
-    :return:
+    """wrapper session with dumping debug wrapper.
+    In session run mode. Use sess=sess_dump(sess)
+    :param sess: origin session
+    :return: Session
     """
-    # sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type="readline")
+    _init()
     return tf_debug.DumpingDebugWrapperSession(sess, cfg.TF_DEBUG_DUMP_DIR)
 
 
@@ -30,6 +43,7 @@ def estimator_dump():
     """In estimator mode. estim_spec = tf.estimator.EstimatorSpec(traing_hooks=[estimator_dump()])
     :return:
     """
+    _init()
     return tf_debug.DumpingDebugHook(cfg.TF_DEBUG_DUMP_DIR)
 
 
@@ -74,14 +88,13 @@ def session_dump_config(session_config=None, action=None):
 
 
 def update_custom_op(custom_op, action=None):
-    """
-    Update custom_op
-    :param custom_op:
-    :param action
+    """Update custom_op
+    :param custom_op: origin custom op
+    :param action: dump | overflow | fusion_off | fusion_switch
     :return:
     """
     _init()
-    custom_op.parameter_map['debug_dir'].s = tf.compat.as_bytes(cfg.OP_DEBUG_DIR)
+    custom_op.parameter_map['debug_dir'].s = tf.compat.as_bytes(cfg.DEFAULT_OP_DEBUG_DIR)
     if _is_overflow(action):
         custom_op.parameter_map['enable_dump_debug'].b = True
         custom_op.parameter_map['dump_debug_mode'].s = tf.compat.as_bytes("all")
@@ -95,17 +108,18 @@ def update_custom_op(custom_op, action=None):
         custom_op.parameter_map['dump_step'].s = tf.compat.as_bytes(cfg.TF_DUMP_STEP)
     if _is_fusion_off(action):
         custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(FUSION_OFF_FILE)
-        print("set fusion switch file: ", FUSION_OFF_FILE)
+        print("[PrecisionTool] Set fusion switch file: ", FUSION_OFF_FILE)
+    elif _is_fusion_switch(action):
+        custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(FUSION_SWITCH_FILE)
+        print("[PrecisionTool] Set fusion switch file: ", FUSION_SWITCH_FILE)
     return custom_op
 
 
 def _init():
-    if not os.path.exists(cfg.NPU_OVERFLOW_DUMP_DIR):
-        _create_dir(cfg.NPU_OVERFLOW_DUMP_DIR)
-    if not os.path.exists(cfg.DEFAULT_NPU_DUMP_DIR):
-        _create_dir(cfg.DEFAULT_NPU_DUMP_DIR)
-    if not os.path.exists(cfg.DEFAULT_NPU_GRAPH_DIR):
-        _create_dir(cfg.DEFAULT_NPU_GRAPH_DIR)
+    _create_dir(cfg.DEFAULT_OP_DEBUG_DIR)
+    _create_dir(cfg.NPU_OVERFLOW_DUMP_DIR)
+    _create_dir(cfg.DEFAULT_NPU_DUMP_DIR)
+    _create_dir(cfg.DEFAULT_NPU_GRAPH_DIR)
     _set_dump_graph_flags()
 
 
@@ -115,8 +129,8 @@ def _create_dir(path):
         return
     try:
         os.makedirs(path, mode=0o700)
-    except OSError as err:
-        print("Failed to create {}. {}".format(path, str(err)))
+    except OSError as err_msg:
+        print("[PrecisionTool] Failed to create %s. %s" % (path, str(err_msg)))
 
 
 def _unset_dump_graph_flags():
@@ -138,7 +152,7 @@ def _is_dump(action):
     if action is not None:
         return 'dump' in action
     if cfg.PRECISION_TOOL_DUMP_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_DUMP_FLAG] == 'True':
-        print("======< PrecisionTool enable npu dump >======")
+        print("[PrecisionTool] enable npu dump >======")
         return True
     return False
 
@@ -147,17 +161,18 @@ def _is_overflow(action):
     if action is not None:
         return 'overflow' in action
     if cfg.PRECISION_TOOL_OVERFLOW_FLAG in os.environ and os.environ[cfg.PRECISION_TOOL_OVERFLOW_FLAG] == 'True':
-        print("======< PrecisionTool enable npu overflow >======")
+        print("[PrecisionTool] enable npu overflow >======")
         return True
     return False
+
 
 def _is_fusion_off(action):
     if action is not None:
         return 'fusion_off' in action
     return False
 
-def _is_fusion_switch():
-    if "FUSION_SWITCH" in os.environ:
-        return os.environ["FUSION_SWITCH"] == 'True'
-    else:
-        return False
+
+def _is_fusion_switch(action):
+    if action is not None:
+        return 'fusion_switch' in action
+    return False

@@ -37,7 +37,7 @@
 
 **sh npucollect.sh** _"sh ../app\_run.sh" /home/npucollector/target.tar.gz_
 
->![](public_sys-resources/icon-note.gif) **说明：** 
+>**说明：** 
 >命令行中，第一个参数字段为发生故障时执行的任务，填写完整的命令；第二个参数字段为收集的目标压缩文件名称，目前必须以.tar.gz结尾。
 
 执行完命令后，生成本次收集的故障维测所需信息，\*_.tar.gz_文件解压后内容如下：

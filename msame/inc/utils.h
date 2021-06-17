@@ -65,7 +65,7 @@ public:
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
-    static  int SplitStringSimple(std::string str, std::vector<std::string> &out, char split);
+    static  int SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
 
     static int str2num(char* str);
 

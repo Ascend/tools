@@ -3,7 +3,7 @@ import os
 
 
 class FileDesc(object):
-    def __init__(self, file_name, dir_path, timestamp):
+    def __init__(self, file_name, dir_path, timestamp=-1):
         self.file_name = file_name
         self.dir_path = dir_path
         self.path = os.path.join(dir_path, file_name)
@@ -20,11 +20,13 @@ class BuildGraphFileDesc(FileDesc):
 
 
 class NpuDumpFileDesc(FileDesc):
-    def __init__(self, file_name, dir_path, timestamp, op_name, op_type, task_id):
+    def __init__(self, file_name, dir_path, timestamp, op_name, op_type, task_id, stream_id=0):
         super(NpuDumpFileDesc, self).__init__(file_name, dir_path, timestamp)
         self.op_name = op_name
         self.op_type = op_type
         self.task_id = task_id
+        stream_id = 0 if stream_id is None else int(stream_id)
+        self.stream_id = stream_id
 
 
 class DumpDecodeFileDesc(NpuDumpFileDesc):

@@ -87,9 +87,14 @@ class Overflow(object):
                              detail['task_id'])
         else:
             dump_decode_files = self._decode_file(dump_file_info)
-            for dump_decode_file in dump_decode_files:
-                res.append(' ├─ %s' % dump_decode_file.file_name)
-                res.append('  └─ [yellow]%s[/yellow]' % util.gen_npy_info_txt(dump_decode_file.path))
+            # sort input/output & index
+            sorted(dump_decode_files, key=lambda x: x.idx)
+            for anchor_type in ['input', 'output']:
+                for dump_decode_file in dump_decode_files:
+                    if dump_decode_file.type != anchor_type:
+                        continue
+                    res.append(' ├─ %s' % dump_decode_file.file_name)
+                    res.append('  └─ [yellow]%s[/yellow]' % util.gen_npy_info_txt(dump_decode_file.path))
             res.insert(0, '[green][%s][%s][/green] %s' % (dump_file_info.op_type, dump_file_info.task_id,
                                                           dump_file_info.op_name))
         return Constant.NEW_LINE.join(res)

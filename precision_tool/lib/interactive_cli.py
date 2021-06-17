@@ -52,7 +52,7 @@ class InteractiveCli(cmd.Cmd):
     def do_ni(self, line=''):
         """Print node info:\n usage: ni (-n) [op_name]"""
         argv = line.split(' ') if line != '' else []
-        if '-n' not in argv:
+        if '-n' not in argv and '-h' not in argv:
             argv.insert(0, '-n')
         self.precision_tool.do_node_info(argv)
 
