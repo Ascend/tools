@@ -87,7 +87,7 @@ Result ModelProcess::GetDynamicGearCount(size_t &dymGearCount)
     aclError ret; 
     ret = aclmdlGetInputDynamicGearCount(modelDesc_, -1, &dymGearCount);
     if (ret != ACL_ERROR_NONE) {
-        ERROR_LOG("get input dynamic gear count failed");
+        ERROR_LOG("get input dynamic gear count failed %d", ret);
         return FAILED;
     }
     
@@ -96,16 +96,140 @@ Result ModelProcess::GetDynamicGearCount(size_t &dymGearCount)
     return SUCCESS;
 }
 
-Result ModelProcess::GetDynamicIndex(size_t &dymTensorIndex)
+Result ModelProcess::GetDynamicIndex(size_t &dymindex)
 {
     aclError ret; 
-    ret = aclmdlGetInputIndexByName(modelDesc_, ACL_DYNAMIC_TENSOR_NAME, &dymTensorIndex);
+    ret = aclmdlGetInputIndexByName(modelDesc_, ACL_DYNAMIC_TENSOR_NAME, &dymindex);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("get input index by name failed %d", ret);
         return FAILED;
     }
-
     INFO_LOG("get input index by name success");
+    return SUCCESS;
+}
+
+Result ModelProcess::CheckDynamicHWSize(pair<int, int> dynamicPair, bool &is_dymHW)
+{
+    aclmdlHW dynamicHW;
+    aclError ret;
+    bool if_same = false;
+    ret = aclmdlGetDynamicHW(modelDesc_, -1, &dynamicHW);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get DynamicHW failed");
+        return FAILED;
+    }
+    if (dynamicHW.hwCount > 0) {
+        stringstream dynamicRange;
+        for (size_t i = 0; i < dynamicHW.hwCount; i++) {
+            if (dynamicPair.first == dynamicHW.hw[i][0] and dynamicPair.second == dynamicHW.hw[i][1]) {
+                if_same = true;
+                break;
+            }
+        }
+        if (! if_same){
+            ERROR_LOG("the dymHW parameter is not correct");
+            // GetDymBatchInfo();
+            return FAILED;                  
+        }
+        is_dymHW = true;
+ 
+    }
+    else{
+        ERROR_LOG("the dynamic_image_size parameter is not specified for model conversion");
+        return FAILED;       
+    } 
+    INFO_LOG("check dynamic image size success.");
+    return SUCCESS;
+}
+
+Result ModelProcess::SetDynamicHW(std::pair<uint64_t , uint64_t > dynamicPair)
+{
+    aclError ret;
+    ret = aclmdlSetDynamicHWSize(modelId_, input_, g_dymindex, dynamicPair.first, dynamicPair.second);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("aclmdlSetDynamicHWSize failed %d", ret);
+        return FAILED;
+    }
+    return SUCCESS;
+}
+
+Result ModelProcess::CheckDynamicBatchSize(uint64_t dymbatch, bool &is_dymbatch)
+{
+    aclmdlBatch batch_info;
+    aclError ret; 
+    bool if_same = false;
+    ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get DynamicBatch failed");
+        return FAILED;
+    }
+    if (batch_info.batchCount > 0) {
+        for (size_t i = 0; i < batch_info.batchCount; i++) {
+            if (dymbatch == batch_info.batch[i]){
+                if_same = true;
+                break;
+            }
+        }
+        if (! if_same){
+            ERROR_LOG("the dymBatch parameter is not correct");
+            GetDymBatchInfo();
+            return FAILED;                  
+        }
+        is_dymbatch = true;
+    }
+    else{
+        ERROR_LOG("the dynamic_batch_size parameter is not specified for model conversion");
+        return FAILED;       
+    }  
+    INFO_LOG("check dynamic batch success");
+    return SUCCESS;
+}
+
+Result ModelProcess::SetDynamicBatchSize(uint64_t batchSize)
+{
+    aclError ret = aclmdlSetDynamicBatchSize(modelId_, input_, g_dymindex, batchSize);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("aclmdlSetDynamicBatchSize failed %d", ret);
+        return FAILED;
+    }
+    INFO_LOG("set dynamic batch size success");
+    return SUCCESS; 
+}
+
+Result ModelProcess::GetMaxBatchSize(uint64_t &maxBatchSize)
+{
+    aclmdlBatch batch_info;
+    aclError ret; 
+    ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("get DynamicBatch failed");
+        return FAILED;
+    }
+    if (batch_info.batchCount > 0) {
+        for (size_t i = 0; i < batch_info.batchCount; i++) {
+            if (maxBatchSize < batch_info.batch[i]){
+                maxBatchSize = batch_info.batch[i];
+            }
+        }
+    }
+    INFO_LOG("get max dynamic batch size success");
+    return SUCCESS;
+}
+
+Result ModelProcess::GetCurOutputDimsMul(size_t index, vector<int64_t>& curOutputDimsMul)
+{
+    aclError ret; 
+    aclmdlIODims ioDims;
+    int64_t tmp_dim = 1;
+    ret = aclmdlGetCurOutputDims(modelDesc_, index, &ioDims);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("aclmdlGetCurOutputDims failed, ret[%d]", ret);
+        return FAILED;
+    }
+    for (int i = 1; i < ioDims.dimCount; i++) {
+        tmp_dim *= ioDims.dims[ioDims.dimCount - i];
+        curOutputDimsMul.push_back(tmp_dim);
+    }
     return SUCCESS;
 }
 
@@ -116,12 +240,12 @@ Result ModelProcess::CheckDynamicDims(vector<string> dymDims, size_t gearCount, 
     for (size_t i = 0; i < gearCount; i++)
     {
         if ((size_t)dymDims.size() != dims[i].dimCount){
-            ERROR_LOG("the dynamic_dims parameter is not correct");
+            ERROR_LOG("the dymDims parameter is not correct");
             GetDimInfo(gearCount, dims);
             return FAILED;
         }
         for (size_t j = 0; j < dims[i].dimCount; j++)
-        {  
+        {   
             if (dims[i].dims[j] != atoi(dymDims[j].c_str()))
             {
                 break;
@@ -163,6 +287,31 @@ Result ModelProcess::SetDynamicDims(vector<string> dymDims)
     return SUCCESS; 
 }
 
+void ModelProcess::GetDymBatchInfo(){
+    aclmdlBatch batch_info;
+    aclmdlGetDynamicBatch(modelDesc_, &batch_info);
+    stringstream ss;
+    ss << "model has dynamic batch size:{";
+    for (size_t i = 0; i < batch_info.batchCount; i++) {
+        ss << "[" << batch_info.batch[i] << "]";  
+    }
+    ss << "}, please set correct dynamic batch size";
+    ERROR_LOG("%s", ss.str().c_str());    
+}
+
+void ModelProcess::GetDymHWInfo(){
+    aclmdlHW  hw_info;
+    aclmdlGetDynamicHW(modelDesc_, -1, &hw_info);
+    stringstream ss;
+    
+    ERROR_LOG("model has %zu gear of HW", hw_info.hwCount);
+    for (size_t i = 0; i < hw_info.hwCount; i++) {
+        ss << "[" << hw_info.hw[i] << "]";  
+    }
+    ss << "}, please set correct dynamic batch size";
+    ERROR_LOG("%s", ss.str().c_str());    
+}
+
 void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims *dims)
 {
     aclmdlGetInputDynamicDims(modelDesc_, -1, dims, gearCount);
@@ -171,7 +320,7 @@ void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims *dims)
     {
         if (i == 0)
         {
-            INFO_LOG("model has %zu gear of dims", gearCount); 
+            ERROR_LOG("model has %zu gear of dims", gearCount); 
         }
         stringstream ss;
         ss << "dims[" << i << "]:";
@@ -179,7 +328,7 @@ void ModelProcess::GetDimInfo(size_t gearCount, aclmdlIODims *dims)
         {
             ss << "[" << dims[i].dims[j] << "]";  
         }
-        INFO_LOG("%s", ss.str().c_str()); 
+        ERROR_LOG("%s", ss.str().c_str()); 
     }
 }
 
@@ -229,8 +378,6 @@ Result ModelProcess::PrintDesc()
     ret = aclmdlGetDynamicBatch(modelDesc_, &batch_info);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("get DynamicBatch failed");
-        (void)aclmdlDestroyDesc(modelDesc_);
-        modelDesc_ = nullptr;
         return FAILED;
     }
     if (batch_info.batchCount != 0) {
@@ -243,15 +390,13 @@ Result ModelProcess::PrintDesc()
     aclmdlHW dynamicHW;
     ret = aclmdlGetDynamicHW(modelDesc_, -1, &dynamicHW);
     if (ret != ACL_ERROR_NONE) {
-        ERROR_LOG("get DynamicHW failed");
-        (void)aclmdlDestroyDesc(modelDesc_);
         modelDesc_ = nullptr;
         return FAILED;
     }
     if (dynamicHW.hwCount != 0) {
         DEBUG_LOG("DynamicHW:");
         for (size_t i = 0; i < dynamicHW.hwCount; i++) {
-            cout << dynamicHW.hw[i][0] << dynamicHW.hw[i][1] << " ";
+            cout << dynamicHW.hw[i][0] << "," <<dynamicHW.hw[i][1] << " ";
         }
         cout << endl;
     }
@@ -278,7 +423,7 @@ Result ModelProcess::CreateDymInput(size_t index)
     } 
     size_t buffer_size = aclmdlGetInputSizeByIndex(modelDesc_, index);
     void* inBufferDev = nullptr;
-    aclError ret = aclrtMalloc(&inBufferDev, buffer_size, ACL_MEM_MALLOC_NORMAL_ONLY);
+    aclError ret = aclrtMalloc(&inBufferDev, buffer_size, ACL_MEM_MALLOC_HUGE_FIRST);
     if (ret != ACL_ERROR_NONE) {
         ERROR_LOG("malloc device buffer failed. size is %zu", buffer_size);
         return FAILED;
@@ -391,14 +536,25 @@ void ModelProcess::DestroyInput()
         return;
     }
 
-    for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(input_); ++i) {
-        aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(input_, i);
-        void* data = aclGetDataBufferAddr(dataBuffer);
+    size_t bufNum = aclmdlGetDatasetNumBuffers(input_);
+    for (size_t i = 0; i < bufNum; ++i) {
+        aclDataBuffer *dataBuffer = aclmdlGetDatasetBuffer(input_, i);
+        if (dataBuffer == nullptr){
+            continue;
+        }
+        void *data = aclGetDataBufferAddr(dataBuffer);
+        if (data == nullptr){
+            (void)aclDestroyDataBuffer(dataBuffer);
+            continue;
+        }
         (void)aclrtFree(data);
+        data = nullptr;
         (void)aclDestroyDataBuffer(dataBuffer);
+        dataBuffer = nullptr;
     }
-    aclmdlDestroyDataset(input_);
+    (void)aclmdlDestroyDataset(input_);
     input_ = nullptr;
+    INFO_LOG("destroy model input success.");
 }
 
 Result ModelProcess::CreateOutput()
@@ -445,17 +601,29 @@ Result ModelProcess::CreateOutput()
     return SUCCESS;
 }
 
-void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
+void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, std::uint64_t dymbatch_size)
 {
-
+    void* dims = nullptr;
+    void* data = nullptr;
+    void* outHostData = nullptr;
+    void* outData = nullptr;
+    aclmdlIODims* dim = nullptr;
+    aclError ret = ACL_ERROR_NONE;    
+    uint64_t maxBatchSize = 0;
+    uint32_t len = 0;
+    ret = GetMaxBatchSize(maxBatchSize);
+    if (ret != ACL_ERROR_NONE) {
+        ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
+        return;
+    }   
     for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(output_); ++i) {
         aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
-        void* data = aclGetDataBufferAddr(dataBuffer);
-        uint32_t len = aclGetDataBufferSize(dataBuffer);
+        data = aclGetDataBufferAddr(dataBuffer);
+        len = aclGetDataBufferSizeV2(dataBuffer);
+        if (dymbatch_size > 0 && maxBatchSize > 0){
+            len = len / (maxBatchSize / dymbatch_size);
+        }
         aclDataType datatype = aclmdlGetOutputDataType(modelDesc_, i);
-        void* dims = nullptr;
-        aclmdlIODims* dim = nullptr;
-        aclError ret = ACL_ERROR_NONE;
         if (!g_is_device) {
             ret = aclrtMallocHost(&dims, sizeof(aclmdlIODims));
             if (ret != ACL_ERROR_NONE) {
@@ -470,22 +638,18 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
             }
         }
         dim = reinterpret_cast<aclmdlIODims*>(dims);
-        ret = aclmdlGetOutputDims(modelDesc_, i, dim);
+        ret = aclmdlGetCurOutputDims(modelDesc_, i, dim);
         if (ret != ACL_ERROR_NONE) {
-            ERROR_LOG("aclmdlGetOutputDims failed, ret[%d]", ret);
+            ERROR_LOG("aclmdlGetCurOutputDims failed, ret[%d]", ret);
             return;
         }
-
-        void* outHostData = NULL;
-        ret = ACL_ERROR_NONE;
-        void* outData = NULL;
+        
         if (!g_is_device) {
             ret = aclrtMallocHost(&outHostData, len);
             if (ret != ACL_ERROR_NONE) {
                 ERROR_LOG("aclrtMallocHost failed, ret[%d]", ret);
                 return;
             }
-
             ret = aclrtMemcpy(outHostData, len, data, len, ACL_MEMCPY_DEVICE_TO_HOST);
             if (ret != ACL_ERROR_NONE) {
                 ERROR_LOG("aclrtMemcpy failed, ret[%d]", ret);
@@ -537,61 +701,63 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
             outData = reinterpret_cast<float*>(data);
         }
         if (g_is_txt) {
-            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
-            int amount_onebatch = 1;
-            for (int j = 1; j < dim->dimCount; j++) {
-                amount_onebatch *= dim->dims[j];
+            vector<int64_t> curOutputDimsMul;
+            ret = GetCurOutputDimsMul(i, curOutputDimsMul);
+            if (ret != ACL_ERROR_NONE) {
+                ERROR_LOG("GetCurOutputDimsMul failed, ret[%d]", ret);
+                return;
             }
+            ofstream outstr(s + "/" + modelName + "_output_" + to_string(i) + ".txt", ios::out);
             switch (datatype) {
             case 0:
-                for (int i = 0; i < len / sizeof(float); i++) {
-                    float out = *((float*)outData + i);
+                for (int64_t i = 1; i <= len / sizeof(float); i++) {
+                    float out = *((float*)outData + i - 1);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    }                    
                 }
                 break;
             case 1:
                 for (int i = 0; i < len / sizeof(aclFloat16); i++) {
                     aclFloat16 out = *((aclFloat16*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    }                   
                 }
                 break;
             case 2:
                 for (int i = 0; i < len / sizeof(int8_t); i++) {
                     int8_t out = *((int8_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 3:
-                for (int i = 0; i < len / sizeof(int); i++) {
-                    int out = *((int*)outData + i);
+                for (int i = 1; i <= len / sizeof(int); i++) {
+                    int out = *((int*)outData + i - 1);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
+                            break;
+                        } 
                     }
                 }
                 break;
@@ -599,12 +765,12 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                 for (int i = 0; i < len / sizeof(uint8_t); i++) {
                     uint8_t out = *((uint8_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
+                            break;
+                        } 
                     }
                 }
                 break;
@@ -612,91 +778,91 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName)
                 for (int i = 0; i < len / sizeof(int16_t); i++) {
                     int16_t out = *((int16_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 7:
                 for (int i = 0; i < len / sizeof(uint16_t); i++) {
                     uint16_t out = *((uint16_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 8:
-                for (int i = 0; i < len / sizeof(uint32_t); i++) {
-                    uint32_t out = *((uint32_t*)outData + i);
+                for (int i = 1; i <= len / sizeof(uint32_t); i++) {
+                    uint32_t out = *((uint32_t*)outData + i - 1);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 9:
                 for (int i = 0; i < len / sizeof(int64_t); i++) {
                     int64_t out = *((int64_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 10:
                 for (int i = 0; i < len / sizeof(uint64_t); i++) {
                     uint64_t out = *((uint64_t*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 11:
                 for (int i = 0; i < len / sizeof(double); i++) {
                     double out = *((double*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             case 12:
                 for (int i = 0; i < len / sizeof(bool); i++) {
                     int out = *((bool*)outData + i);
                     outstr << out << " ";
-                    if (i != 0 && (i + 1) % amount_onebatch == 0 && i != len / sizeof(float)-1){
-                        outstr << "\n\n";
-                    } else{
-                        if ((i + 1) % 100 == 0 && i != len / sizeof(float)-1){
+                    vector<int64_t>::iterator it;
+                    for(it = curOutputDimsMul.begin(); it != curOutputDimsMul.end(); it++){
+                        if ((i != 0) && (i % *it == 0)){
                             outstr << "\n";
-                        }
-                    }
+                            break;
+                        } 
+                    } 
                 }
                 break;
             default:

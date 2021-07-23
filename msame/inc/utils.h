@@ -67,6 +67,8 @@ public:
 
     static  int SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
 
+    static  int SplitStringWithComma(std::string str, std::vector<std::string> &out, char split);
+
     static int str2num(char* str);
 
     static std::string modelName(std::string& s);

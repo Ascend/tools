@@ -11,7 +11,7 @@ FUSION_RESULT_FILE_NAME = 'fusion_result.json'
 EFFECT_TIMES_KEY = 'effect_times'
 GRAPH_FUSION_KEY = 'graph_fusion'
 UB_FUSION_KEY = 'ub_fusion'
-GRAPH_ID_KEY = 'graphId'
+GRAPH_ID_KEYS = ['graphId', 'session_and_graph_id']
 
 
 class FusionResult(object):
@@ -20,15 +20,22 @@ class FusionResult(object):
 
     def get_effect_graph_fusion(self):
         """Get effect graph fusion rule"""
-        return self._get_effect_fusion(self.fusion_json[GRAPH_FUSION_KEY])
+        if GRAPH_FUSION_KEY in self.fusion_json:
+            return self._get_effect_fusion(self.fusion_json[GRAPH_FUSION_KEY])
+        return {}
 
     def get_effect_ub_fusion(self):
         """Get effect UB fusion rule"""
-        return self._get_effect_fusion(self.fusion_json[UB_FUSION_KEY])
+        if UB_FUSION_KEY in self.fusion_json:
+            return self._get_effect_fusion(self.fusion_json[UB_FUSION_KEY])
+        return {}
 
     def graph_id(self):
         """Get graph id"""
-        return self.fusion_json[GRAPH_ID_KEY]
+        for key in GRAPH_ID_KEYS:
+            if key in self.fusion_json:
+                return self.fusion_json[key]
+        return "NONE"
 
     @staticmethod
     def _get_effect_fusion(fusion):

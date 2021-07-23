@@ -6,6 +6,7 @@ from lib.desc import InputDesc
 from lib.desc import OutputDesc
 from lib.util import util
 from lib.constant import Constant
+from lib.precision_tool_exception import PrecisionToolException
 
 NO_INPUT_NODES = ['Data', 'AtomicAddrClean', 'Recv', 'Constant']
 NO_OUTPUT_NODES = ['Send', 'Recv', 'NetOutput']
@@ -88,6 +89,37 @@ class Op(object):
                         self.log.warning("Unknown attr format: %s", attr[JSON_VALUE])
         return ''
 
+    def compare(self, right_op):
+        """Compare with another op"""
+        if not isinstance(right_op, Op):
+            raise PrecisionToolException("Should compare with another op.")
+        res_str = ['LeftOp(Type/Name) : [green][%s][/green] %s' % (self.type(), self.name()),
+                   'RightOp(Type/Name): [green][%s][/green] %s' % (right_op.type(), right_op.name())]
+        similar = True
+        if len(self.inputs()) != len(right_op.inputs()):
+            res_str.append("Input: [yellow]Input num mismatch.[/yellow]")
+        else:
+            res_str.append("Input:")
+        for left_input in self.inputs():
+            for right_input in right_op.inputs():
+                if left_input.idx() != right_input.idx():
+                    continue
+                txt, input_similar = left_input.compare(right_input)
+                res_str.append(' - ' + txt)
+                similar = similar and input_similar
+        if len(self.outputs()) != len(right_op.outputs()):
+            res_str.append("Output: [yellow]Output num mismatch.[/yellow]")
+        else:
+            res_str.append("Output:")
+        for left_output in self.outputs():
+            for right_output in right_op.outputs():
+                if left_output.idx() != right_output.idx():
+                    continue
+                txt, output_similar = left_output.compare(right_output)
+                res_str.append(' - ' + txt)
+                similar = similar and output_similar
+        return Constant.NEW_LINE.join(res_str), similar
+
     def summary(self, origin_txt=False):
         """Summary of current op"""
         res_str = ['Op(Type/Name): [green][%s][/green] %s' % (self.type(), self.name()),
@@ -119,8 +151,8 @@ class Op(object):
         for i in range(len(self.op_json['input'])):
             name = self.op_json['input'][i]
             if name == '':
-                if self.type() not in NO_INPUT_NODES:
-                    self.log.warning('invalid input name.')
+                # if self.type() not in NO_INPUT_NODES:
+                # self.log.warning('invalid input name.')
                 continue
             name_info = name.split(':')
             if len(name_info) == 2 and int(name_info[1]) == -1:

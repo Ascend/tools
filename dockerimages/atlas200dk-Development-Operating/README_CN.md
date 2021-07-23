@@ -80,6 +80,16 @@ apt-get install docker.io
 su root             切换到root用户
 su ${USER}          再切换到原来的应用用户以上配置才生效
 ```
+    > **说明：**     
+    > -   在运行docker load 加载镜像时报错 dockerError processing tar file(exit status 1): no space left on device(造成以上报错的原因是因为docker加载镜像的空间不足了)
+    >修改 docker root path
+    >step 1: sudo docker info明确 Docker Root Dir: 为 /var/lib/docker
+    >step 2: 关闭 docker 服务 sudo systemctl stop docker
+    >step 3: 新建docker root 路径 sudo mkdir /home/docker
+    >step 4: 新建 docker 配置文件 sudo touch /etc/docker/daemon.json
+    >step 5: vim写入文件 vim /etc/docker/daemon.json
+    >step 6: 我的 docker 版本为 v19.03.2(docker版本可用docker --version查看)，在文件中加入json语句 {"graph": "/home/docker"} 问题得到了解决。网上解决办法还有当版本太低的时候，需要将上面的json语句替换为 {"data-root": "/home/docker"}
+    >step 7: 重启docker 服务 sudo systemctl start docker ，并 查看 docker info 的 docker root dir 是否变为指定的root路径 /home/docker
 ### 直接拉取atlas200dk合设环境镜像
 命令行中执行如下命令拉取镜像：
  命令行中执行如下命令拉取镜像：

@@ -18,6 +18,7 @@
 #define _SAMPLE_PROCESS_H_
 #include "acl/acl.h"
 #include "utils.h"
+#include "model_process.h"
 #include <stdio.h>
 
 /**
@@ -45,7 +46,13 @@ public:
     * @brief sample process
     * @return result
     */
-    Result Process(std::map<char, std::string>& params, std::vector<std::string>& inputs);
+    Result Process(std::map<char, std::string> &params, std::vector<std::string> &inputs);
+
+    /**
+    * @brief split string and check Dynamic Dims
+    * @return result
+    */
+    Result PrepareDynamicDims(std::map<char, std::string> &params, std::vector<std::string> &dymDims, ModelProcess &processModel);
 
 private:
     void DestroyResource();

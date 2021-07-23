@@ -6,7 +6,7 @@ TF_DUMP_STEP = '0'
 
 # path to run package operator cmp compare
 # default may be /usr/local/Ascend/
-CMD_ROOT_PATH = '/usr/local/'
+CMD_ROOT_PATH = '/usr/local/Ascend/'
 
 # ASCEND Log Path
 ASCEND_LOG_PATH = '/root/ascend/log/plog/'
@@ -14,6 +14,9 @@ ASCEND_LOG_PATH = '/root/ascend/log/plog/'
 # TOOL CONFIG
 LOG_LEVEL = "NOTSET"
 ROOT_DIR = ''
+
+# [train/infer] if adapt from msquickcmp result, set net type to infer
+NET_TYPE = 'train'
 
 '''
 precision_data/
@@ -86,7 +89,7 @@ PRECISION_TOOL_DUMP_FLAG = 'PRECISION_TOOL_DUMP'
 # DUMP CONFIG
 OP_DEBUG_LEVEL = 0
 DUMP_GE_GRAPH_VALUE = 2
-DUMP_GRAPH_LEVEL_VALUE = 2
+DUMP_GRAPH_LEVEL_VALUE = 3
 DUMP_SEED = 0
 
 # TF_DEBUG
@@ -94,5 +97,4 @@ TF_DEBUG_TIMEOUT = 360
 
 # MSACCUCMP
 MS_ACCU_CMP = r'msaccucmp.py[c]?'
-PYTHON = 'python3'
-BUILD_JSON_GRAPH_NAME = 'PreRunAfterBuild'
+BUILD_JSON_GRAPH_NAME = 'Build'

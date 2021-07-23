@@ -97,6 +97,9 @@ export DUMP_GE_GRAPH=2
 export DUMP_GRAPH_LEVEL=2
 export NPU_COLLECT_PATH=$path
 export ASCEND_GLOBAL_LOG_LEVEL=1
+export ASCEND_PROCESS_LOG_PATH=$path/tmp
+export ASCEND_HOST_LOG_FILE_NUM=1000
+
 
 ulimit -c unlimited
 echo $cmd > $path/log/host/user_cmd

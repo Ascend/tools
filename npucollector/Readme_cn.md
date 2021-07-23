@@ -15,6 +15,8 @@
 -   算子编译.o文件
 -   机器环境信息，包括执行用例前机器的内存状态、硬盘状态、进程状态，机器的操作系统信息，内核版本信息。
 
+本工具会使用环境变量NPU_COLLECT_PATH来控制dump图以及算子.o的生成路径
+
 ## 使用约束<a name="section1872274617296"></a>
 
 1.  不支持原有执行脚本内部直接后台执行的方式。
@@ -33,9 +35,9 @@
 
 ## 工具使用<a name="section171791224131610"></a>
 
-请从码云tools仓（[https://github.com/Ascend/tools/tree/master/npucollector](https://github.com/Ascend/tools/tree/master/npucollector)）获取脚本工具，然后将脚本工具存放到发生故障的环境上，例如存放到/home/npucollector目录下，在该目录下执行命令，命令行格式如下：
+请从码云tools仓（[https://github.com/Ascend/tools/tree/master/npucollector](https://github.com/Ascend/tools/tree/master/npucollector)）获取脚本工具，然后将脚本工具存放到发生故障的环境上，例如存放到/home/npucollector目录下，接着在**原用例执行目录下**执行命令，命令行格式如下：
 
-**sh npucollect.sh** _"sh ../app\_run.sh" /home/npucollector/target.tar.gz_
+**bash /home/npucollector/npucollect.sh** _"sh app\_run.sh" /home/npucollector/target.tar.gz_
 
 >**说明：** 
 >命令行中，第一个参数字段为发生故障时执行的任务，填写完整的命令；第二个参数字段为收集的目标压缩文件名称，目前必须以.tar.gz结尾。

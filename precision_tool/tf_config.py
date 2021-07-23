@@ -1,6 +1,6 @@
 # coding=utf-8
 import os
-from npu_bridge.npu_init import DumpConfig
+import random
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf.rewriter_config_pb2 import RewriterConfig
 from tensorflow.python import debug as tf_debug
@@ -18,6 +18,7 @@ FUSION_OFF_FILE = os.path.join(os.path.dirname(__file__), 'fusion_off.cfg')
 DEFAULT_OP_DEBUG_DIR = cfg.DEFAULT_OP_DEBUG_DIR
 
 # set random seed
+random.seed(cfg.DUMP_SEED)
 tf.random.set_random_seed(cfg.DUMP_SEED)
 print("[PrecisionTool] Set Tensorflow random seed to %d success." % cfg.DUMP_SEED)
 try:
@@ -53,6 +54,7 @@ def estimator_dump_config(action=None):
     exp. config = NPURunConfig(dump_config=estimator_dum_config(), session_config=session_config)
     :return: DumpConfig
     """
+    from npu_bridge.npu_init import DumpConfig
     _init()
     if _is_overflow(action):
         config = DumpConfig(enable_dump_debug=True, dump_path=cfg.NPU_OVERFLOW_DUMP_DIR, dump_mode="all")

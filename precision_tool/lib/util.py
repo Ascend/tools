@@ -1,6 +1,7 @@
 # coding=utf-8
 import csv
 import re
+import sys
 import os
 import shutil
 import numpy as np
@@ -35,8 +36,6 @@ except ImportError as import_error:
     print("Unable to import module: readline. Run 'pip3 install gnureadline pyreadline' to fix it.")
 
 # patterns
-# GE_PROTO_BUILD_GRAPH_PATTERN = '^ge_proto.*_Build.*txt$'
-GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'
 OFFLINE_DUMP_PATTERN = r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)\.?([0-9]+)?\.([0-9]{1,255})"
 OFFLINE_DUMP_DECODE_PATTERN = \
     r"^([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([0-9]+)(\.[0-9]+)?\.([0-9]{1,255})\.([a-z]+)\.([0-9]{1,255})\.npy$"
@@ -65,6 +64,7 @@ class Util(object):
         logging.basicConfig(level=cfg.LOG_LEVEL, format="%(asctime)s (%(process)d) -[%(levelname)s]%(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S")
         self.log = logging.getLogger()
+        self.python = sys.executable
 
     def get_log(self):
         return self.log
@@ -124,7 +124,7 @@ class Util(object):
         """
         self.create_dir(dst_path)
         format_cmd = '' if data_format is None else '-f %s' % data_format
-        cmd = '%s %s convert -d %s -out %s %s' % (cfg.PYTHON, self._get_ms_accu_cmp(), src_file, dst_path, format_cmd)
+        cmd = '%s %s convert -d %s -out %s %s' % (self.python, self._get_ms_accu_cmp(), src_file, dst_path, format_cmd)
         return self.execute_command(cmd)
 
     def compare_vector(self, npu_dump_dir, cpu_dump_dir, graph_json, result_path):
@@ -138,10 +138,10 @@ class Util(object):
         self.create_dir(result_path)
         if graph_json is None:
             cmd = '%s %s compare -m %s -g %s -out %s' % (
-                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path)
+                self.python, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, result_path)
         else:
             cmd = '%s %s compare -m %s -g %s -f %s -out %s' % (
-                cfg.PYTHON, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path)
+                self.python, self._get_ms_accu_cmp(), npu_dump_dir, cpu_dump_dir, graph_json, result_path)
         return self.execute_command(cmd)
 
     def list_dump_files(self, path, sub_path=''):
@@ -202,7 +202,7 @@ class Util(object):
         return npu_dump_files
 
     def list_ge_graph_files(self, path, extern_pattern=''):
-        return self._list_file_with_pattern(path, GE_PROTO_GRAPH_PATTERN, extern_pattern,
+        return self._list_file_with_pattern(path, Constant.Pattern.GE_PROTO_GRAPH_PATTERN, extern_pattern,
                                             self._gen_build_graph_file_info)
 
     def list_npu_dump_decode_files(self, path, extern_pattern=''):
@@ -280,16 +280,22 @@ class Util(object):
         elif isinstance(source_data, np.ndarray):
             data = source_data
         else:
-            raise PrecisionToolException("invalid source data:%s" % source_data)
+            raise PrecisionToolException("Invalid source data:%s" % source_data)
+        if np.size(data) == 0:
+            raise PrecisionToolException("Empty source data:%s" % source_data)
         return data.shape, data.dtype, data.max(), data.min(), data.mean()
 
+    @catch_tool_exception
     def gen_npy_info_txt(self, source_data):
         """ Generate numpy info txt.
         :param source_data: source path or np.ndarray
         :return: txt
         """
-        shape, dtype, max_data, min_data, mean = self.npy_info(source_data)
-        return '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (shape, dtype, max_data, min_data, mean)
+        try:
+            shape, dtype, max_data, min_data, mean = self.npy_info(source_data)
+            return '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (shape, dtype, max_data, min_data, mean)
+        except PrecisionToolException:
+            return ''
 
     def print_npy_summary(self, path, file_name, is_convert=False, extern_content=''):
         """Print summary of npy data
@@ -306,7 +312,8 @@ class Util(object):
         table = self.create_table('', ['Index', 'Data'])
         flatten_data = data.flatten()
         for i in range(min(16, int(np.ceil(flatten_data.size / 8)))):
-            table.add_row(str(i * 8), ' '.join(flatten_data[i: i+8].astype('str').tolist()))
+            last_idx = min(flatten_data.size, i*8+8)
+            table.add_row(str(i * 8), ' '.join(flatten_data[i*8: last_idx].astype('str').tolist()))
         summary = ['[yellow]%s[/yellow]' % self.gen_npy_info_txt(data), 'Path: %s' % target_file]
         if is_convert:
             summary.append('TxtFile: %s.txt' % target_file)

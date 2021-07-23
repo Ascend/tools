@@ -46,6 +46,9 @@ Ascend tools，昇腾工具仓库。
 
 10. [precision_tool](./precision_tool)    
    **精度问题分析工具**：该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景，同时提供Dump数据/图信息的交互式查询和操作入口。 
+
+11. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)    
+    **cann-benchmark推理软件对应的模型前后处理脚本**： 该工具包含cann-benchmark推理工具模型处理脚本, 包括：结果解析脚本和前后处理脚本等。这些脚本需根据cann-benchmark指导手册说明使用。
 #### 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。

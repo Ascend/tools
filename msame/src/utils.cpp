@@ -195,7 +195,9 @@ void Utils::printHelpLetter()
     cout << "  --profiler	Enable profiler (true or false)" << endl;
     cout << "  --device      Designated the device ID(must in 0 to 255)" << endl;
     cout << "  --debug       Debug switch,print model information (true or false)" << endl;
-    cout << "  --dymDims 	dynamic dims (example: 1,3,512,512)" << endl << endl << endl;
+    cout << "  --dymBatch    dynamic batch size param，such as --dymBatch 2" << endl;
+    cout << "  --dymHW    dynamic image size param, such as --dymHW 300,500" << endl;
+    cout << "  --dymDims 	dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"" << endl << endl << endl;
 }
 
 double Utils::printDiffTime(time_t begin, time_t end)
@@ -321,5 +323,14 @@ int Utils::SplitStringSimple(string str, vector<string> &out, char split1, char 
         while (getline(block_tmp1, cell2, split3)) {
             out.push_back(cell2); 
         }
+    }
+}
+
+int Utils::SplitStringWithComma(string str, vector<string> &out, char split)
+{
+    istringstream block(str);
+    string cell;
+    while (getline(block, cell, split)) {
+        out.push_back(cell);
     }
 }

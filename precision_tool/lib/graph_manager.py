@@ -47,7 +47,20 @@ class GraphManager(object):
             graph.check_dtype()
 
     def check_similarity(self):
-        return
+        self._check_npu_graph_similarity()
+
+    def _check_npu_graph_similarity(self):
+        """Check npu graph similarity"""
+        if len(self.npu_graphs) < 2:
+            self.log.debug("Only one npu debug, no need to check npu graph similarity.")
+            return
+        left_graphs = self.npu_graphs[Constant.DEFAULT_DEBUG_ID].sub_graphs
+        right_graphs = self.npu_graphs[Constant.NPU_DEBUG_ID_1].sub_graphs
+        for left_graph in left_graphs.values():
+            for right_graph in right_graphs.values():
+                if left_graph.graph_id != right_graph.graph_id:
+                    continue
+                left_graph.compare(right_graph)
 
     def get_graphs(self, debug_id):
         if debug_id not in self.npu_graphs:

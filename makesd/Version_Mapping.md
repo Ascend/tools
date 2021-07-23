@@ -23,7 +23,7 @@ The following table describes the version mapping between the Atlas 200 DK Drive
 <tr><td>3.2.0.alpha001<br/>Note: The 20.2.alpha001 version number is deprecated.</td>
 </tr>
 <tr><td>1.0.8.alpha</td>
-<td>3.1.0.alpha00<br/>Note: The 20.1.alpha001 version number is deprecated.</td>
+<td>3.1.0.alpha001<br/>Note: The 20.1.alpha001 version number is deprecated.</td>
 </tr>
 <tr><td>1.0.7.alpha</td><td>20.0.0</td></tr>
 </table>

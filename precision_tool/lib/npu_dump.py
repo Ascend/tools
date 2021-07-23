@@ -83,10 +83,11 @@ class NpuDump(object):
     def get_dump_files_by_op(self, op):
         """Get npu dump files by Op"""
         npu_files = {}
-        match_name = op.type() + '.' + op.name().replace('/', '_').replace('.', '_') + '\\.'
+        op_name = op.name().replace('/', '_').replace('.', '_')
+        match_name = op.type() + '.' + op_name + '\\.'
         for f in self.dump_files:
-            # match op name and graph name
-            if re.match(match_name, f) and op.graph_name in self.dump_files[f].path:
+            # match op name and graph name, infer dump directory may not has graph
+            if re.match(match_name, f) and (op.graph_name in self.dump_files[f].path or cfg.NET_TYPE == 'infer'):
                 npu_files[f] = self.dump_files[f]
         return npu_files
 
@@ -176,13 +177,3 @@ class NpuDump(object):
             if file_info.op_name == op_name:
                 return file_info
         return None
-
-    @staticmethod
-    def _detect_cpu_file_name(file_name):
-        match_name = file_name.replace('/', '_').replace('.', '_') + '\\.'
-        cpu_files = util.list_cpu_dump_decode_files(cfg.TF_DUMP_DIR, match_name)
-        summary = ['CPU_DUMP:']
-        for file_name in cpu_files.keys():
-            summary.append(' - %s' % file_name)
-        util.print_panel(Constant.NEW_LINE.join(summary))
-        return cpu_files

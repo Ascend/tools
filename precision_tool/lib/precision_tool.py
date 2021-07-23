@@ -36,9 +36,10 @@ class PrecisionTool(object):
 
     @catch_tool_exception
     def do_auto_check(self, argv):
-        """auto check"""
+        """Auto check"""
         parser = argparse.ArgumentParser()
-        parser.add_argument('-c', '--vector_compare', dest='vector_compare', help='auto check', action='store_true')
+        parser.add_argument('-c', '--vector_compare', dest='vector_compare', help='Run vector compare process',
+                            action='store_true')
         parser.add_argument('-l', '--limit', dest='limit', type=int, help='limit', default=3)
         args = parser.parse_args(argv)
         # vector compare
@@ -119,7 +120,6 @@ class PrecisionTool(object):
         """print tensor data"""
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='list by op name')
-        # parser.add_argument('-c', '--convert', dest='convert', help='convert txt', action='store_true')
         args = parser.parse_args() if argv is None else parser.parse_args(argv)
         self.dump_manager.print_tensor(args.name, True)
 
@@ -140,7 +140,6 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
         parser.add_argument('-g', '--graph', dest='graph', help='graph name')
-        # parser.add_argument('-d', '--dump', dest='dump', help='show dump files info', action='store_true')
         parser.add_argument('-s', '--save', dest='save', type=int, default=0,
                             help='save subgraph, param gives the deep of subgraph')
         args = parser.parse_args(argv)
@@ -160,7 +159,6 @@ class PrecisionTool(object):
                 util.print_panel(Constant.NEW_LINE.join(summary_txt), title)
         if args.save != 0:
             self.graph_manager.save_sub_graph(npu_ops, args.save)
-        # self.graph.print_op(args.name, args.dump, args.save, dump_manager=self.dump, compare_manager=self.compare)
 
     @catch_tool_exception
     def do_compare_data(self, argv):

@@ -66,22 +66,57 @@ public:
     /**
     * @brief get dynamic index
     */
-    Result GetDynamicIndex(size_t &dymTensorIndex);    
+    Result GetDynamicIndex(size_t &dymindex);    
 
     /**
     * @brief check dynamic input dims valid
     */
-    Result CheckDynamicDims(std::vector<std::string> dymDims, size_t gearCount, aclmdlIODims *dims);
-    
+    Result CheckDynamicDims(std::vector<std::string> dymDims, size_t gearCount, aclmdlIODims* dims);
+
+    /**
+    * @brief check dynamic input batch valid
+    */
+    Result CheckDynamicBatchSize(uint64_t dymbatch, bool& is_dymbatch);
+
+    /**
+    * @brief check dynamic input image size valid
+    */
+    Result CheckDynamicHWSize(std::pair<int, int> dynamicPair, bool& is_dymHW);
+ 
     /**
     * @brief set dynamic input dims 
     */    
     Result SetDynamicDims(std::vector<std::string> dymDims);
 
     /**
+    * @brief set dynamic batch size
+    */    
+    Result SetDynamicBatchSize(uint64_t batchSize);
+    
+    /**
+    * @brief get max dynamic batch size
+    */    
+    Result GetMaxBatchSize(uint64_t& maxBatchSize);
+
+    /**
+    * @brief set dynamic image size
+    */
+    Result SetDynamicHW(std::pair<uint64_t , uint64_t > dynamicPair);
+
+    /**
     * @brief get dynamic input dims info
     */
-    void GetDimInfo(size_t gearCount, aclmdlIODims *dims);
+    void GetDimInfo(size_t gearCount, aclmdlIODims* dims);
+
+    /**
+    * @brief get dynamic input batch info
+    */
+    void GetDymBatchInfo();
+
+    /**
+    * @brief get dynamic image size info
+    */
+    void GetDymHWInfo();
 
     /**
     * @brief destroy desc
@@ -138,7 +173,12 @@ public:
     /**
     * @brief get model output result
     */
-    void OutputModelResult(std::string& s, std::string& modelName);
+    void OutputModelResult(std::string& s, std::string& modelName, std::uint64_t dymbatch_size);
+
+    /**
+    * @brief get current output dims mul
+    */
+    Result GetCurOutputDimsMul(size_t index,  std::vector<int64_t>& curOutputDimsMul);
 
 private:
     uint32_t modelId_;

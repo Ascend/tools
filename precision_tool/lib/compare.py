@@ -14,26 +14,6 @@ from lib.precision_tool_exception import PrecisionToolException
 from lib.precision_tool_exception import catch_tool_exception
 
 
-ROW_MAP = {
-    'Index': 0,
-    'LeftOp': 1,
-    'RightOp': 2,
-    'TensorIdx': 3,    # TensorIndex
-    'CosSim': 4,    # CosineSimilarity
-    'MaxAbs': 5,   # MaxAbsoluteError
-    'ARE': 6,   # AccumulatedRelativeError
-    'RED': 7,   # RelativeEuclideanDistance
-    'KLD': 8,   # KullbackLeiblerDivergence
-    'StandardDeviation': 9     # StandardDeviation
-}
-
-ROW_MAP_DESC = r"""[CosSim: CosineSimilarity]
-[MaxAbs: MaxAbsoluteError]
-[ARE: MaxAbsoluteError]
-[RED: RelativeEuclideanDistance]
-[KLD: KullbackLeiblerDivergence]"""
-
-
 class Compare(object):
     def __init__(self):
         """Init"""
@@ -104,8 +84,8 @@ class Compare(object):
         :param debug_1_root_dir:
         :return:
         """
-        debug_0_sub_dirs = self._get_ge_default_dirs(debug_0_root_dir)
-        debug_1_sub_dirs = self._get_ge_default_dirs(debug_1_root_dir)
+        # debug_0_sub_dirs = self._get_ge_default_dirs(debug_0_root_dir)
+        # debug_1_sub_dirs = self._get_ge_default_dirs(debug_1_root_dir)
 
     def vector_compare(self, lh_path, rh_path, result_dir, graph_json=None):
         """Compare all ops"""

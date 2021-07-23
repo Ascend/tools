@@ -27,8 +27,12 @@ bool g_is_profi = false;
 bool g_is_dump = false;
 bool g_is_debug = false;
 bool g_is_dymdims = false;
+bool g_is_dymHW = false;
+bool g_is_dymbatch = false;
 size_t g_dymindex = -1;
 size_t g_dym_gear_count = 0;
+uint64_t g_dymbatch_size = 0;
+pair<uint64_t, uint64_t> g_dynamicHW;
 
 void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vector<string>& inputs)
 {
@@ -37,6 +41,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
     string check = "";
     int c = -1;
     int index = 0;
+    vector<string> hw;
     struct option opts[] = { { "model", required_argument, NULL, 'm' },
         { "input", required_argument, NULL, 'i' },
         { "output", required_argument, NULL, 'o' },
@@ -47,6 +52,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
         { "loop", required_argument, NULL, 'l' },
         { "dymBatch", required_argument, NULL, 'y' },
         { "dymDims", required_argument, NULL, 'h' },
+        { "dymHW", required_argument, NULL, 'w' },
         { "device", required_argument, NULL, 'e' },
         { "debug", required_argument, NULL, 'g' },
         { 0, 0, 0, 0 } };
@@ -74,7 +80,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             break;
         case '?':
             ERROR_LOG("unknown paramenter\n");
-            ERROR_LOG("Execute sample failed.\n");
+            ERROR_LOG("Execute sample failed\n");
             Utils::printHelpLetter();
             exit(0);
         case 'd':
@@ -91,6 +97,11 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             }
             break;
         case 'y':
+            g_dymbatch_size = Utils::str2num(optarg);
+            if (g_dymbatch_size > 2048 || g_loop < 1) {
+                ERROR_LOG("dymBatch must in 1 to 2048\n");
+                exit(0);
+            }
             params['y'] = optarg;
             break;
         case 'e':
@@ -103,6 +114,14 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
         case 'g':
             params['g'] = optarg;
             break;
+        case 'w':
+            params['w'] = optarg;
+            Utils::SplitStringWithComma(params['w'], hw, ',');
+            if (hw.size() != 2) {
+                ERROR_LOG("input dynamiHW size error , this lens must be 2 , you input size = %d", static_cast <int> (hw.size()));
+            }
+            g_dynamicHW = {atoi(hw[0].c_str()), atoi(hw[1].c_str())};         
+            break;
         case 'h':
             params['h'] = optarg;
             break;
@@ -111,7 +130,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             exit(0);
         default:
             ERROR_LOG("unknown paramenter\n");
-            ERROR_LOG("Execute sample failed.\n");
+            ERROR_LOG("Execute sample failed\n");
             Utils::printHelpLetter();
             exit(0);
         }
@@ -125,8 +144,8 @@ int main(int argc, char* argv[])
     InitAndCheckParams(argc, argv, params, inputs);
 
     if (params.empty()) {
-        ERROR_LOG("Invalid params.\n");
-        ERROR_LOG("Execute sample failed.\n");
+        ERROR_LOG("Invalid params\n");
+        ERROR_LOG("Execute sample failed\n");
         Utils::printHelpLetter();
         return FAILED;
     }
@@ -144,6 +163,10 @@ int main(int argc, char* argv[])
         ERROR_LOG("dump and profiler can not both be true");
         return FAILED;
     }
+    if (params.count('h') + params.count('y') + params.count('w')> 1 ){
+        ERROR_LOG("dymBatch dymDims dymHW cannot be set at the same time");
+        return FAILED;
+    }
 
     Utils::ProfilerJson(g_is_profi, params);
     Utils::DumpJson(g_is_dump, params);
@@ -152,17 +175,17 @@ int main(int argc, char* argv[])
 
     Result ret = processSample.InitResource();
     if (ret != SUCCESS) {
-        ERROR_LOG("Sample init resource failed.");
+        ERROR_LOG("Sample init resource failed");
         return FAILED;
     }
 
     ret = processSample.Process(params, inputs);
     if (ret != SUCCESS) {
-        ERROR_LOG("Sample process failed.");
+        ERROR_LOG("Sample process failed");
         return FAILED;
     }
 
-    INFO_LOG("Execute sample success.");
+    INFO_LOG("Execute sample success");
 
     return SUCCESS;
 }

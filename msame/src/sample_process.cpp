@@ -29,6 +29,10 @@ extern bool g_is_dump;
 extern size_t g_dymindex;
 extern size_t g_dym_gear_count;
 extern bool g_is_dymdims;
+extern bool g_is_dymbatch;
+extern bool g_is_dymHW;
+extern uint64_t g_dymbatch_size;
+extern pair<uint64_t , uint64_t > g_dynamicHW;
 SampleProcess::SampleProcess()
     : deviceId_(0)
     , context_(nullptr)
@@ -39,6 +43,26 @@ SampleProcess::SampleProcess()
 SampleProcess::~SampleProcess()
 {
     DestroyResource();
+}
+
+Result SampleProcess::PrepareDynamicDims(map<char, string> &params, vector<string> &dymDims, ModelProcess &processModel){
+        
+    aclmdlIODims *dims = new aclmdlIODims[g_dym_gear_count];
+    Utils::SplitStringSimple(params['h'], dymDims, ';', ':', ',');
+    if (g_dym_gear_count <= 0){
+        ERROR_LOG("the dynamic_dims parameter is not specified for model conversion");
+        delete [] dims;
+        return FAILED;    
+    }else{
+        g_is_dymdims = true;
+    }    
+    aclError ret = processModel.CheckDynamicDims(dymDims, g_dym_gear_count, dims);
+    if (ret != SUCCESS) {
+        ERROR_LOG("check dynamic dims failed, please set correct dymDims paramenter");
+        return FAILED;
+    }
+    INFO_LOG("prepare dynamic dims successful");
+    return SUCCESS;
 }
 
 Result SampleProcess::InitResource()
@@ -127,16 +151,29 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
 
     ret = processModel.GetDynamicGearCount(g_dym_gear_count);
     if (ret != SUCCESS) {
-        ERROR_LOG("create model description failed");
         return FAILED;
+    }
+
+    if (params.count('y')) {
+        ret = processModel.CheckDynamicBatchSize(g_dymbatch_size, g_is_dymbatch);
+        if (ret != SUCCESS) {
+            ERROR_LOG("check dynamic batch size failed");
+            return FAILED;
+        }
+    }
+
+    if (params.count('w')) {
+        ret = processModel.CheckDynamicHWSize(g_dynamicHW, g_is_dymHW);
+        if (ret != SUCCESS) {
+            ERROR_LOG("check dynamic image size failed");
+            return FAILED;
+        }
     }
 
     vector<string> dymDims;
     if (params.count('h')) {
-        
         aclmdlIODims *dims = new aclmdlIODims[g_dym_gear_count];
         Utils::SplitStringSimple(params['h'], dymDims, ';', ':', ',');
-
         if (g_dym_gear_count <= 0){
             ERROR_LOG("the dynamic_dims parameter is not specified for model conversion");
             delete [] dims;
@@ -144,28 +181,25 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         }else{
             g_is_dymdims = true;
         }    
-
-        ret = processModel.CheckDynamicDims(dymDims, g_dym_gear_count, dims);
+        aclError ret = processModel.CheckDynamicDims(dymDims, g_dym_gear_count, dims);
         if (ret != SUCCESS) {
-            ERROR_LOG("check dynamic dims failed,please set correct dymDims paramenter");
+            ERROR_LOG("check dynamic dims failed, please set correct dymDims paramenter");
             return FAILED;
         }
-
+        INFO_LOG("prepare dynamic dims successful");
     }else{
         if (g_dym_gear_count > 0){
             ERROR_LOG("model has dynamic_dims, please add dymDims parameter");
             return FAILED;
         }
-    }
-        
-    if (g_is_dymdims){
+    }  
+    if (g_is_dymdims || g_is_dymbatch || g_is_dymHW){
         ret = processModel.GetDynamicIndex(g_dymindex);
         if (ret != SUCCESS) {
-            ERROR_LOG("get dynamic dims index failed");
+            ERROR_LOG("get dynamic index failed");
             return FAILED;
         }
     }  
-
     if (g_is_debug) {
         ret = processModel.PrintDesc();
         if (ret != SUCCESS) {
@@ -193,7 +227,6 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         ERROR_LOG("current user does not have permission");
         exit(0);
     }
-
     if ((input_files.empty() != 1) && (input_files[0].find(".bin") == string::npos)){
         std::vector<std::string> fileName_vec;
         Utils::ScanFiles(fileName_vec, input_files[0]);
@@ -216,7 +249,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                     return FAILED;
                 }
 
-                if (g_is_dymdims && (g_dymindex == inputCount)){                   
+                if ((g_is_dymdims || g_is_dymbatch || g_is_dymHW) && (g_dymindex == inputCount)){                   
                     ret = processModel.CreateDymInput(g_dymindex);    
                     if (ret != SUCCESS) {
                         ERROR_LOG("model create dynamic input failed");
@@ -229,7 +262,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                     ERROR_LOG("model create input failed");
                     return FAILED;
                 }
-                if (g_is_dymdims && (g_dymindex == inputCount) && (g_dymindex = input_files.size())){ 
+                if ((g_is_dymdims || g_is_dymbatch || g_is_dymHW) && (g_dymindex == inputCount) && (g_dymindex == input_files.size())){ 
                     ret = processModel.CreateDymInput(g_dymindex);
                     if (ret != SUCCESS) {
                         ERROR_LOG("model create dynamic input failed");
@@ -237,16 +270,37 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                     }
                 }
             }
-            if (g_is_dymdims && i == 0){
+            
+            if (g_is_dymdims){
                 ret = processModel.SetDynamicDims(dymDims);
                 if (ret != SUCCESS) {
-                    ERROR_LOG("set dynamic failed");
+                    ERROR_LOG("set dynamic dims failed");
                     return FAILED;
                 }
             }
+            else if (g_is_dymbatch){
+                ret = processModel.SetDynamicBatchSize(g_dymbatch_size);
+                if (ret != SUCCESS) {
+                    ERROR_LOG("set dynamic batch size failed");
+                    return FAILED;
+                }                    
+            }
+            else if (g_is_dymHW){
+                ret = processModel.SetDynamicHW(g_dynamicHW);
+                if (ret != SUCCESS) {
+                    ERROR_LOG("set dynamic image size failed");
+                    return FAILED;
+                }                    
+            }
+            
+
             gettimeofday(&begin, NULL);
             ret = processModel.Execute();
             gettimeofday(&end, NULL);
+            if (ret != SUCCESS) {
+                ERROR_LOG("model execute failed");
+                return FAILED;
+            }
 
             float time_cost = 1000 * (end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec) / 1000.000;
             if (i == 0) {
@@ -254,20 +308,17 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
             }
             
             std::cout << "Inference time: " << time_cost << "ms" << endl;
-            if (ret != SUCCESS) {
-                ERROR_LOG("model execute failed");
-                return FAILED;
-            }
+
             fileNums += 1;
             total_time += time_cost;
             string framename = fileName_vec[i];
             size_t dex = (framename).find_last_of(".");
             modelName = (framename).erase(dex);
             
-            processModel.OutputModelResult(times, modelName);
-            for (size_t index = 0; index < picDevBuffer.size(); ++index) {
-                aclrtFree(picDevBuffer[index]);
-            }
+            processModel.OutputModelResult(times, modelName, g_dymbatch_size);
+            // for (size_t index = 0; index < picDevBuffer.size(); ++index) {
+            //     aclrtFreeHost(picDevBuffer[index]);
+            // }
             processModel.DestroyInput();
             
         }
@@ -298,7 +349,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                     ERROR_LOG("get pic device buffer failed,index is %zu", index);
                     return FAILED;
                 }
-                if (g_is_dymdims && (g_dymindex == inputCount)){                   
+                if ((g_is_dymdims || g_is_dymbatch || g_is_dymHW) && (g_dymindex == inputCount)){                 
                     ret = processModel.CreateDymInput(g_dymindex);    
                     if (ret != SUCCESS) {
                         ERROR_LOG("model create dynamic input failed");
@@ -311,7 +362,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                     ERROR_LOG("model create input failed");
                     return FAILED;
                 }
-                if (g_is_dymdims && (g_dymindex == inputCount) && (g_dymindex = input_files.size())){ 
+                if ((g_is_dymdims || g_is_dymbatch || g_is_dymHW) && (g_dymindex == inputCount) && (g_dymindex == input_files.size())){ 
                     ret = processModel.CreateDymInput(g_dymindex);
                     if (ret != SUCCESS) {
                         ERROR_LOG("model create dynamic input failed");
@@ -323,9 +374,23 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         if (g_is_dymdims){       
             ret = processModel.SetDynamicDims(dymDims);
             if (ret != SUCCESS) {
-                ERROR_LOG("set dynamic failed");
+                ERROR_LOG("set dynamic dims failed");
                 return FAILED;
             }
+        }
+        else if (g_is_dymbatch){       
+            ret = processModel.SetDynamicBatchSize(g_dymbatch_size);
+            if (ret != SUCCESS) {
+                ERROR_LOG("set dynamic batch size failed");
+                return FAILED;
+            }
+        }
+        else if (g_is_dymHW){
+            ret = processModel.SetDynamicHW(g_dynamicHW);
+            if (ret != SUCCESS) {
+                ERROR_LOG("set dynamic image size failed");
+                return FAILED;
+            }                    
         }
         // loop end
         for (size_t t = 0; t < g_loop; ++t) {
@@ -339,7 +404,7 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
                 return FAILED;
             }
         }
-        processModel.OutputModelResult(times, modelName);
+        processModel.OutputModelResult(times, modelName, g_dymbatch_size);
         double infer_time_ave = Utils::InferenceTimeAverage(inference_time, g_loop);
         printf("Inference average time: %f ms\n", infer_time_ave);
         if (g_loop > 1) {

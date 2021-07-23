@@ -27,28 +27,18 @@ pre_process()
 
     mkdir -p $base_path$device_msreport_path
     mkdir -p $base_path$device_msreport_path/target
-
-    touch $base_path$host_cann_log_path/history
-    if [ -d ~/ascend/log/plog/ ];then
-        ls ~/ascend/log/plog/ > $base_path$host_cann_log_path/history
-    fi
-
-    touch $base_path$device_aicpu_path/history
-    if [ -d ~/ascend/log/device-0/ ];then
-        ls ~/ascend/log/device*/* | awk -F '/' '{print $5"/"$6}' > $base_path$device_aicpu_path/history
-    fi
 }
 
 running_process_once()
 {
     base_path=$1
     #process host
-    if [ -d ~/ascend/log/plog/ ];then
-        \cp -f ~/ascend/log/plog/* $base_path$host_cann_log_path
+    if [ -d $base_path/tmp/plog/ ];then
+        \cp -f $base_path/tmp/plog/* $base_path$host_cann_log_path
     fi
     #process device aicpu
-    if [ -d ~/ascend/log/device-0/ ];then
-        \cp -rf ~/ascend/log/device* $base_path$device_aicpu_path
+    if [ -d $base_path/tmp/device-0/ ];then
+        \cp -rf $base_path/tmp/device* $base_path$device_aicpu_path
     fi
     #process device_msreport
     if [ "$HOME" == "/root" ];then
@@ -78,24 +68,16 @@ post_process()
 {
     base_path=$1
     #process host
-    for file in `cat $base_path$host_cann_log_path/history`
-    do
-        rm -rf $base_path$host_cann_log_path/$file
-    done
-    rm -rf $base_path$host_cann_log_path/history
     if [ "`ls -A $base_path$host_cann_log_path`" == "" ];then
         echo "[error] no host log collected"
     fi
 
     #process aicpu
-    for file in `cat $base_path$device_aicpu_path/history`
-    do
-        rm -rf $base_path$device_aicpu_path/$file
-    done
-    rm -rf $base_path$device_aicpu_path/history
     if [ "`ls -A $base_path$device_aicpu_path`" == "" ];then
         echo "[error] no device-aicpu log collected"
     fi
+
+    rm -rf $base_path/tmp
 
     #process device_msreport
     if [ "$HOME" == "/root" ];then

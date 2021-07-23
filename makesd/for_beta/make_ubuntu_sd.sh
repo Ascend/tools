@@ -589,14 +589,6 @@ function preInstallDriver()
         return 1
     fi
 
-    tar -zxf ${ISO_FILE_DIR}/${DRIVER_PACKAGE} -C ${LogPath} driver/extend_rootfs/perf
-    cp ${LogPath}driver/extend_rootfs/perf ${LogPath}squashfs-root/usr/bin/perf
-    if [[ $? -ne 0 ]];then
-        echo "Failed: Copy perf.sh to filesystem failed!"
-        return 1
-    fi
-    chmod +x ${LogPath}squashfs-root/usr/bin/perf
-
     echo "make_sd_process: 80%"
     # 2. copy root filesystem
     if [[ ${arch} =~ "x86" ]];then

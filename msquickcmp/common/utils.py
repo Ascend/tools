@@ -10,6 +10,8 @@ import os
 import subprocess
 import sys
 import time
+import numpy as np
+import tensorflow as tf
 
 ACCURACY_COMPARISON_INVALID_PARAM_ERROR = 1
 ACCURACY_COMPARISON_INVALID_DATA_ERROR = 2
@@ -27,6 +29,20 @@ ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR = 14
 ACCURACY_COMPARISON_NOT_SUPPORT_ERROR = 15
 MODEL_TYPE = ['.onnx', '.pb', '.om']
+
+DTYPE_MAP = {
+    tf.float32: np.float32,
+    tf.float64: np.float64,
+    tf.int64: np.int64,
+    tf.int32: np.int32,
+    tf.int16: np.int16,
+    tf.int8: np.int8,
+    tf.uint8: np.uint8,
+    tf.bool: np.bool_,
+    tf.complex64: np.complex64
+}
+
+TF_DEBUG_TIMEOUT = 3600
 
 
 class AccuracyCompareException(Exception):
@@ -226,3 +242,89 @@ def check_dynamic_shape(shape):
         if isinstance(item, str):
             print_error_log("dynamic shape {} are not supported".format(shape))
             raise AccuracyCompareException(ACCURACY_COMPARISON_NOT_SUPPORT_ERROR)
+
+
+def convert_to_numpy_type(tensor_type):
+    np_type = DTYPE_MAP.get(tensor_type)
+    if np_type is not None:
+        return np_type
+    print_error_log("unsupported tensor type: {},".format(tensor_type))
+    raise AccuracyCompareException(ACCURACY_COMPARISON_TENSOR_TYPE_ERROR)
+
+
+def convert_tensor_shape(tensor_shape):
+    tensor_shape_list = tensor_shape.as_list()
+    for i in range(len(tensor_shape_list)):
+        if tensor_shape_list[i] is None:
+            print_error_log("The dynamic shape %s are not supported. "
+                            "Please set '-s' or '--input-shape' to fix the dynamic shape." % tensor_shape)
+            raise AccuracyCompareException(ACCURACY_COMPARISON_NOT_SUPPORT_ERROR)
+    return tuple(tensor_shape_list)
+
+
+def get_inputs_tensor(global_graph, input_shape_str):
+    """
+    get input tensor
+    """
+    input_shapes = parse_input_shape(input_shape_str)
+    inputs_tensor = []
+    tensor_index = {}
+    operations = global_graph.get_operations()
+    for op in operations:
+        # the operator with the 'Placeholder' type is the input operator of the model
+        if "Placeholder" == op.type:
+            op_name = op.name
+            if op_name in tensor_index:
+                tensor_index[op_name] += 1
+            else:
+                tensor_index[op_name] = 0
+            tensor = global_graph.get_tensor_by_name(op.name + ":" + str(tensor_index[op_name]))
+            tensor = verify_and_adapt_dynamic_shape(input_shapes, op.name, tensor)
+            inputs_tensor.append(tensor)
+    print_info_log("model inputs tensor:\n{}\n".format(inputs_tensor))
+    return inputs_tensor
+
+
+def verify_and_adapt_dynamic_shape(input_shapes, op_name, tensor):
+    """
+    verify and adapt dynamic shape
+    """
+    try:
+        model_shape = list(tensor.shape)
+    except ValueError:
+        if op_name not in input_shapes:
+            print_error_log("can not get model input tensor shape, and not set input shape in arguments.")
+            raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+        tensor.set_shape(input_shapes[op_name])
+        return tensor
+    if op_name in input_shapes:
+        fixed_tensor_shape = input_shapes[op_name]
+        if len(fixed_tensor_shape) != len(model_shape):
+            print_error_log("The fixed input tensor shape not equal to model input shape."
+                            " tensor_name:%s, %s vs %s" % (op_name, str(fixed_tensor_shape),
+                                                           str(model_shape)))
+            raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+        for index, dim in enumerate(model_shape):
+            fixed_tensor_dim = fixed_tensor_shape[index]
+            if dim is not None and fixed_tensor_dim != dim:
+                print_error_log("The fixed input tensor dim not equal to model input dim."
+                                " tensor_name:%s, %s vs %s" % (op_name, str(fixed_tensor_shape),
+                                                               str(model_shape)))
+                raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+            model_shape[index] = fixed_tensor_dim
+        print_info_log("Fix dynamic input shape of %s to %s" % (op_name, model_shape))
+    tensor.set_shape(model_shape)
+    return tensor
+
+
+def parse_input_shape(input_shape_str):
+    """self.args.input_shape should be format like: tensor_name1:dim1,dim2;tensor_name2:dim1,dim2"""
+    input_shapes = {}
+    if input_shape_str == '':
+        return input_shapes
+    tensor_list = input_shape_str.split(';')
+    for tensor in tensor_list:
+        tensor_shape_list = tensor.split(':')
+        if len(tensor_shape_list) == 2:
+            input_shapes[tensor_shape_list[0]] = tensor_shape_list[1].split(',')
+    return input_shapes
