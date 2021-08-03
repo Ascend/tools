@@ -20,6 +20,8 @@ from skl2onnx.helpers.onnx_helper import save_onnx_model
 from common import utils
 from common.utils import AccuracyCompareException
 
+from common.utils import InputShapeError
+
 NODE_TYPE_TO_DTYPE_MAP = {
     "tensor(int)": np.int32,
     "tensor(int8)": np.int8,
@@ -46,6 +48,7 @@ class OnnxDumpData(DumpData):
 
     def __init__(self, arguments):
         self.args = arguments
+        self.input_shapes = utils.parse_input_shape(self.args.input_shape)
 
     def _create_dir(self):
         # create input directory
@@ -80,18 +83,40 @@ class OnnxDumpData(DumpData):
         inputs_tensor_info = []
         # 'session' is a class of 'onnxruntime.InferenceSession'
         # 'input' is a class of 'onnxruntime.NodeArg'
+        input_tensor_names = [item.name for item in session.get_inputs()]
+        for _, tensor_name in enumerate(self.input_shapes):
+            utils.check_input_name_in_model(input_tensor_names, tensor_name)
         for input_item in session.get_inputs():
-            tensor_info = {"name": input_item.name, "shape": tuple(input_item.shape), "type": input_item.type}
+            tensor_name = input_item.name
+            tensor_type = input_item.type
+            tensor_shape = tuple(input_item.shape)
+            if utils.check_dynamic_shape(tensor_shape):
+                if not self.input_shapes:
+                    utils.print_error_log(
+                        "The dynamic shape {} are not supported. Please "
+                        "set '-s' or '--input-shape' to fix the dynamic shape.".format(tensor_shape))
+                    raise utils.AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            if self.input_shapes:
+                input_shape = self.input_shapes.get(tensor_name)
+                try:
+                    number_shape = [int(dim) for dim in input_shape]
+                except (ValueError, TypeError):
+                    utils.print_error_log(utils.get_shape_not_match_message(
+                        InputShapeError.FORMAT_NOT_MATCH, self.args.input_shape))
+                    raise utils.AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+                self._check_input_shape_fix_value(tensor_name, tensor_shape, number_shape)
+                tensor_info = {"name": tensor_name, "shape": tuple(number_shape), "type": tensor_type}
+                utils.print_info_log("Fix dynamic input shape of %s to %s" % (tensor_name, number_shape))
+            else:
+                tensor_info = {"name": tensor_name, "shape": tensor_shape, "type": tensor_type}
             inputs_tensor_info.append(tensor_info)
         utils.print_info_log("model inputs tensor info:\n{}\n".format(inputs_tensor_info))
-
         return inputs_tensor_info
 
     def _get_inputs_data(self, data_dir, inputs_tensor_info):
         inputs_map = {}
         if "" == self.args.input_path:
             for i, tensor_info in enumerate(inputs_tensor_info):
-                utils.check_dynamic_shape(tensor_info["shape"])
                 input_data = np.random.random(tensor_info["shape"]).astype(
                     self._convert_to_numpy_type(tensor_info["type"]))
                 inputs_map[tensor_info["name"]] = input_data
@@ -107,7 +132,6 @@ class OnnxDumpData(DumpData):
                     len(inputs_tensor_info), len(input_path)))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
             for i, tensor_info in enumerate(inputs_tensor_info):
-                utils.check_dynamic_shape(tensor_info["shape"])
                 input_data = np.fromfile(input_path[i], self._convert_to_numpy_type(tensor_info["type"])).reshape(
                     tensor_info["shape"])
                 inputs_map[tensor_info["name"]] = input_data
@@ -140,6 +164,20 @@ class OnnxDumpData(DumpData):
                 np.save(os.path.join(onnx_dump_data_dir, file_name), dump_bins[res_idx])
                 res_idx += 1
         utils.print_info_log("dump data success")
+
+    @staticmethod
+    def _check_input_shape_fix_value(op_name, model_shape, input_shape):
+        message = "fixed input tensor dim not equal to model input dim." \
+                  "tensor_name:%s, %s vs %s" % (op_name, str(input_shape), str(model_shape))
+        if len(model_shape) != len(input_shape):
+            utils.print_error_log(message)
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+        for index, value in enumerate(model_shape):
+            if isinstance(value, str):
+                continue
+            if input_shape[index] != value:
+                utils.print_error_log(message)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
 
     def generate_dump_data(self):
         """

@@ -22,6 +22,57 @@ using namespace shape_inference;
 
 using TensorShapes = tensorflow::gtl::InlinedVector<tensorflow::TensorShape, 4>;
 
+std::map<int, std::string> g_tf_dtype_to_string = {
+  {0, "DT_INVALID"},
+  {1, "DT_FLOAT"},
+  {2, "DT_DOUBLE"},
+  {3, "DT_INT32"},
+  {4, "DT_UINT8"},
+  {5, "DT_INT16"},
+  {6, "DT_INT8"},
+  {7, "DT_STRING"},
+  {8, "DT_COMPLEX64"},
+  {9, "DT_INT64"},
+  {10, "DT_BOOL"},
+  {11, "DT_QINT8"},
+  {12, "DT_QUINT8"},
+  {13, "DT_QINT32"},
+  {14, "DT_BFLOAT16"},
+  {15, "DT_QINT16"},
+  {16, "DT_QUINT16"},
+  {17, "DT_UINT16"},
+  {18, "DT_COMPLEX128"},
+  {19, "DT_HALF"},
+  {20, "DT_RESOURCE"},
+  {21, "DT_VARIANT"},
+  {22, "DT_UINT32"},
+  {23, "DT_UINT64"},
+  {101, "DT_FLOAT_REF"},
+  {102, "DT_DOUBLE_REF"},
+  {103, "DT_INT32_REF"},
+  {104, "DT_UINT8_REF"},
+  {105, "DT_INT16_REF"},
+  {106, "DT_INT8_REF"},
+  {107, "DT_STRING_REF"},
+  {108, "DT_COMPLEX64_REF"},
+  {109, "DT_INT64_REF"},
+  {110, "DT_BOOL_REF"},
+  {111, "DT_QINT8_REF"},
+  {112, "DT_QUINT8_REF"},
+  {113, "DT_QINT32_REF"},
+  {114, "DT_BFLOAT16_REF"},
+  {115, "DT_QINT16_REF"},
+  {116, "DT_QUINT16_REF"},
+  {117, "DT_UINT16_REF"},
+  {118, "DT_COMPLEX128_REF"},
+  {119, "DT_HALF_REF"},
+  {120, "DT_RESOURCE_REF"},
+  {121, "DT_VARIANT_REF"},
+  {122, "DT_UINT32_REF"},
+  {123, "DT_UINT64_REF"},
+};
+
+
 REGISTER_OP("DropOutDoMask")
     .Input("x: T")
     .Input("mask: uint8")
@@ -253,7 +304,12 @@ void graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorSh
 
     for (int i = 0; i < node_ctx->num_outputs(); ++i) {
       fs << "node:" << node->name() << " index:" << i <<
-        " shape:" << node_ctx->DebugString(node_ctx->output(i)) << std::endl;
+      if (node_ctx->RankKnown(node_ctx->output(i))) {
+        fs << " shape:" << node_ctx->DebugString(node_ctx->output(i));
+      } else {
+        fs << " shape:[-2]";
+      }
+      fs << " dtype:" << g_tf_dtype_to_string[node->output_type(i)] << std::endl;
     }
 
   };

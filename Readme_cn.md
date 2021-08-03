@@ -49,6 +49,8 @@ Ascend tools，昇腾工具仓库。
 
 11. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)    
     **cann-benchmark推理软件对应的模型前后处理脚本**： 该工具包含cann-benchmark推理工具模型处理脚本, 包括：结果解析脚本和前后处理脚本等。这些脚本需根据cann-benchmark指导手册说明使用。
+12. [tfdbg_ascend](./tfdbg_ascend)    
+    **Tensorflow2.x dump工具**：该工具提供CPU/GPU平台上Tensorflow2.x运行时数据Dump能力。
 #### 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。

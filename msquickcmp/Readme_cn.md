@@ -7,13 +7,11 @@
 
 ### 环境准备
 
-1. 已在昇腾AI推理设备上安装开发与运行环境。
-
-   安装参考文档：https://support.huaweicloud.com/instg-cli-cann/atlascli_03_0001.html
+1. 已安装开发运行环境的昇腾AI推理设备
 
 2. 安装python3.7.5环境
 
-3. 通过pip3.7.5安装环境依赖onnxruntime、onnx、numpy、skl2onnx。
+3. 通过pip3.7.5安装环境依赖onnxruntime、onnx、numpy、skl2onnx、pexpect、gnureadline
 
    pip安装依赖命令示例：
 
@@ -48,7 +46,7 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 ```
 
 2. 设置环境变量
-  (如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。)
+    (如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。)
 
 ```
 export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest
@@ -95,38 +93,42 @@ export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/s
 
 ```
 output-path/timestamp
-├── input
-│	└── input_0.bin(随机生成的，若用户指定了数据，该文件不存在)
-│	└── input_1.bin(随机生成的，若用户指定了数据，该文件不存在)
-├── model
-│   └── new_model_name.onnx(把每个算子作为输出节点后新生成的onnx模型)
-│	└── model_name.json(model_name为om的文件名)
 ├── dump_data
-│   ├── npu(npu的dump数据目录)
-		│   ├── timestamp
-				└── resnet50_output_0.bin
-			│   ├── 20210206030403 
-				│   ├── 0
-                    │   ├── resnet50
-                        │   ├── 1
-							│   ├── 0
-								└── Cast.trans_Cast_169.62.1596191801355614				
-│   ├── onnx(如果-m模型为.onnx，onnx的dump数据目录)
-	└── conv1_relu.0.1596191800668285.npy
-│   ├── tf(如果-m模型为.pb，tf的dump数据目录)
-	└── conv1_relu.0.1596191800668285.npy	
+│   ├── npu(npu的dump数据目录)
+│   │   ├── timestamp
+│   │   │   └── resnet50_output_0.bin
+│   │   └── 20210206030403
+│   │       └── 0
+│   │           └── resnet50
+│   │               └── 1
+│   │                   └── 0
+│   │                       ├── Data.inputx.1.3.1596191801455614
+│   │                       └── Cast.trans_Cast_169.62.5.1596191801355614
+│   ├── onnx(如果-m模型为.onnx，onnx的dump数据目录)
+│   │     └── conv1_relu.0.1596191800668285.npy
+│   └── tf(如果-m模型为.pb，tf的dump数据目录)
+│       └── conv1_relu.0.1596191800668285.npy
+├── input
+│   ├── input_0.bin(随机生成的，若用户指定了数据，该文件不存在)
+│   └── input_1.bin(随机生成的，若用户指定了数据，该文件不存在)
+├── model
+│   ├── new_model_name.onnx(把每个算子作为输出节点后新生成的onnx模型)
+│   └── model_name.json(model_name为om的文件名)
 ├── result_2021211214657.csv
+└── tmp (如果-m模型为.pb, tfdbg相关的临时目录)
 ```
 
 ### 参数说明
 
-| 参数名                      | 描述                                       | 必选   |
-| ------------------------ | ---------------------------------------- | ---- |
-| -m，--model-path          | 模型文件（.pb或.onnx)路径，目前只支持pb模型与onnx模型       | 是    |
-| -om，--offline-model-path | 昇腾AI处理器的离线模型（.om）                        | 是    |
-| -i，--input-path          | 模型的输入数据路径，默认根据模型的input随机生成，多个输入以逗号分隔，例如：/home/input\_0.bin，/home/input\_1.bin | 否    |
-| -c，--cann-path           | CANN包安装完后路径，默认为/usr/local/Ascend/ascend-toolkit/latest | 否    |
-| -o，--output-path         | 输出文件路径，默认为当前路径                           | 否    |
+| 参数名                    | 描述                                                         | 必选 |
+| ------------------------- | ------------------------------------------------------------ | ---- |
+| -m，--model-path          | 模型文件（.pb或.onnx)路径，目前只支持pb模型与onnx模型        | 是   |
+| -om，--offline-model-path | 昇腾AI处理器的离线模型（.om）                                | 是   |
+| -i，--input-path          | 模型的输入数据路径，默认根据模型的input随机生成，多个输入以逗号分隔，例如：/home/input\_0.bin，/home/input\_1.bin | 否   |
+| -c，--cann-path           | CANN包安装完后路径，默认为/usr/local/Ascend/ascend-toolkit/latest | 否   |
+| -o，--output-path         | 输出文件路径，默认为当前路径                                 | 否   |
+| -s，--input_shape         | 模型输入的shape信息，默认为空，例如input_name1:1,224,224,3;input_name2:3,300,节点中间使用英文分号隔开。input_name必须是转换前的网络模型中的节点名称 | 否   |
+| --output-nodes            | 用户指定的输出节点。多个节点用英文分号（;）隔开。例如:node_name1:0;node_name2:1;node_name3:0 | 否   |
 
 ### 执行案例
 
@@ -141,7 +143,6 @@ output-path/timestamp
    https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
 
 **参考上述使用方法，执行命令运行，如果需要运行指定模型输入，可以先执行第二种用户不指定模型输入命令，用随机生成的bin文件作为输入**  
-**注意：目前暂时不支持动态shape**
 
 
 
