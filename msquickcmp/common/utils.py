@@ -251,7 +251,7 @@ def check_dynamic_shape(shape):
     """
     dynamic_shape = False
     for item in shape:
-        if isinstance(item, str):
+        if item is None or isinstance(item, str):
             dynamic_shape = True
             break
     return dynamic_shape

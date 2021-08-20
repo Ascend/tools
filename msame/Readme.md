@@ -95,7 +95,6 @@ For details about all available options, run the **--help** command.
 ## Restrictions
 
 Make sure that the tool running user has enough permissions to create directories and run the tool. 
-Dynamic batched inference is not supported.
 
 ## Command Line Options
 

@@ -6,6 +6,7 @@ This class is used to generate GUP dump data of the TensorFlow model.
 Copyright Information:
 Huawei Technologies Co., Ltd. All Rights Reserved © 2021
 """
+import re
 import sys
 import readline
 import pexpect
@@ -133,7 +134,7 @@ class TfDumpData(DumpData):
         tf_dbg.sendline('exit')
         utils.print_info_log('Finish dump tf data.')
 
-    def _get_outputs_tensor(self):
+    def _get_all_node_and_input_node(self):
         input_nodes = []
         node_list = []
         operations = self.global_graph.get_operations()
@@ -143,37 +144,65 @@ class TfDumpData(DumpData):
                 input_name = tensor.name.split(':')[0]
                 if input_name not in input_nodes:
                     input_nodes.append(input_name)
+        return input_nodes, node_list
+
+    def _check_node_output(self, node_name):
+        op = self.global_graph.get_operation_by_name(node_name)
+        if op.outputs:
+            return True
+        return False
+
+    def _check_output_nodes_valid(self, outputs_tensor, node_list):
+        for tensor in outputs_tensor:
+            tensor_info = tensor.strip().split(':')
+            if len(tensor_info) != 2:
+                utils.print_error_log(
+                    'Invalid output nodes (%s). Only support "name1:0;name2:1". Please check the output node.' % tensor)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            node_name = tensor_info[0].strip()  # 0 for node_name
+            if not node_name:
+                utils.print_error_log(
+                    'Invalid output nodes (%s). Only support "name1:0;name2:1". Please check the output node.' % tensor)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            if node_name not in node_list:
+                utils.print_error_log(
+                    "The output node (%s) is not in the graph. Please check the output node." % node_name)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            index = tensor_info[1].strip()  # 1 for tensor_index
+            if not index:
+                utils.print_error_log(
+                    'Invalid output nodes (%s). Only support "name1:0;name2:1". Please check the output node.' % tensor)
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            op = self.global_graph.get_operation_by_name(node_name)
+            pattern = re.compile(r'^[0-9]+$')
+            match = pattern.match(index)
+            if match is None:
+                utils.print_error_log("The index (%s) of %s is invalid. Please check the output node."
+                                      % (index, node_name))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            if int(index) < 0 or int(index) >= len(op.outputs):
+                utils.print_error_log("The index (%s) of %s out of range [0, %d). Please check the output node."
+                                      % (index, node_name, len(op.outputs)))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+
+    def _get_outputs_tensor(self):
+        input_nodes, node_list = self._get_all_node_and_input_node()
         outputs_tensor = []
         if self.args.output_nodes:
             outputs_tensor = self.args.output_nodes.strip().split(';')
-            for tensor in outputs_tensor:
-                tensor_info = tensor.strip().split(':')
-                if len(tensor_info) != 2:
-                    utils.print_error_log(
-                        'Invalid output nodes (%s). Only support "name1:0;name2:1". Please check the output node.' % tensor)
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
-                output_name = tensor_info[0].strip()
-                if output_name not in node_list:
-                    utils.print_error_log(
-                        "The output node (%s) not in the graph. Please check the output node." % output_name)
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
+            self._check_output_nodes_valid(outputs_tensor, node_list)
         else:
             output_nodes = list(set(node_list).difference(set(input_nodes)))
             for name in output_nodes:
-                outputs_tensor.append(name + ":0")
+                if self._check_node_output(name):
+                    outputs_tensor.append(name + ":0")
         utils.print_info_log("The outputs tensor:\n{}\n".format(outputs_tensor))
         return outputs_tensor
 
     def generate_dump_data(self):
         """
-        Function description:
-            generate TensorFlow model dump data
-        Parameter:
-            none
-        Return Value:
-            TensorFlow model dump data directory
-        Exception Description:
-            none
+        Generate TensorFlow model dump data
+        :return tensorFlow model dump data directory
         """
         self._load_graph()
         self._create_dir()

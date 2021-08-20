@@ -80,11 +80,11 @@ def main():
         # compare the entire network
         net_compare = NetCompare(npu_dump_data_path, cpu_dump_data_path, output_json_path, args)
         net_compare.accuracy_network_compare()
-        # print the name of the first operator whose cosine similarity is less than o.9
+        # print the name of the first operator whose cosine similarity is less than 0.9
         csv_object_item = net_compare.get_csv_object_by_cosine()
         if csv_object_item is not None:
             utils.print_info_log(
-                "{} of the first operator whose cosine similarity is less than o.9".format(
+                "{} of the first operator whose cosine similarity is less than 0.9".format(
                     csv_object_item.get("LeftOp")))
         else:
             utils.print_info_log("No operator whose cosine value is less then 0.9 exists.")

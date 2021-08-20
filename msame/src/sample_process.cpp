@@ -228,6 +228,20 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         exit(0);
     }
     if ((input_files.empty() != 1) && (input_files[0].find(".bin") == string::npos)){
+        const char* input_path;
+        struct stat s;
+        for (size_t i = 0; i < input_files.size(); ++i){
+            input_path = input_files[i].c_str();
+            if (stat(input_path, &s) == 0){
+                if(s.st_mode & S_IFREG){
+                    ERROR_LOG("input parameter must be folder or file ending in '.bin'");
+                    exit(0);            
+                }
+            }else{
+                ERROR_LOG("%s doesn't exist", input_files[0].c_str());
+                exit(0);
+            }
+        }
         std::vector<std::string> fileName_vec;
         Utils::ScanFiles(fileName_vec, input_files[0]);
         sort(fileName_vec.begin(), fileName_vec.end());

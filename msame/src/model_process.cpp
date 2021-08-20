@@ -364,12 +364,7 @@ Result ModelProcess::PrintDesc()
             cout << dimsOutput.dims[j] << " ";
         }
         cout << endl;
-        ret = aclmdlGetCurOutputDims(modelDesc_, i, &dimsCurrentOutput);
-        DEBUG_LOG("the dims of %zu current output:", i);
-        for (size_t j = 0; j < dimsCurrentOutput.dimCount; j++) {
-            cout << dimsCurrentOutput.dims[j] << " ";
-        }
-        cout << endl;
+
         DEBUG_LOG("the name of %zu output: %s", i, aclmdlGetOutputNameByIndex(modelDesc_, i));
         DEBUG_LOG("the Format of %zu output: %u", i, aclmdlGetOutputFormat(modelDesc_, i));
         DEBUG_LOG("the DataType of %zu output: %u", i, aclmdlGetOutputDataType(modelDesc_, i));
@@ -636,14 +631,7 @@ void ModelProcess::OutputModelResult(std::string& s, std::string& modelName, std
                 ERROR_LOG("malloc device buffer failed, ret[%d]", ret);
                 return;
             }
-        }
-        dim = reinterpret_cast<aclmdlIODims*>(dims);
-        ret = aclmdlGetCurOutputDims(modelDesc_, i, dim);
-        if (ret != ACL_ERROR_NONE) {
-            ERROR_LOG("aclmdlGetCurOutputDims failed, ret[%d]", ret);
-            return;
-        }
-        
+        }   
         if (!g_is_device) {
             ret = aclrtMallocHost(&outHostData, len);
             if (ret != ACL_ERROR_NONE) {
