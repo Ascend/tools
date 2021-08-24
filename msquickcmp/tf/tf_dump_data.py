@@ -59,6 +59,10 @@ class TfDumpData(DumpData):
         if "" == self.args.input_path:
             input_path_list = []
             for index, tensor in enumerate(inputs_tensor):
+                if not tensor.shape:
+                    utils.print_error_log(
+                        "The shape of %s is unknown. Please usr -i to assign the input path." % tensor.name)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
                 input_data = np.random.random(utils.convert_tensor_shape(tensor.shape)) \
                     .astype(utils.convert_to_numpy_type(tensor.dtype))
                 input_path = os.path.join(self.data_dir, "input_" + str(index) + ".bin")

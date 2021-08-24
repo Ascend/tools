@@ -53,8 +53,9 @@ class TfDebugRunner(DumpData):
         input_path = self.args.input_path.split(",")
         for index, tensor in enumerate(inputs_tensor):
             try:
-                input_data = np.fromfile(input_path[index],
-                                         utils.convert_to_numpy_type(tensor.dtype)).reshape(tensor.shape)
+                input_data = np.fromfile(input_path[index], utils.convert_to_numpy_type(tensor.dtype))
+                if tensor.shape:
+                    input_data = input_data.reshape(tensor.shape)
                 inputs_map[tensor] = input_data
                 utils.print_info_log("load file name: {}, shape: {}, dtype: {}".format(
                     os.path.basename(input_path[index]), input_data.shape, input_data.dtype))

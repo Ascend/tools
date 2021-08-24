@@ -177,6 +177,9 @@ class NpuDumpData(DumpData):
     def _process_inputs(input_desc_array):
         value = []
         for input_object in input_desc_array:
+            if SHAPE_OBJECT not in input_object:
+                value.append(0)
+                continue
             item_sum = 1
             for num in input_object.get(SHAPE_OBJECT).get(DIM_OBJECT):
                 item_sum *= num
@@ -201,6 +204,8 @@ class NpuDumpData(DumpData):
             utils.print_error_log("The number of input bin files is incorrect.")
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
         for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):
+            if shape_size == 0:
+                continue
             if shape_size != bin_file_size:
                 utils.print_error_log("The shape value is different from the size of the bin file.")
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)

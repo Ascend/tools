@@ -36,7 +36,7 @@ class AtcUtils(object):
             utils.print_error_log('The offline model file ends with an .om file.Please check {} file.'.format(
                 self.arguments.offline_model_path))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_MODEL_TYPE_ERROR)
-        utils.check_file_or_directory_path((os.path.relpath(self.arguments.cann_path)), True)
+        utils.check_file_or_directory_path((os.path.realpath(self.arguments.cann_path)), True)
         atc_command_file_path = os.path.join(self.arguments.cann_path, ATC_FILE_PATH)
         utils.check_file_or_directory_path(atc_command_file_path)
         output_json_path = os.path.join(self.arguments.out_path, "model", model_name + ".json")
