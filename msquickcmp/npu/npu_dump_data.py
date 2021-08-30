@@ -67,6 +67,10 @@ class NpuDumpData(DumpData):
         Parameter:
             msame_dir: msame project directory
         """
+        execute_path = os.path.join(msame_dir, OUT_PATH, MSAME_COMMAND_PATH)
+        if os.path.exists(execute_path):
+            utils.print_info_log("The execute file %s exist. Skip the compile step." % execute_path)
+            return
         utils.print_info_log("Start to compile %s" % msame_dir)
         out_path = os.path.join(msame_dir, OUT_PATH)
         build_sh_cmd = ["sh", BUILD_SH, "g++", out_path]
@@ -200,7 +204,7 @@ class NpuDumpData(DumpData):
 
     @staticmethod
     def _shape_size_vs_bin_file_size(shape_size_array, bin_files_size_array):
-        if len(shape_size_array) != len(bin_files_size_array):
+        if len(shape_size_array) < len(bin_files_size_array):
             utils.print_error_log("The number of input bin files is incorrect.")
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
         for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):

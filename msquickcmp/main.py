@@ -18,8 +18,6 @@ from common.utils import AccuracyCompareException
 
 from compare.net_compare import NetCompare
 from npu.npu_dump_data import NpuDumpData
-from onnx_model.onnx_dump_data import OnnxDumpData
-from tf.tf_dump_data import TfDumpData
 
 
 def _accuracy_compare_parser(parser):
@@ -44,8 +42,10 @@ def _accuracy_compare_parser(parser):
 def _generate_cpu_data_model(args):
     model_name, extension = utils.get_model_name_and_extension(args.model_path)
     if ".pb" == extension:
+        from tf.tf_dump_data import TfDumpData
         return TfDumpData(args)
     elif ".onnx" == extension:
+        from onnx_model.onnx_dump_data import OnnxDumpData
         return OnnxDumpData(args)
     else:
         utils.print_error_log("Only model files whose names end with .pb or .onnx are supported")

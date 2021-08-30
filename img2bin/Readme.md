@@ -71,7 +71,7 @@ python3 img2bin.py -i ./test.txt -t uint8 -o ./out
 | -f| Color format of the output image, which can be BGR, RGB, YUV, or GRAY
 | -a| Output image format, which can be NCHW or NHWC
 | -t| Output data type of the image or the second data, which can be float32, uint8, int32, or uint32
-| -m| Mean subtraction. Defaults to **[0,0,0]**. The sequence is consistent with the image color format. <br>When the color format is YUV, set this parameter to **[0,0]**. <br>When the color format is GRAY, set this parameter to **[0]**.
-| -c| Normalization. Defaults to **[1,1,1]**. The sequence is consistent with the image color format. <br>When the color format is YUV, set this parameter to **[1,1]**. <br>When the color format is GRAY, set this parameter to **[1]**.
+| -m| Mean subtraction. Defaults to **[0,0,0]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[0]**.
+| -c| Normalization. Defaults to **[1,1,1]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[1]**.
 | -o| Output directory
 

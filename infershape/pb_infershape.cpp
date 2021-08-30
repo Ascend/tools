@@ -272,12 +272,14 @@ int parseInputShape(const std::string &input_shape, std::map<std::string, Tensor
   return 0;
 }
 
-void graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorShape> &input_shape_map,
+bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorShape> &input_shape_map,
                               const std::string &result_file) {
   ShapeRefiner shape_refiner(graph->versions(), OpRegistry::Global());
   ofstream fs(result_file, ios::out);
 
-  auto node_shape_inference_lambda = [&shape_refiner, &input_shape_map, &fs](tensorflow::Node *node) {
+  bool infer_result = true;
+
+  auto node_shape_inference_lambda = [&shape_refiner, &input_shape_map, &fs, &infer_result](tensorflow::Node *node) {
     auto iter = input_shape_map.find(node->name());
     if (iter != input_shape_map.end()) {
       node->AddAttr("shape", iter->second);
@@ -297,13 +299,14 @@ void graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorSh
     if (!status.ok()) {
       std::cout << "[ERROR] infer shape failed. node:" << node->name() << "[" << node->type_string() << "] errmsg:" <<
         status.error_message() << std::endl;
+      infer_result = false;
       return;
     }
 
     auto node_ctx = shape_refiner.GetContext(node);
 
     for (int i = 0; i < node_ctx->num_outputs(); ++i) {
-      fs << "node:" << node->name() << " index:" << i <<
+      fs << "node:" << node->name() << " index:" << i;
       if (node_ctx->RankKnown(node_ctx->output(i))) {
         fs << " shape:" << node_ctx->DebugString(node_ctx->output(i));
       } else {
@@ -314,6 +317,7 @@ void graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorSh
 
   };
   ReverseDFS(*graph, {}, node_shape_inference_lambda);
+  return infer_result;
 }
 
 int extractShapeFromGraph(Graph *graph, const std::string &result_file) {
@@ -418,12 +422,6 @@ int main(int argc, char *argv[]) {
     is_pb = true;
   }
 
-  if (is_pb && argc == 2) {
-    std::cout << "[ERROR] invalid argument. argument1 : pb/pbtxt file name, argument2 : input shape, \
-      format like atc, must pass when infer pb" << std::endl;
-    return -1;
-  }
-
   Graph graph(OpRegistry::Global());
 
   if (loadPbToGraph(pb_file, &graph) == -1) {
@@ -433,13 +431,17 @@ int main(int argc, char *argv[]) {
 
   std::string result_file = "cpu_infershape_result";
   std::map<std::string, TensorShape> input_shape_map;
-  if (is_pb) {
+  if (is_pb && input_shape != "") {
     if (parseInputShape(input_shape, input_shape_map) == -1) {
       std::cout << "[ERROR] parse input shape failed. input_shape:" << input_shape << std::endl;
       return -1;
     }
   }
-  graphInferShapeFromInput(&graph, input_shape_map, result_file);
+  bool ret = graphInferShapeFromInput(&graph, input_shape_map, result_file);
+  if (!ret) {
+    std::cout << "[ERROR] infer shape failed in tensorflow" << std::endl;
+    return -1;
+  }
 
   std::cout << "CPU infershape done, please check result in file " << result_file << std::endl;
   return 0;

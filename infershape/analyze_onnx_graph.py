@@ -12,10 +12,19 @@ def load_graph_def_from_pb(path):
         text_format.Parse(data, model)
     return model.graph
 
-def get_node_shape(node, index):
+def get_node_dtype(n, i):
+    dtype_attr = None
+    for attr in n.attribute:
+        if (attr.name == "output_desc_dtype:" + str(i)):
+            dtype_attr = attr
+    if (dtype_attr == None):
+        return "DT_INVALID"
+    return dtype_attr.s.decode()
+
+def get_node_shape(n, i):
     shape_attr = None
-    for attr in node.attribute:
-        if (attr.name == "output_desc_shape:" + str(index)):
+    for attr in n.attribute:
+        if (attr.name == "output_desc_shape:" + str(i)):
             shape_attr = attr
     if (shape_attr == None):
         return []
@@ -34,9 +43,10 @@ if __name__ == "__main__":
             if (out[-2] == '-'):
                 continue
             shape = get_node_shape(node, index)
-            item = "node:" + node.name + " index:" + str(index) + " shape:" + shape + "\n"
+            dtype = get_node_dtype(node, index)
+            item = "node:" + node.name + " index:" + str(index) + " shape:" + shape + " dtype:" + dtype + "\n"
             total_content += item
             index = index + 1
 
-    with open("npu_infershape_result", "w") as f:
-        f.write(total_content)
+    with open("npu_infershape_result", "w") as result_file:
+        result_file.write(total_content)

@@ -69,6 +69,11 @@ echo "[INFO] start to get cpu infershape result"
 
 ./pb_infer_run.sh $cpu_file $input_shape
 
+if [ $? != -1 ];then
+    echo -e "\033[31m[FOUND] cpu cannot infershape, please check origin model and input shape. \033[0m"
+    exit
+fi
+
 if [ ! -f cpu_infershape_result ];then
     echo -e "\033[31m[ERROR] failed to get cpu infershape result \033[0m"
     exit
