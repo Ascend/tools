@@ -125,6 +125,11 @@ class NpuDump(object):
     def list_dump(self, dir_path, file_name):
         """"""
 
+    @staticmethod
+    def get_npu_dump_decode_files_by_name(file_name):
+        file_name = file_name.replace('/', '_')
+        return util.list_npu_dump_convert_files(cfg.DECODE_DIR, file_name)
+
     def get_npu_dump_decode_files_by_op(self, op):
         """Get npu dump decode files by op"""
         dump_files = self.get_dump_files_by_op(op)

@@ -39,7 +39,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
     binFile.seekg(0, binFile.beg);
 
     void* binFileBufferData = nullptr;
-    aclError ret = ACL_ERROR_NONE;
+    aclError ret = ACL_SUCCESS;
     if (!g_is_device) {
         ret = aclrtMallocHost(&binFileBufferData, binFileBufferLen);
         if (binFileBufferData == nullptr) {
@@ -49,7 +49,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
         }
     } else {
         ret = aclrtMalloc(&binFileBufferData, binFileBufferLen, ACL_MEM_MALLOC_NORMAL_ONLY);
-        if (ret != ACL_ERROR_NONE) {
+        if (ret != ACL_SUCCESS) {
             ERROR_LOG("malloc device buffer failed. size is %u", binFileBufferLen);
             binFile.close();
             return nullptr;
@@ -73,14 +73,14 @@ void* Utils::GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize)
         void* inBufferDev = nullptr;
         uint32_t inBufferSize = inputHostBuffSize;
         aclError ret = aclrtMalloc(&inBufferDev, inBufferSize, ACL_MEM_MALLOC_NORMAL_ONLY);
-        if (ret != ACL_ERROR_NONE) {
+        if (ret != ACL_SUCCESS) {
             ERROR_LOG("malloc device buffer failed. size is %u", inBufferSize);
             aclrtFreeHost(inputHostBuff);
             return nullptr;
         }
 
         ret = aclrtMemcpy(inBufferDev, inBufferSize, inputHostBuff, inputHostBuffSize, ACL_MEMCPY_HOST_TO_DEVICE);
-        if (ret != ACL_ERROR_NONE) {
+        if (ret != ACL_SUCCESS) {
             ERROR_LOG("memcpy failed. device buffer size is %u, input host buffer size is %u",
                 inBufferSize, inputHostBuffSize);
             aclrtFree(inBufferDev);
@@ -165,7 +165,7 @@ std::string Utils::TimeLine()
     return stCurrentTime;
 }
 
-void Utils::printCurrentTime()
+std::string Utils::printCurrentTime()
 {
     char szBuf[256] = { 0 };
     struct timeval tv;
@@ -174,7 +174,10 @@ void Utils::printCurrentTime()
 
     gettimeofday(&tv, &tz);
     p = localtime(&tv.tv_sec);
-    printf("%02d-%02d-%02d %02d:%02d:%02d.%06ld\n", p->tm_year + 1900, p->tm_mon + 1, p->tm_mday, p->tm_hour, p->tm_min, p->tm_sec, tv.tv_usec);
+    std::string pi = std::to_string(p->tm_year + 1900) + std::to_string(p->tm_mon + 1) + std::to_string(p->tm_mday) \
+		     + "_" + std::to_string(p->tm_hour) + "_" + std::to_string(p->tm_min) + "_" + \
+		     std::to_string(p->tm_sec) + "_" + std::to_string(tv.tv_usec); 
+    return pi;
 }
 void Utils::printHelpLetter()
 {
@@ -195,9 +198,11 @@ void Utils::printHelpLetter()
     cout << "  --profiler	Enable profiler (true or false)" << endl;
     cout << "  --device      Designated the device ID(must in 0 to 255)" << endl;
     cout << "  --debug       Debug switch,print model information (true or false)" << endl;
+    cout << "  --outputSzie  Set model output size, such as --outputSize \"10000,10000\"" << endl;
     cout << "  --dymBatch    dynamic batch size param，such as --dymBatch 2" << endl;
-    cout << "  --dymHW    dynamic image size param, such as --dymHW 300,500" << endl;
-    cout << "  --dymDims 	dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"" << endl << endl << endl;
+    cout << "  --dymHW       dynamic image size param, such as --dymHW \"300,500\"" << endl;
+    cout << "  --dymDims 	dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"" << endl;
+    cout << "  --dymShape 	dynamic hape param, such as --dymShape \"data:1,600;img_info:1,600\"" << endl << endl << endl;
 }
 
 double Utils::printDiffTime(time_t begin, time_t end)
@@ -297,7 +302,7 @@ int Utils::ScanFiles(std::vector<std::string> &fileList, std::string inputDirect
     return fileList.size();
 }
 
-int Utils::SplitStringSimple(string str, vector<string> &out, char split1, char split2, char split3)
+void Utils::SplitStringSimple(string str, vector<string> &out, char split1, char split2, char split3)
 {
     istringstream block(str);
     string cell;
@@ -326,11 +331,38 @@ int Utils::SplitStringSimple(string str, vector<string> &out, char split1, char 
     }
 }
 
-int Utils::SplitStringWithComma(string str, vector<string> &out, char split)
+void Utils::SplitStringWithSemicolonsAndColons(string str, vector<string> &out, char split1, char split2)
+{
+    istringstream block(str);
+    string cell;
+    string cell1;
+    vector<string> split1_out;
+    
+    while (getline(block, cell, split1)) {
+        split1_out.push_back(cell);
+    }
+    for (size_t i = 0; i < split1_out.size(); ++i){
+        istringstream block_tmp(split1_out[i]);
+        int index = 0;
+        while (getline(block_tmp, cell1, split2)) {
+            if (index == 1){
+                out.push_back(cell1);
+            }
+            index += 1;
+        }
+    }
+}
+
+void Utils::SplitStringWithPunctuation(string str, vector<string> &out, char split)
 {
     istringstream block(str);
     string cell;
     while (getline(block, cell, split)) {
         out.push_back(cell);
     }
+}
+
+int Utils::ToInt(string &str)
+{
+  return atoi(str.c_str()); 
 }

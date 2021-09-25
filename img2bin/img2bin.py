@@ -36,16 +36,12 @@ import os
 import sys
 import json
 # import getpass
+
+IMG_EXT = ['.jpg', '.JPG', '.png', '.PNG', '.bmp', '.BMP', '.jpeg', '.JPEG']
+
 try:
     import cv2 as cv 
-except:
-    '''
-    output = getpass.getuser()
-    if output != 'root':
-        print('[ERROR] opencv-python not installed.')
-        print("[ERROR] Please use the root user to execute this script again")
-        exit(0)
-    '''
+except ImportError:
     if sys.version_info.major == 2:
         confirm = raw_input("[info] Begin to install opencv-python, input[Y/N]:")
     else:
@@ -55,17 +51,15 @@ except:
         print('[info] Starting to install opencv-python...') 
         if sys.version_info.major == 2:
             import commands
-            ret, output = commands.getstatusoutput("sudo yum install -y opencv-python")
-            # ret =  os.popen('sudo yum install -y opencv-python')
-            if ret != 0:
-                # ret = os.popen('sudo apt-get install -y python-opencv')
-                ret, output = commands.getstatusoutput("sudo apt-get install -y python-opencv")
-                if ret != 0:
+            retu, output = commands.getstatusoutput("sudo yum install -y opencv-python")
+            if retu != 0:
+                retu, output = commands.getstatusoutput("sudo apt-get install -y python-opencv")
+                if retu != 0:
                     print('[ERROR] install opencv-python failed,please check env.')
                     exit(0)
         else:
-            ret = os.system('sudo python3 -m pip install opencv-python')
-            if ret != 0:
+            retu = os.system('sudo python3 -m pip install opencv-python')
+            if retu != 0:
                 print('[ERROR] install opencv-python failed,please check env.')
                 exit(0)
         
@@ -76,7 +70,7 @@ except:
     
 try:
     import numpy as np  
-except:
+except ImportError:
     if sys.version_info.major == 2:
         os.system('pip2 install numpy')
     else:
@@ -91,9 +85,9 @@ def get_args():
          eg2: python2 img2bin.py -i ./test.txt -t uint8 -o ./out''')
     parser.add_argument('-i', '--input', required=True, type=str, \
         help='folder of input image or file of other input.')
-    parser.add_argument('-w', '--width', type=int, \
+    parser.add_argument('-w', '--width', required=True, type=int, \
         help='resized image width before inference.')
-    parser.add_argument('-h', '--height', type=int, \
+    parser.add_argument('-h', '--height', required=True, type=int, \
         help='resized image height before inference.')
     parser.add_argument('-f', '--output_image_format', default='BGR', type=str, \
         help='output image format in (BGR/RGB/YUV/GRAY).')
@@ -117,8 +111,9 @@ def eprint(*args, **kwargs):
 
 
 def check_args(args):
-    """check console parameters according to restrictions.
-    :return: True or False
+    """
+    check console parameters according to restrictions.
+    return: True or False
     """
     check_flag = True
     is_dir = True  
@@ -132,10 +127,34 @@ def check_args(args):
         eprint('[ERROR] input path=%r does not exist.' % args.input)
         check_flag = False
     if args.output_image_format not in ('BGR','RGB', 'YUV', 'GRAY'):
-        eprint("ERROR:Convert to %d is not support"%(args.output_image_format))
+        eprint("[ERROR] Convert to %d is not support." % (args.output_image_format))
         check_flag = False
+    if args.height <= 0 or args.width <= 0:
+        eprint("[ERROR] image height or image width must be greater than 0.")
+        check_flag = False
+    elif args.output_image_format == 'YUV':
+        if args.width % 2 == 1 or args.height % 2 == 1:
+            eprint("[ERROR] when the output color format is YUV, the width and height of the picture must be even.")
+            check_flag = False     
     return check_flag, is_dir
    
+
+def convert_img_2_yuv(input_img):
+    input_img_height = input_img.shape[0]
+    input_img_width = input_img.shape[1]
+    bgr2y_list = np.array([29, 150, 77])
+    bgr2y_data = input_img.reshape(input_img_height * input_img_width, 3)
+    y_data = np.dot(bgr2y_data, bgr2y_list) >> 8
+    bgr2u_list = np.array([131, -87, -44])
+    bgr2v_list = np.array([-21, -110, 131])
+    bgr2uv_matrix = np.transpose(np.append(bgr2u_list, bgr2v_list).reshape((2, 3)))
+    bgr2uv_data = input_img[0::2, 0::2, :].reshape((input_img_height // 2 * input_img_width // 2, 3))
+    yuv_base_data = np.dot(bgr2uv_data, bgr2uv_matrix) >> 8
+    u_data = yuv_base_data[:,0] + 128
+    v_data = yuv_base_data[:,1] + 128
+    u_v_data = np.transpose(np.append(u_data.flatten(), v_data.flatten()).reshape((2, input_img_height //2 * input_img_width // 2)))
+    nv12_data = np.append(y_data.flatten(), u_v_data.flatten()).reshape((input_img_height // 2 * 3, input_img_width)).astype(np.uint8)
+    return nv12_data
 
 
 def convert_img(args, input_img):
@@ -144,14 +163,7 @@ def convert_img(args, input_img):
     elif args.output_image_format == 'RGB':
         converted_input_img = cv.cvtColor(input_img, cv.COLOR_BGR2RGB)
     elif args.output_image_format == 'YUV':
-        if input_img.shape[0] % 2 == 1:
-            if input_img.shape[1] % 2 == 1:
-                input_img = cv.resize(input_img, ((input_img.shape[0] + 1), (input_img.shape[1] + 1)))
-            else:
-                input_img = cv.resize(input_img, ((input_img.shape[0] + 1), input_img.shape[1]))
-        elif input_img.shape[1] % 2 == 1:
-            input_img = cv.resize(input_img, (input_img.shape[0], input_img.shape[1] + 1))
-        converted_input_img = cv.cvtColor(input_img, cv.COLOR_BGR2YUV_I420)
+        converted_input_img = convert_img_2_yuv(input_img)
     elif args.output_image_format == 'GRAY':
         converted_input_img = cv.cvtColor(input_img, cv.COLOR_BGR2GRAY)
     return converted_input_img
@@ -160,15 +172,14 @@ def convert_img(args, input_img):
 def resize_img(args, input_img):
     old_size = input_img.shape[0:2]
     target_size = [args.height, args.width]
-    ratio = min(float(target_size[i])/(old_size[i]) for i in range(len(old_size)))
+    ratio = min(float(target_size[i]) / (old_size[i]) for i in range(len(old_size)))
     new_size = tuple([int(i*ratio) for i in old_size])
     img_new = cv.resize(input_img,(new_size[1], new_size[0]))
     pad_w = target_size[1] - new_size[1]
     pad_h = target_size[0] - new_size[0]
-    top,bottom = pad_h//2, pad_h-(pad_h//2)
-    left,right = pad_w//2, pad_w -(pad_w//2)
+    top, bottom = pad_h // 2, pad_h - (pad_h // 2)
+    left, right = pad_w // 2, pad_w - (pad_w // 2)
     resized_img = cv.copyMakeBorder(img_new, top, bottom, left, right, cv.BORDER_CONSTANT, None,(0, 0, 0))
-    #resized_img = cv.resize(input_img, (args.width, args.height))
     return resized_img
 
 
@@ -194,15 +205,14 @@ def mean(args, input_img):
         input_img[:, :, 0] -= args.mean[0]
         input_img[:, :, 1] -= args.mean[1]
         input_img[:, :, 2] -= args.mean[2]
-    else:
-        input_img[: int(args.width / 1.5), :] -= args.mean[0]
-        input_img[int(args.width / 1.5) :, :: 2] -= args.mean[1]
-        input_img[int(args.width / 1.5) :, 1: 2] -= args.mean[2]
     return input_img
 
 
 def coefficient(args, input_img):
-    if isinstance (args.coefficient, str):
+    """
+    Normalize the input image 
+    """
+    if isinstance(args.coefficient, str):
         args.coefficient = json.loads(args.coefficient)
     input_img = input_img.astype(np.float32)
     if args.output_image_format == 'GRAY':
@@ -211,10 +221,6 @@ def coefficient(args, input_img):
         input_img[:, :, 0] *= args.coefficient[0]
         input_img[:, :, 1] *= args.coefficient[1]
         input_img[:, :, 2] *= args.coefficient[2]
-    else:
-        input_img[: int(args.width / 1.5), :] *= args.coefficient[0]
-        input_img[int(args.width / 1.5) :, :: 2] *= args.coefficient[1]
-        input_img[int(args.width / 1.5) :, 1: 2] *= args.coefficient[2]
     return input_img
 
 
@@ -255,17 +261,15 @@ def process(args, file_path):
         img_info.tofile(out_path) 
     else:
         input_img = cv.imread(file_path) 
-        if args.output_image_format == 'YUV':
-            resized_img1 = resize_img(args, input_img) 
-            converted_img = convert_img(args, resized_img1) 
+        resized_img1 = resize_img(args, input_img) 
+        converted_img = convert_img(args, resized_img1) 
+        if args.output_image_format == "YUV":
+            change_format_img = converted_img
+        else:
             mean_img = mean(args, converted_img)
-        else: 
-            converted_img = convert_img(args, input_img)    
-            resized_img = resize_img(args, converted_img)  
-            mean_img = mean(args, resized_img)
-        coefficient_img = coefficient(args, mean_img)
-        change_type_img = change_type(args, coefficient_img)
-        change_format_img = change_format(args, change_type_img)
+            coefficient_img = coefficient(args, mean_img)
+            change_type_img = change_type(args, coefficient_img)
+            change_format_img = change_format(args, change_type_img)
         out_path = os.path.join(args.output, os.path.splitext(os.path.split(file_path)[1])[0] + ".bin")
         mkdir_output(args)
         change_format_img.tofile(out_path)
@@ -275,19 +279,25 @@ def main():
     """main function to receive params them change data to bin.
     """
     args = get_args()
-    ret,is_dir = check_args(args)
+    ret, is_dir = check_args(args)
     if ret:
         if is_dir:
             files_name = os.listdir(args.input)
             for file_name in files_name:
-                file_path = os.path.join(args.input, file_name)
-                process(args, file_path)  
+                if os.path.splitext(file_name)[1] in IMG_EXT:
+                    file_path = os.path.join(args.input, file_name)
+                    process(args, file_path)  
+            print("[info] bin file generated successfully.")
         else:
-            process(args, args.input)    
-        print("[info] bin file generated successfully.")
+            if os.path.splitext(args.input)[1] in IMG_EXT or os.path.splitext(args.input)[1] == "txt":
+                process(args, args.input)    
+                print("[info] bin file generated successfully.")
+            else:
+                eprint("[ERROR] input file must be image or end with '.txt'.")
 
 if __name__ == '__main__':
     main()
+
 
 
 

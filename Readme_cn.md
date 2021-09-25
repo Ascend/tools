@@ -22,34 +22,27 @@ Ascend tools，昇腾工具仓库。
     
     **制卡工具**：制卡工具包，提供ubuntu下制卡功能。
 
-4.  [faster_install](https://github.com/Ascend/tools/tree/master/faster_install)
-    
-    **快速安装脚本**：环境快速安装脚本。
-
-5.  [configure_usb_ethernet](https://github.com/Ascend/tools/tree/master/configure_usb_ethernet)  
+4.  [configure_usb_ethernet](https://github.com/Ascend/tools/tree/master/configure_usb_ethernet)  
      **USB虚拟网卡连接脚本**：配置USB网卡对应的IP地址。
     
-6. [pt2pb](https://github.com/Ascend/tools/tree/master/pt2pb)  
+5. [pt2pb](https://github.com/Ascend/tools/tree/master/pt2pb)  
 
    **pytorch模型转tensorflow pb模型工具**：输入pytorch权重参数模型，转为onnx，再转为pb模型
 
-7. [dnmetis](https://github.com/Ascend/tools/tree/master/dnmetis)  
+6. [dnmetis](https://github.com/Ascend/tools/tree/master/dnmetis)  
 
    **NPU推理精度和性能测试工具**：使用Python封装ACL的C++接口，输入om模型和原始数据集图片、标签，即可执行模型推理，输出精度数据和性能数据  
 
-8. [msquickcmp](https://github.com/Ascend/tools/tree/master/msquickcmp)    
+7. [msquickcmp](https://github.com/Ascend/tools/tree/master/msquickcmp)    
 
    **一键式全流程精度比对工具**：该工具适用于tensorflow和onnx模型，输入原始模型和对应的离线om模型，输出精度比对结果。    
 
-9. [dockerimages](./dockerimages)    
-   **docker 镜像**：Atlas200DK/Atlas300开发/开发运行环境的docker镜像。 
-
-10. [precision_tool](./precision_tool)    
+8. [precision_tool](./precision_tool)    
    **精度问题分析工具**：该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景，同时提供Dump数据/图信息的交互式查询和操作入口。 
 
-11. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)    
+9. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)    
     **cann-benchmark推理软件对应的模型前后处理脚本**： 该工具包含cann-benchmark推理工具模型处理脚本, 包括：结果解析脚本和前后处理脚本等。这些脚本需根据cann-benchmark指导手册说明使用。
-12. [tfdbg_ascend](./tfdbg_ascend)    
+10. [tfdbg_ascend](./tfdbg_ascend)    
     **Tensorflow2.x dump工具**：该工具提供CPU/GPU平台上Tensorflow2.x运行时数据Dump能力。
 #### 贡献
 

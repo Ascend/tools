@@ -14,17 +14,40 @@ parser.add_argument('-o', '--output', default='cpu_infershape_result', dest='out
 args = parser.parse_args()
 
 
-ONNX_DTYPE = {
-    0: TensorProto.FLOAT,
-    1: TensorProto.FLOAT,
-    2: TensorProto.UINT8,
-    3: TensorProto.INT8,
-    4: TensorProto.UINT16,
-    5: TensorProto.INT16,
-    6: TensorProto.INT32,
-    7: TensorProto.INT64,
-    8: TensorProto.STRING,
-    9: TensorProto.BOOL
+ONNX_DTYPE2CANN_TYPE = {
+    0: 'DT_UNDEFINED',
+    1: 'DT_FLOAT',
+    2: 'DT_UINT8',
+    3: 'DT_INT8',
+    4: 'DT_UINT16',
+    5: 'DT_INT16',
+    6: 'DT_INT32',
+    7: 'DT_INT64',
+    8: 'DT_STRING',
+    9: 'DT_BOOL',
+    10: 'DT_FLOAT16',
+    11: 'DT_DOUBLE',
+    12: 'DT_UINT32',
+    13: 'DT_UINT64',
+    14: 'DT_COMPLEX64',
+    15: 'DT_COMPLEX128',
+    16: 'DT_BF16'
+}
+
+NUMPY_DTYPE2CANN_TYPE = {
+    'float32': 'DT_FLOAT',
+    'float16': 'DT_FLOAT16',
+    'int8': 'DT_INT8',
+    'int16': 'DT_INT16',
+    'uint16': 'DT_UINT16',
+    'uint8': 'DT_UINT8',
+    'int32': 'DT_INT32',
+    'int64': 'DT_INT64',
+    'uint32': 'DT_UINT32',
+    'uint64': 'DT_UINT64',
+    'bool': 'DT_BOOL',
+    'complex64': 'DT_COMPLEX64',
+    'complex128': 'DT_COMPLEX128',
 }
 
 
@@ -75,7 +98,10 @@ def runtime_infer(onnx_model):
     outputs = {}
     tensors = sess.run(out_name, input_map)
     for i, name in enumerate(out_name):
-        outputs[name] = np.array(tensors[i]).shape
+        item = {}
+        item['shape'] = np.array(tensors[i]).shape
+        item['dtype'] = NUMPY_DTYPE2CANN_TYPE[str(np.array(tensors[i]).dtype)]
+        outputs[name] = item
 
     os.remove(model_file)
     return outputs
@@ -91,10 +117,11 @@ def post_process(graph, output_dict):
 
     input_dict = {}
     for input_node in graph.input:
+        dtype = ONNX_DTYPE2CANN_TYPE[input_node.type.tensor_type.elem_type]
         shape_values = ','.join(str(dim.dim_value) for dim in input_node.type.tensor_type.shape.dim)
         const_node_name = '_'.join([input_node.name, str(const_names.index(input_node.name))]) if const_names.count(
             input_node.name) != 0 else input_node.name
-        input_dict[input_node.name] = [const_node_name, shape_values]
+        input_dict[input_node.name] = [const_node_name, shape_values, dtype]
 
 
     # extract output shape for node
@@ -104,12 +131,13 @@ def post_process(graph, output_dict):
         # const or data
         for input_name in node.input:
             if input_dict.__contains__(input_name):
-                cpu_infer_result += 'node:{} index:0 shape:[{}]\n'.format(input_dict[input_name][0],
-                                                                          input_dict[input_name][1])
+                cpu_infer_result += 'node:{} index:0 shape:[{}] dtype:{}\n'.format(input_dict[input_name][0],
+                                                                                   input_dict[input_name][1],
+                                                                                   input_dict[input_name][2])
         for idx, output_name in enumerate(node.output):
             # print("output name:",output_name)
             if output_dict.__contains__(output_name):
-                cpu_infer_result += 'node:{} index:{} shape:[{}]\n'.format(node_name, idx, ','.join([str(i) for i in output_dict[output_name]]))
+                cpu_infer_result += 'node:{} index:{} shape:[{}] dtype:{}\n'.format(node_name, idx, ','.join([str(i) for i in output_dict[output_name]['shape']]), output_dict[output_name]['dtype'])
             else:
                 print('The {} output shape for node {} was not found.'.format(idx, node_name))
 

@@ -415,6 +415,33 @@ precision_data/
         └── 20210510101134
             └── result_123458.csv
 ```
+### 配合msquickcmp一键式推理精度比对工具使用
+- msquickcmp会将中间dump数据和图自动保存在一个时间戳命名的目录内, 可以使用precision_tool工具直接对该目录进行分析
+```python
+output-path/timestamp
+├── dump_data
+├── input
+├── model
+├── result_2021211214657.csv
+└── tmp 
+```
+- 修改配置
+```python
+# file precision_tool/config.py
+# [train/infer] if adapt from msquickcmp result, set net type to infer
+NET_TYPE = 'infer'
+```
+- 执行以下命令
+```shell
+# 前提条件：
+#    当前目录没有precision_data目录（导入过程会新创建一个precision_data,用于保存导入数据）
+#    只有第一次需要使用infer子命令导入，后续直接python3 precision_tool/cli.py
+python3 precision_tool/cli.py infer output-path/timestamp
+```  
+  
+
+
+
 ### TF脚本修改参考
 
 ```python

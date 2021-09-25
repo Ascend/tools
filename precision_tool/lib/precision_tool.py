@@ -94,6 +94,9 @@ class PrecisionTool(object):
                 self.log.info("Tf dump dir is not empty, will compare npu dump data with tf dump data.")
                 self.compare.npu_tf_vector_compare(self.graph_manager.get_graphs(Constant.DEFAULT_DEBUG_ID),
                                                    debug_0_dump_root, cfg.TF_DUMP_DIR, result_dir)
+            else:
+                self.log.warning("Tf dump dir is empty, maybe run [python3 precision_tool/cli.py tf_dump] to decode"
+                                 " tf debug data.")
             debug_1_dump_root = self.dump_manager.get_dump_root_dir(Constant.NPU_DEBUG_ID_1)
             if debug_1_dump_root is not None and not util.empty_dir(debug_1_dump_root):
                 self.log.info("NPU debug_1 dump dir is not empty, will compare two npu dump data.")

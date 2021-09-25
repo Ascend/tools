@@ -12,6 +12,7 @@ class Constant(object):
     class Suffix(object):
         JSON = '.json'
         CSV = '.csv'
+        H5 = '.h5'
 
     class Pattern(object):
         GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'

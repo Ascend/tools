@@ -27,12 +27,14 @@ bool g_is_profi = false;
 bool g_is_dump = false;
 bool g_is_debug = false;
 bool g_is_dymdims = false;
+bool g_is_dymShape = false;
 bool g_is_dymHW = false;
 bool g_is_dymbatch = false;
 size_t g_dymindex = -1;
 size_t g_dym_gear_count = 0;
 uint64_t g_dymbatch_size = 0;
 pair<uint64_t, uint64_t> g_dynamicHW;
+vector<int> g_output_size;
 
 void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vector<string>& inputs)
 {
@@ -42,6 +44,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
     int c = -1;
     int index = 0;
     vector<string> hw;
+    vector<string> outputsize_str;
     struct option opts[] = { { "model", required_argument, NULL, 'm' },
         { "input", required_argument, NULL, 'i' },
         { "output", required_argument, NULL, 'o' },
@@ -53,9 +56,10 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
         { "dymBatch", required_argument, NULL, 'y' },
         { "dymDims", required_argument, NULL, 'h' },
         { "dymHW", required_argument, NULL, 'w' },
+        { "dymShape", required_argument, NULL, 's' },
         { "device", required_argument, NULL, 'e' },
-        { "debug", required_argument, NULL, 'g' },
-        { 0, 0, 0, 0 } };
+        { "outputSize", required_argument, NULL, 't' },
+        { "debug", required_argument, NULL, 'g' }};
     while ((c = getopt_long(argc, argv, optstring, opts, &index)) != -1) {
         switch (c) {
         case 'm':
@@ -116,7 +120,7 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             break;
         case 'w':
             params['w'] = optarg;
-            Utils::SplitStringWithComma(params['w'], hw, ',');
+            Utils::SplitStringWithPunctuation(params['w'], hw, ',');
             if (hw.size() != 2) {
                 ERROR_LOG("input dynamiHW size error , this lens must be 2 , you input size = %d", static_cast <int> (hw.size()));
             }
@@ -124,6 +128,15 @@ void InitAndCheckParams(int argc, char* argv[], map<char, string>& params, vecto
             break;
         case 'h':
             params['h'] = optarg;
+
+            break;
+        case 's':
+            params['s'] = optarg;
+            break;
+        case 't':
+            params['t'] = optarg;
+            Utils::SplitStringWithPunctuation(params['t'], outputsize_str, ',');
+            transform( outputsize_str.begin(), outputsize_str.end(), back_inserter(g_output_size), Utils::ToInt);
             break;
         case 1:
             Utils::printHelpLetter();
@@ -163,8 +176,8 @@ int main(int argc, char* argv[])
         ERROR_LOG("dump and profiler can not both be true");
         return FAILED;
     }
-    if (params.count('h') + params.count('y') + params.count('w')> 1 ){
-        ERROR_LOG("dymBatch dymDims dymHW cannot be set at the same time");
+    if (params.count('h') + params.count('y') + params.count('w') + params.count('s') > 1){
+        ERROR_LOG("dymBatch dymDims dymHW dymShape cannot be set at the same time");
         return FAILED;
     }
 

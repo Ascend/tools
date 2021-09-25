@@ -65,9 +65,11 @@ public:
 
     static void SplitString(std::string& s, std::vector<std::string>& v, char c);
 
-    static  int SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
+    static  void SplitStringSimple(std::string str, std::vector<std::string> &out, char split1, char split2, char split3);
 
-    static  int SplitStringWithComma(std::string str, std::vector<std::string> &out, char split);
+    static void SplitStringWithSemicolonsAndColons(std::string str, std::vector<std::string> &out, char split1, char split2);
+
+    static  void SplitStringWithPunctuation(std::string str, std::vector<std::string> &out, char split);
 
     static int str2num(char* str);
 
@@ -75,7 +77,7 @@ public:
 
     static std::string TimeLine();
 
-    static void printCurrentTime();
+    static std::string printCurrentTime();
 
     static void printHelpLetter();
 
@@ -90,6 +92,8 @@ public:
     static void DumpJson(bool isdump, std::map<char, std::string>& params);
 
     static int ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory);
+
+    static int ToInt(std::string &str);
 };
 
 #endif

@@ -66,12 +66,12 @@ python3 img2bin.py -i ./test.txt -t uint8 -o ./out
 | Parameter| Description
 |----------|----------
 | -i| Input directory or path. <br>**The directory cannot contain both images and .txt files. Only one type of data can be converted at a time**.
-| -w| Width of the output image
-| -h| Height of the output image
-| -f| Color format of the output image, which can be BGR, RGB, YUV, or GRAY
-| -a| Output image format, which can be NCHW or NHWC
-| -t| Output data type of the image or the second data, which can be float32, uint8, int32, or uint32
-| -m| Mean subtraction. Defaults to **[0,0,0]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[0]**.
-| -c| Normalization. Defaults to **[1,1,1]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[1]**.
+| -w| Width of the output image<br>When - f parameter is YUV, the picture width must be an even number.
+| -h| Height of the output image<br>When the - f parameter is YUV, the picture height must be an even number.
+| -f| Color format of the output image, which can be BGR, RGB, YUV, or GRAY<br>YUV representation: YUV420SP_U8(NV12).
+| -a| Output image format, which can be NCHW or NHWC<br>It only takes effect when the -f parameter is BGR or RGB.
+| -t| Output data type of the image or the second data, which can be float32, uint8, int32, or uint32<br>It only takes effect when the -f parameter is BGR or RGB or GRAY.
+| -m| Mean subtraction. Defaults to **[0,0,0]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[0]**.<br>It only takes effect when the -f parameter is BGR or RGB or GRAY.
+| -c| Normalization. Defaults to **[1,1,1]**. The sequence is consistent with the image color format.  <br>When the color format is GRAY, set this parameter to **[1]**.<br>It only takes effect when the -f parameter is BGR or RGB or GRAY.
 | -o| Output directory
 

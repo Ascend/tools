@@ -48,12 +48,6 @@ public:
     */
     Result Process(std::map<char, std::string> &params, std::vector<std::string> &inputs);
 
-    /**
-    * @brief split string and check Dynamic Dims
-    * @return result
-    */
-    Result PrepareDynamicDims(std::map<char, std::string> &params, std::vector<std::string> &dymDims, ModelProcess &processModel);
-
 private:
     void DestroyResource();
 

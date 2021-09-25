@@ -1,7 +1,9 @@
 [中文](https://github.com/Ascend/tools/blob/master/msame/Readme_cn.md)|EN
 
 # Ascend Model Executor: msame
-
+### Explain
+Applicable version: 5.0.3.alpha001 and above  
+For versions before 5.0.3.alpha001, please use [msame.zip](https://obs-book.obs.cn-east-2.myhuaweicloud.com/cjl/msame.zip)
 ### Overview
 
 The tool runs an offline model (.om) on the binary input data and returns the model inference result. The tool allows you to run repeated inferences on the same input data.
@@ -109,7 +111,9 @@ Make sure that the tool running user has enough permissions to create directorie
 | --profiler| (Optional) Profiler switch, either true or false. Defaults to false.<br> The profiler data is stored in the profiler folder under the directory specified by the --output argument. This option and --dump must not be set to true at the same time.
 | --dump| (Optional) Dump switch, either true or false. Defaults to false.<br> The dump data is stored in the dump folder under the directory specified by the --output argument. This option and --profiler must not be set to true at the same time.
 | --device| (Optional) Specify running device [0,255],default 0.
-| --dymBatch| Dynamic batch parameter， specifies the actual batch of the model input. <br>If ATC model conversion settings --input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8" , the dymBatch parameter can be set to --dymBatch 2.
-| --dymHW| Dynamic image size parameter， specifies the actual image size of the model input. <br>If ATC model conversion settings --input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1"  --dynamic_image_size="300,500;600,800" , the dymBatch parameter can be set to --dymHW 300,500.
-| --dymDims| Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600;img_info:1,600".
+| --dymBatch| (Optional) Dynamic batch parameter， specifies the actual batch of the model input. <br>If ATC model conversion settings --input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8" , the dymBatch parameter can be set to --dymBatch 2.
+| --dymHW| (Optional) Dynamic image size parameter， specifies the actual image size of the model input. <br>If ATC model conversion settings --input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1"  --dynamic_image_size="300,500;600,800" , the dymBatch parameter can be set to --dymHW 300,500.
+| --dymDims| (Optional) Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600;img_info:1,600".
+| --dymShape| (Optional) Dynamic shape parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]" , the dymShape parameter can be set to --dymShape "input1:8,3,5,10;input2:5,3,10,10". <br>This parameter must be used with --input and --outputSize.
+| --outputSize| (Optional) Specify the output size of the model. If there are several outputs, set several values. <br>In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate an appropriate value according to the input shape to apply for memory.<br>Example： --outputSize "10000,10000,10000".
 | --help| Help information.

@@ -3,7 +3,7 @@
 # img2bin
 
 img2bin能够生成模型推理所需的输入数据，以.bin格式保存。当前仅支撑输入为图片类型的神经网络预处理。  
-有两类数据，一类是图片数据，另一类是模型需要的第二个输入数据，如fasterrcnn的第二个输入是图片的shape信息。  
+有两类数据，一类是图片数据，另一类是模型需要的第二个输入数据，如Faster R-CNN的第二个输入是图片的shape信息。  
 图片缩放采用的是等比例缩放，空余的地方用0填充。
 
 ## 前提条件  
@@ -24,7 +24,7 @@ img2bin能够生成模型推理所需的输入数据，以.bin格式保存。当
 
    在命令行中：$HOME/AscendProjects目录下执行以下命令下载代码。
 
-   **git clone  https://github.com/Ascend/tools.git**
+   **git clone https://github.com/Ascend/tools.git**
 
 ## 使用方法
 进入脚本所在目录。
@@ -59,11 +59,11 @@ python3 img2bin.py -i ./test.txt -t uint8 -o ./out
 | 参数名        | 说明   |
 | -     | - |
 | -i        | 输入目录或路径， <br>**在目录下，不能同时有图片和txt，一次只能转一种数据**       |
-| -w        | 输出图片宽      |
-| -h        | 输出图片高      |
-| -f        | 输出图片色彩格式，支持（BGR/RGB/YUV/GRAY）      |
-| -a        | 输出图片格式，支持（NCHW/NHWC）      |
-| -t        | 图片或第二个数据的输出数据类型，支持（float32/uint8/int32/uint32）      |
-| -m        | 减均值，默认为[0,0,0]，顺序与图片色彩格式保持一致  <br>当色彩格式为gray时，设置[0]    |
-| -c        | 归一化，默认为 [1,1,1]，顺序与图片色彩格式保持一致  <br>当色彩格式为gray时，设置[1]      |
+| -w        | 输出图片宽<br>当 -f 参数为YUV时，图片宽必须为偶数       |
+| -h        | 输出图片高<br>当 -f 参数为YUV时，图片高必须为偶数     |
+| -f        | 输出图片色彩格式，支持（BGR/RGB/YUV/GRAY）<br> YUV表示：YUV420SP_U8(NV12)   |
+| -a        | 输出图片格式，支持（NCHW/NHWC）<br> 仅当 -f 参数为BGR或RGB时生效       |
+| -t        | 图片或第二个数据的输出数据类型，支持（float32/uint8/int32/uint32）<br> 仅当 -f 参数为BGR、RGB、GRAY时生效       |
+| -m        | 减均值，默认为[0,0,0]，顺序与图片色彩格式保持一致  <br>当色彩格式为gray时，设置[0] <br> 仅当 -f 参数为BGR、RGB、GRAY时生效    |
+| -c        | 归一化，默认为 [1,1,1]，顺序与图片色彩格式保持一致  <br>当色彩格式为gray时，设置[1] <br> 仅当 -f 参数为BGR、RGB、GRAY时生效      |
 | -o        | 输出目录      |

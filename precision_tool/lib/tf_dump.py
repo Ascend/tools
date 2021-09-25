@@ -26,13 +26,15 @@ class TfDump(object):
         tf_files = {}
         for output in op.outputs():
             if output.data_dump_origin_name() != '':
-                tf_files.update(self._get_dump_files_by_name(output.data_dump_origin_name()))
+                tf_files.update(self.get_dump_files_by_name(output.data_dump_origin_name()))
         if len(tf_files) == 0:
-            tf_files.update(self._get_dump_files_by_name(op.name()))
+            tf_files.update(self.get_dump_files_by_name(op.name()))
         return tf_files
 
-    def _get_dump_files_by_name(self, name):
-        match_name = name.replace('/', '_').replace('.', '_') + '\\.'
+    def get_dump_files_by_name(self, name, likely=False):
+        match_name = name.replace('/', '_')
+        if not likely:
+            match_name = match_name.replace('.', '_') + '\\.'
         tf_files = {}
         for f in self.dump_files:
             if re.match(match_name, f):

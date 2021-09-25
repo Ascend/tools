@@ -69,6 +69,10 @@ TF_DEBUG_DUMP_DIR = os.path.join(TF_DIR, 'tf_debug')
 TF_DUMP_DIR = os.path.join(TF_DIR, 'dump')
 TF_GRAPH_DIR = os.path.join(TF_DIR, 'graph')
 
+# pytroch dirs
+PT_DIR = os.path.join(DATA_ROOT_DIR, 'pt')
+PT_DUMP_DIR = os.path.join(PT_DIR, 'dump')
+
 # tmp dirs
 TMP_DIR = os.path.join(DATA_ROOT_DIR, 'temp')
 OP_GRAPH_DIR = os.path.join(TMP_DIR, 'op_graph')

@@ -29,33 +29,26 @@ Ascend tools
     
     **makesd tool**：makesd tools package，Provide card making function under ubuntu.  
 
-4.  [faster_install](https://github.com/Ascend/tools/tree/master/faster_install)
-    
-    **faster_install**：environment fast install script.  
-
-5.  [configure_usb_ethernet](https://github.com/Ascend/tools/tree/master/configure_usb_ethernet)  
+4.  [configure_usb_ethernet](https://github.com/Ascend/tools/tree/master/configure_usb_ethernet)  
      **configure_usb_ethernet**：configuring the IP address of the USB NIC.
     
-6. [pt2pb](https://github.com/Ascend/tools/tree/master/pt2pb)  
+5. [pt2pb](https://github.com/Ascend/tools/tree/master/pt2pb)  
 
    **pytorch model transform to tensorflow pb model tool**：input pytorch weights parameters model，transform to onnx file，then transform to pb model.
 
-7. [dnmetis](https://github.com/Ascend/tools/tree/master/dnmetis)  
+6. [dnmetis](https://github.com/Ascend/tools/tree/master/dnmetis)  
 
    **Test tool for NPU inference precision and performance**：Using Python to encapsulate the C++ interface of ACL, inputting om model and original dataset images and tags, we can execute model inference and give out precision and performance of the om model.   
 
-8. [msquickcmp](https://github.com/Ascend/tools/tree/master/msquickcmp)    
+7. [msquickcmp](https://github.com/Ascend/tools/tree/master/msquickcmp)    
 
    **One-button precision comparison tool for the whole process**：The tool works with TensorFlow and OnNX models, input the original model and the corresponding offline OM model and output precision comparison results.    
 
-9. [dockerimages](./dockerimages)    
-   **docker images**：docker images for developing/catenation on Atlas products (Atlas200DK/Atlas300).  
-
-10. [dockerimages](./precision_tool)    
+8. [dockerimages](./precision_tool)    
    **precision problem analysis tools**：The toolkit provides common features of precision comparison. Currently, the tool is mainly suitable for TensorFlow training scenarios and provides interactive query and operation entry for Dump data/graph information.
 
-11. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)     
+9. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)     
     **model preprocess and postprocess scripts for cann-benchamrk inference tool**： The tool contains cann-benchamrk inference tool model processing scripts, including result analysis script, preprocess and postprocess scripts, etc.These scripts need to be used according to the cann-benchmark insturction manual. 
 
-12. [tfdbg_ascend](./tfdbg_ascend)    
+10. [tfdbg_ascend](./tfdbg_ascend)    
    **Tensorflow2.x dump tool**：The tool provides Tensorflow 2.x runtime data dump capability on the CPU/GPU platform.

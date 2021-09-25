@@ -130,6 +130,8 @@ output-path/timestamp
 | -o，--output-path         | 输出文件路径，默认为当前路径                                 | 否   |
 | -s，--input_shape         | 模型输入的shape信息，默认为空，例如input_name1:1,224,224,3;input_name2:3,300,节点中间使用英文分号隔开。input_name必须是转换前的网络模型中的节点名称 | 否   |
 | --output-nodes            | 用户指定的输出节点。多个节点用英文分号（;）隔开。例如:node_name1:0;node_name2:1;node_name3:0 | 否   |
+| --output-size             | 指定模型的输出size，有几个输出，就设几个值。动态shape场景下，获取模型的输出size可能为0，用户需根据输入的shape预估一个较合适的值去申请内存。多个输出size用英文分号（,）隔开, 例如"10000,10000,10000"。| 否   |
+
 
 ### 执行案例
 

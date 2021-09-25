@@ -71,7 +71,7 @@ public:
     /**
     * @brief check dynamic input dims valid
     */
-    Result CheckDynamicDims(std::vector<std::string> dymDims, size_t gearCount, aclmdlIODims* dims);
+    Result CheckDynamicDims(std::vector<std::string> dym_dims, size_t gearCount, aclmdlIODims* dims);
 
     /**
     * @brief check dynamic input batch valid
@@ -86,7 +86,17 @@ public:
     /**
     * @brief set dynamic input dims 
     */    
-    Result SetDynamicDims(std::vector<std::string> dymDims);
+    Result SetDynamicDims(std::vector<std::string> dym_dims);
+
+    /**
+    * @brief check dynamic input image size valid
+    */
+    Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string, int64_t *> &dym_shape_map, std::vector<int64_t> &dims_num);
+    
+    /**
+    * @brief set dynamic input dims 
+    */    
+    Result SetDynamicShape(std::map<std::string, int64_t *> dym_shape_map, std::vector<int64_t> &dims_num);
 
     /**
     * @brief set dynamic batch size
@@ -173,7 +183,7 @@ public:
     /**
     * @brief get model output result
     */
-    void OutputModelResult(std::string& s, std::string& modelName, std::uint64_t dymbatch_size);
+    void OutputModelResult(std::string& s, std::string& modelName, std::uint64_t dymbatch_size, bool is_dymshape);
 
     /**
     * @brief get current output dims mul

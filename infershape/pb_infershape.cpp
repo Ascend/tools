@@ -206,6 +206,7 @@ int loadPbToGraph(const std::string &pb_file, Graph *graph) {
   }
 
   GraphConstructorOptions opts;
+  opts.allow_internal_ops = true;
   status = ConvertGraphDefToGraph(opts, graph_def, graph);
   if (!status.ok()) {
     std::cout << "[ERROR] convert graph_def to graph failed. pb file:" <<
