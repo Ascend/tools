@@ -127,8 +127,8 @@ class AscendDump : public OpKernel {
     OP_REQUIRES_OK(ctx, ctx->input_list("inputs", &inputs));
     std::string nanos_uuid = std::to_string(Env::Default()->NowMicros());
     for (int64 i = 0; i < inputs.size(); i++) {
-      std::string tensor_name = absl::StrReplaceAll(tensor_names_[i], {{"/", "."}, {":", "."}});
-      std::string file_name = absl::StrCat(tensor_name, ".", op_type_, ".", nanos_uuid, ".npy");
+      std::string tensor_name = absl::StrReplaceAll(tensor_names_[i], {{"/", "_"}, {":", "."}});
+      std::string file_name = absl::StrCat(tensor_name, ".", nanos_uuid, ".npy");
       VLOG(1) << "Dump " << tensor_names_[i] << " to " << file_name;
       WriteTensor2Npy(inputs[i], file_name);
       VLOG(1) << tensor_names_[i] << " " << inputs[i].DebugString() << std::endl;

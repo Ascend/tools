@@ -52,7 +52,7 @@ Status DbgDumpPass::Run(const GraphOptimizationPassOptions &options) {
     std::unique_ptr<tensorflow::FunctionBody> fbody;
     FunctionDefToBodyHelper(*fdef, tensorflow::AttrSlice{}, func_lib, &fbody);
 
-    TF_RETURN_IF_ERROR(ProcessGraph(fbody->graph, func_lib, "[" + func_name + "]"));
+    TF_RETURN_IF_ERROR(ProcessGraph(fbody->graph, func_lib));
 
     auto lookup = [&fdef](const tensorflow::Node *node) -> absl::optional<std::string> {
       for (const auto &control_ret : fdef->control_ret()) {
@@ -82,7 +82,7 @@ Status DumpOutputs(Graph *graph, Node *node, std::string prefix = "") {
   std::unordered_set<Node *> output_nodes;
   for (int i = 0; i < node->num_outputs(); i++) {
     if (DataTypeCanUseMemcpy(node->output_type(i))) {
-      tensor_names.emplace_back(prefix + "(" + node->name() + "):" + std::to_string(i));
+      tensor_names.emplace_back(prefix + node->name() + ":" + std::to_string(i));
       copyable_outputs.emplace_back(NodeBuilder::NodeOut(node, i));
       output_idxes.insert(i);
     }
