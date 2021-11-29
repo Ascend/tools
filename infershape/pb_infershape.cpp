@@ -273,6 +273,16 @@ int parseInputShape(const std::string &input_shape, std::map<std::string, Tensor
   return 0;
 }
 
+std::vector<int64> ShapeProtoToVec(const TensorShapeProto& shape_pb) {
+  std::vector<int64> shape_vec;
+  if (shape_pb.dim_size() != 0 && !shape_pb.unknown_rank()) {
+    for (const auto& d : shape_pb.dim()) {
+      shape_vec.push_back(d.size());
+    }
+  }
+  return shape_vec;
+}
+
 bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorShape> &input_shape_map,
                               const std::string &result_file) {
   ShapeRefiner shape_refiner(graph->versions(), OpRegistry::Global());
@@ -309,11 +319,20 @@ bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorSh
     for (int i = 0; i < node_ctx->num_outputs(); ++i) {
       fs << "node:" << node->name() << " index:" << i;
       if (node_ctx->RankKnown(node_ctx->output(i))) {
-        fs << " shape:" << node_ctx->DebugString(node_ctx->output(i));
+        if (node->type_string() == "VarHandleOp") {
+          std::vector<int64> shape_vec = ShapeProtoToVec(node->attrs().Find("shape")->shape());
+          fs << " shape:" << strings::StrCat("[", absl::StrJoin(shape_vec, ","), "]");
+        } else {
+          fs << " shape:" << node_ctx->DebugString(node_ctx->output(i));
+        }
       } else {
         fs << " shape:[-2]";
       }
-      fs << " dtype:" << g_tf_dtype_to_string[node->output_type(i)] << std::endl;
+      if (node->type_string() == "VarHandleOp") {
+        fs << " dtype:" << g_tf_dtype_to_string[node->attrs().Find("dtype")->type()] << std::endl;
+      } else {
+        fs << " dtype:" << g_tf_dtype_to_string[node->output_type(i)] << std::endl;
+      }
     }
 
   };
@@ -356,7 +375,7 @@ int extractShapeFromGraph(Graph *graph, const std::string &result_file) {
 }
 
 std::string getSoPath(const std::string &so_name) {
-  std::string cmd = "find / -name \"" + so_name + "\" 2>/dev/null";
+  std::string cmd = "find / -name \"" + so_name + "\" | grep -v docker 2>/dev/null";
   char buf_ps[1024] = {'\0'};
   FILE *ptr = nullptr;
   if ((ptr = popen(cmd.c_str(), "r")) != nullptr) {

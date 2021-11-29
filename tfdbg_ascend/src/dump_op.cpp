@@ -56,7 +56,7 @@ std::string TensorShape2Npy(tensorflow::TensorShape shape) {
   }
   std::string shape_string = "(";
   for (int i = 0; i < num_dims - 1; i++) {
-    shape_string += std::to_string(shape.dim_size(0));
+    shape_string += std::to_string(shape.dim_size(i));
     shape_string += ", ";
   }
   return shape_string + std::to_string(shape.dim_size(num_dims - 1)) + ")";

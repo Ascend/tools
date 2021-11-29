@@ -35,9 +35,22 @@ do
     cpu_array=(${cpu_line/ / })
     # dtype match judge, not match then exit
     cpu_dtype=${cpu_array[3]%%_REF}
+
+    if [ $cpu_dtype == "dtype:DT_HALF" ]; then
+        cpu_dtype="dtype:DT_FLOAT16"
+    fi
+
+    if [ $npu_dtype == "dtype:DT_HALF" ]; then
+        npu_dtype="dtype:DT_FLOAT16"
+    fi
+
     if [ $cpu_dtype != $npu_dtype ]; then
         echo -e "\033[31m[FOUND] $npu_node is the first one which out $npu_index's $npu_dtype different from cpu $cpu_dtype \033[0m"
         exit
+    fi
+
+    if [ $cpu_shape == "shape:[1]" ];then
+        cpu_shape="shape:[]"
     fi
 
     # shape match judge, match then continue
