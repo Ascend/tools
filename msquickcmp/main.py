@@ -42,7 +42,7 @@ def _accuracy_compare_parser(parser):
                              " E.g: node_name1:0;node_name2:1;node_name3:0")
 
 
-def _generate_cpu_data_model(args):
+def _generate_golden_data_model(args):
     model_name, extension = utils.get_model_name_and_extension(args.model_path)
     if ".pb" == extension:
         from tf.tf_dump_data import TfDumpData
@@ -75,14 +75,17 @@ def main():
         utils.check_file_or_directory_path(args.model_path)
         utils.check_file_or_directory_path(args.offline_model_path)
         # generate dump data by the original model
-        cpu_dump_data_path = _generate_cpu_data_model(args).generate_dump_data()
+        golden_dump = _generate_golden_data_model(args)
+        golden_dump_data_path = golden_dump.generate_dump_data()
+        golden_net_output_info = golden_dump.get_net_output_info()
         # convert the om model to json
         output_json_path = AtcUtils(args).convert_model_to_json()
         # compiling and running source codes
-        npu_dump_data_path = NpuDumpData(args, output_json_path).generate_dump_data()
+        npu_dump_data_path, npu_net_output_data_path = NpuDumpData(args, output_json_path).generate_dump_data()
         # compare the entire network
-        net_compare = NetCompare(npu_dump_data_path, cpu_dump_data_path, output_json_path, args)
+        net_compare = NetCompare(npu_dump_data_path, golden_dump_data_path, output_json_path, args)
         net_compare.accuracy_network_compare()
+        net_compare.net_output_compare(npu_net_output_data_path, golden_net_output_info)
         # print the name of the first operator whose cosine similarity is less than 0.9
         csv_object_item = net_compare.get_csv_object_by_cosine()
         if csv_object_item is not None:

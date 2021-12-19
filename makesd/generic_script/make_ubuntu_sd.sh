@@ -454,8 +454,8 @@ chown HwHiAiUser:HwHiAiuser /usr/lib64/aicpu_kernels
 touch /usr/lib64/aicpu_kernels/aicpu_package_install.info
 chown HwHiAiUser:HwHiAiUser /usr/lib64/aicpu_kernels/aicpu_package_install.info
 echo \"0\" > /usr/lib64/aicpu_kernels/aicpu_package_install.info
-echo \"export LD_LIBRARY_PATH=/usr/lib64/aicpu_kernels/0/aicpu_kernels_device\" >> /home/HwHiAiUser/.bashrc
-echo \"export LD_LIBRARY_PATH=/usr/lib64/aicpu_kernels/0/aicpu_kernels_device\" >> /root/.bashrc" >> ${LogPath}squashfs-root/chroot_install.sh
+echo \"export LD_LIBRARY_PATH=/usr/lib64/aicpu_kernels/0/aicpu_kernels_device:/usr/lib64/aicpu_kernels/0/aicpu_kernels_device/sand_box\" >> /home/HwHiAiUser/.bashrc
+echo \"export LD_LIBRARY_PATH=/usr/lib64/aicpu_kernels/0/aicpu_kernels_device:/usr/lib64/aicpu_kernels/0/aicpu_kernels_device/sand_box\" >> /root/.bashrc" >> ${LogPath}squashfs-root/chroot_install.sh
     else
         echo "
 echo \"export LD_LIBRARY_PATH=/usr/lib64\" >> /home/HwHiAiUser/.bashrc" >> ${LogPath}squashfs-root/chroot_install.sh    

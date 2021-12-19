@@ -9,6 +9,7 @@ HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 import json
 import os
 import re
+import numpy as np
 
 from common import utils
 from common.dump_data import DumpData
@@ -132,7 +133,24 @@ class NpuDumpData(DumpData):
         if not file_is_exist:
             utils.print_error_log("The path {} dump data is not exist.".format(npu_dump_data_path))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
-        return npu_dump_data_path
+        # net output data path
+        npu_net_output_data_path, file_is_exist = utils.get_dump_data_path(npu_data_output_dir, True)
+        if not file_is_exist:
+            utils.print_error_log("The path {} net output data is not exist.".format(npu_net_output_data_path))
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PATH_ERROR)
+        self._convert_net_output_to_numpy(npu_net_output_data_path)
+        return npu_dump_data_path, npu_net_output_data_path
+
+    def _convert_net_output_to_numpy(self, npu_net_output_data_path):
+        npu_net_output_data_info = self.om_parser.get_net_output_data_info()
+        for dir_path, sub_paths, files in os.walk(npu_net_output_data_path):
+            for index, each_file in enumerate(sorted(files)):
+                data_type = npu_net_output_data_info.get(index)[0]
+                shape = npu_net_output_data_info.get(index)[1]
+                net_output_data = np.fromfile(os.path.join(dir_path, each_file), data_type).reshape(shape)
+                file_name = os.path.basename(each_file).split('.')[0]
+                numpy_file_path = os.path.join(npu_net_output_data_path, file_name)
+                utils.save_numpy_data(numpy_file_path, net_output_data)
 
     def _check_input_path_param(self):
         if self.arguments.input_path == "":

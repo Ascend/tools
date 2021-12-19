@@ -46,7 +46,7 @@ do
 
     if [ $cpu_dtype != $npu_dtype ]; then
         echo -e "\033[31m[FOUND] $npu_node is the first one which out $npu_index's $npu_dtype different from cpu $cpu_dtype \033[0m"
-        exit
+        continue
     fi
 
     if [ $cpu_shape == "shape:[1]" ];then
@@ -83,7 +83,7 @@ do
             continue
         else
             echo -e "\033[31m[FOUND] $npu_node is the first one which out $npu_index's $npu_shape different from cpu $cpu_shape \033[0m"
-            exit
+            continue
         fi
     fi
 
@@ -96,7 +96,7 @@ do
                 continue
             else
                 echo -e "\033[31m[FOUND] $npu_node is the first one which out $npu_index's $npu_shape different from cpu $cpu_shape \033[0m"
-                exit
+                break
             fi
         fi
 
@@ -106,7 +106,7 @@ do
                 break
             else
                 echo -e "\033[31m[FOUND] $npu_node is the first one which out $npu_index's $npu_shape different from cpu $cpu_shape \033[0m"
-                exit
+                break
             fi
         fi
         i=$i+1

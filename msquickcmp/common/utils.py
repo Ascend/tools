@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 import enum
+import numpy as np
 
 ACCURACY_COMPARISON_INVALID_PARAM_ERROR = 1
 ACCURACY_COMPARISON_INVALID_DATA_ERROR = 2
@@ -28,6 +29,7 @@ ACCURACY_COMPARISON_PYTHON_COMMAND_ERROR = 12
 ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR = 14
 ACCURACY_COMPARISON_NOT_SUPPORT_ERROR = 15
+ACCURACY_COMPARISON_NET_OUTPUT_ERROR = 16
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 DIM_PATTERN = "^[^,][0-9,]*$"
 
@@ -137,7 +139,7 @@ def get_model_name_and_extension(offline_model_path):
     return model_name, extension
 
 
-def get_dump_data_path(dump_dir):
+def get_dump_data_path(dump_dir, is_net_output=False):
     """
     Function Description:
         traverse directories and obtain the absolute path of dump data
@@ -150,8 +152,13 @@ def get_dump_data_path(dump_dir):
     file_is_exist = False
     dump_data_dir = None
     for i in os.listdir(dump_dir):
+        # net_output dump file directory, name is like 12_423_246_4352
+        if is_net_output:
+            if not i.isdigit():
+                dump_data_dir = os.path.join(dump_dir, i)
+                break
         # Contains the dump file directory, whose name is a pure digital timestamp
-        if i.isdigit():
+        elif i.isdigit():
             dump_data_dir = os.path.join(dump_dir, i)
             break
 
@@ -317,3 +324,12 @@ def check_input_name_in_model(tensor_name_list, input_name):
     if input_name not in tensor_name_list:
         print_error_log(get_shape_not_match_message(InputShapeError.NAME_NOT_MATCH, input_name))
         raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+
+
+def save_numpy_data(file_path, data):
+    """
+    save_numpy_data
+    """
+    if not os.path.exists(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
+    np.save(file_path, data)

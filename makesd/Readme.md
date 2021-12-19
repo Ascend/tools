@@ -12,7 +12,11 @@ Please refer to the table below for version matching relationship, **For detaile
 
 <table>
 <tr><td width="25%"><b>Driver and Firmware Version</b></td><td width="75%"><b>CANN Version</b></td></tr>
-<tr><td rowspan="2" valign="top">1.0.11.alpha</td><td>5.0.3.alpha001</td></tr>
+<tr><td>1.0.12.alpha</td><td>5.0.4.alpha002</td></tr>
+<tr><td rowspan="5" valign="top">1.0.11.alpha</td><td>5.0.3.alpha005</td></tr>
+<tr><td>5.0.3.alpha003</td></tr>
+<tr><td>5.0.3.alpha002</td></tr>
+<tr><td>5.0.3.alpha001</td></tr>
 <tr><td>5.0.2.alpha005</td></tr>
 </tr>
 <tr><td>1.0.10.alpha</td><td>5.0.2.alpha003</td></tr>
@@ -46,3 +50,6 @@ Please refer to the table below for version matching relationship, **For detaile
 4. [for_1.3x.0.0](https://github.com/Ascend/tools/tree/master/makesd/for_1.3x.0.0)
 
    **1.3x.0.0**: software packages required for card making.
+4. [generic_script](https://github.com/Ascend/tools/tree/master/makesd/for_1.3x.0.0)
+
+   **generic_script**: 1.0.12.alpha and above version of universal card making toolkit.

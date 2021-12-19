@@ -49,6 +49,7 @@ class OnnxDumpData(DumpData):
     def __init__(self, arguments):
         self.args = arguments
         self.input_shapes = utils.parse_input_shape(self.args.input_shape)
+        self.net_output = {}
 
     def _create_dir(self):
         # create input directory
@@ -155,14 +156,21 @@ class OnnxDumpData(DumpData):
         outputs_name = [node.name for node in session.get_outputs()]
         return session.run(outputs_name, inputs_map)
 
-    def _save_dump_data(self, dump_bins, onnx_dump_data_dir, old_onnx_model):
+    def _save_dump_data(self, dump_bins, onnx_dump_data_dir, old_onnx_model, net_output_node):
         res_idx = 0
+        output_idx = 0
         for node in old_onnx_model.graph.node:
             for j, output in enumerate(node.output):
                 file_name = node.name.replace('.', '_').replace('/', '_') + "." + str(j) + "." \
                             + str(round(time.time() * 1000000)) + ".npy"
-                np.save(os.path.join(onnx_dump_data_dir, file_name), dump_bins[res_idx])
+                file_path = os.path.join(onnx_dump_data_dir, file_name)
+                if output in net_output_node:
+                    self.net_output[output_idx] = file_path
+                    output_idx += 1
+                np.save(file_path, dump_bins[res_idx])
                 res_idx += 1
+        for key, value in self.net_output.items():
+            utils.print_info_log("net_output node is:{}, file path is {}".format(key, value))
         utils.print_info_log("dump data success")
 
     @staticmethod
@@ -179,6 +187,16 @@ class OnnxDumpData(DumpData):
                 utils.print_error_log(message)
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
 
+    def _get_net_output_node(self):
+        """
+        get net output name
+        """
+        net_output_node = []
+        session = self._load_session(self.args.model_path)
+        for output_item in session.get_outputs():
+            net_output_node.append(output_item.name)
+        return net_output_node
+
     def generate_dump_data(self):
         """
         Function description:
@@ -192,9 +210,16 @@ class OnnxDumpData(DumpData):
         """
         data_dir, onnx_dump_data_dir, model_dir = self._create_dir()
         old_onnx_model, new_onnx_model_path = self._modify_model_add_outputs_nodes(model_dir)
+        net_output_node = self._get_net_output_node()
         session = self._load_session(new_onnx_model_path)
         inputs_tensor_info = self._get_inputs_tensor_info(session)
         inputs_map = self._get_inputs_data(data_dir, inputs_tensor_info)
         dump_bins = self._run_model(session, inputs_map)
-        self._save_dump_data(dump_bins, onnx_dump_data_dir, old_onnx_model)
+        self._save_dump_data(dump_bins, onnx_dump_data_dir, old_onnx_model, net_output_node)
         return onnx_dump_data_dir
+
+    def get_net_output_info(self):
+        """
+        get_net_output_info
+        """
+        return self.net_output

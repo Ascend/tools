@@ -115,6 +115,31 @@ class OmParser:
                     count += len(operator.get(INPUT_DESC_OBJECT))
         return count
 
+    @staticmethod
+    def _parse_net_output_node_attr(operator):
+        net_output_info = {}
+        if INPUT_DESC_OBJECT in operator:
+            input_index = 0
+            for input_object in operator.get(INPUT_DESC_OBJECT):
+                shape = []
+                data_type = DTYPE_MAP.get(input_object.get(DTYPE_OBJECT))
+                for num in input_object.get(SHAPE_OBJECT).get(DIM_OBJECT):
+                    shape.append(num)
+                net_output_info[input_index] = [data_type, shape]
+                input_index += 1
+        return net_output_info
+
+    def get_net_output_data_info(self):
+        """
+        get_net_output_data_info
+        """
+        for graph in self.json_object.get(GRAPH_OBJECT):
+            if graph.get(NAME_OBJECT) in self.subgraph_name:
+                continue
+            for operator in graph.get(OP_OBJECT):
+                if NET_OUTPUT_OBJECT == operator.get(TYPE_OBJECT):
+                    return self._parse_net_output_node_attr(operator)
+
     def _is_input_shape_range(self):
         if ATTR_OBJECT not in self.json_object:
             return False

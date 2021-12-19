@@ -13,6 +13,7 @@ The following table describes the version mapping between the Atlas 200 DK Drive
 
 <table>
 <tr><td width="25%"><b>Driver and Firmware Version</b></td><td width="75%"><b>CANN Version</b></td></tr>
+<tr><td>1.0.12.alpha</td><td>5.0.4.alpha002</td></tr>
 <tr><td rowspan="2" valign="top">1.0.11.alpha</td><td>5.0.3.alpha005</td></tr>
 <tr><td>5.0.2.alpha005</td></tr>
 </tr>

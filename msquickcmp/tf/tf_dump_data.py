@@ -32,6 +32,8 @@ class TfDumpData(DumpData):
         self.tmp_dir = os.path.join(output_path, "tmp")
         self.global_graph = None
         self.input_path = self.args.input_path
+        self.net_output_name = []
+        self.net_output = {}
 
     def _create_dir(self):
         # create input directory
@@ -88,6 +90,8 @@ class TfDumpData(DumpData):
         cmd = '%s %s -m %s -i %s --output-nodes %s -o %s' \
               % (sys.executable, tf_debug_runner_path, self.args.model_path, self.input_path,
                  ";".join(outputs_tensor), os.path.join(self.tmp_dir, "tf_dbg"))
+        for _, tensor_name in enumerate(outputs_tensor):
+            self.net_output_name.append(tensor_name)
         if self.args.input_shape:
             cmd += " -s " + self.args.input_shape
         self._run_tf_dbg_dump(cmd)
@@ -100,13 +104,18 @@ class TfDumpData(DumpData):
             next(tensor_name_file)
             next(tensor_name_file)
             # start to convert tensor to pt command
+            output_index = 0
             for line in tensor_name_file:
                 new_line = line.strip()
                 tensor_name = new_line[new_line.rfind(' ') + 1:]
                 npy_file_name = "%s.%s.npy" % (tensor_name.replace("/", "_").replace(":", "."),
                                                str(round(time.time() * 1000000)))
-                pt_command_list.append("pt %s -n 0 -w %s" %
-                                       (tensor_name, os.path.join(self.tf_dump_data_dir, npy_file_name)))
+                npy_file_path = os.path.join(self.tf_dump_data_dir, npy_file_name)
+                # get the net_output dump file info
+                if tensor_name in self.net_output_name:
+                    self.net_output[output_index] = npy_file_path
+                    output_index += 1
+                pt_command_list.append("pt %s -n 0 -w %s" % (tensor_name, npy_file_path))
         return pt_command_list
 
     def _run_tf_dbg_dump(self, cmd_line):
@@ -217,3 +226,9 @@ class TfDumpData(DumpData):
         outputs_tensor = self._get_outputs_tensor()
         self._run_model(outputs_tensor)
         return self.tf_dump_data_dir
+
+    def get_net_output_info(self):
+        """
+        Compatible with ONNX scenarios
+        """
+        return self.net_output
