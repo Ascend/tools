@@ -30,8 +30,10 @@ ACCURACY_COMPARISON_TENSOR_TYPE_ERROR = 13
 ACCURACY_COMPARISON_NO_DUMP_FILE_ERROR = 14
 ACCURACY_COMPARISON_NOT_SUPPORT_ERROR = 15
 ACCURACY_COMPARISON_NET_OUTPUT_ERROR = 16
+ACCURACY_COMPARISON_INVALID_DEVICE_ERROR = 17
 MODEL_TYPE = ['.onnx', '.pb', '.om']
 DIM_PATTERN = "^[^,][0-9,]*$"
+MAX_DEVICE_ID = 255
 
 
 class AccuracyCompareException(Exception):
@@ -333,3 +335,14 @@ def save_numpy_data(file_path, data):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
     np.save(file_path, data)
+
+
+def check_device_param_valid(device):
+    """
+    check device param valid.
+    """
+    if not device.isdigit() or int(device) > MAX_DEVICE_ID:
+        print_error_log(
+            "Please enter a valid number for device, the device id should be"
+            " in [0, 255], now is %s." % device)
+        raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_DEVICE_ERROR)

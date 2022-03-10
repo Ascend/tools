@@ -18,8 +18,13 @@ from common.utils import AccuracyCompareException
 MSACCUCMP_DIR_PATH = "toolkit/tools/operator_cmp/compare"
 MSACCUCMP_FILE_NAME = ["msaccucmp.py", "msaccucmp.pyc"]
 PYC_FILE_TO_PYTHON_VERSION = "3.7.5"
+INFO_FLAG = "[INFO]"
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT
 WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
+# index of each member in compare result_*.csv file
+LEFTOP_INDEX = 1
+RIGHTOP_INDEX = 2
+MIN_ELEMENT_NUM = 3
 
 
 class NetCompare(object):
@@ -166,13 +171,16 @@ class NetCompare(object):
         result_reader = csv.reader(fp_read)
         # update result data
         for line in result_reader:
-            if "Node_Output" != line[1]:
+            if len(line) < MIN_ELEMENT_NUM:
+                utils.print_warn_log('The content of line is {}'.format(line))
+                continue
+            if line[LEFTOP_INDEX] != "Node_Output":
                 writer.writerow(line)
             else:
                 new_content = [line[0], "Node_Output", npu_file_name, golden_file_name, "[]"]
                 new_content.extend(result)
                 new_content.extend([""])
-                if "*" == line[2]:
+                if line[RIGHTOP_INDEX] == "*":
                     writer.writerow(new_content)
                 else:
                     writer.writerow(line)
@@ -207,7 +215,30 @@ class NetCompare(object):
             pass
 
     @staticmethod
-    def execute_msaccucmp_command(cmd, catch_log=False):
+    def _catch_compare_result(log_line, catch):
+        result = []
+        try:
+            if catch:
+                # get the compare result
+                info = log_line.decode().split(INFO_FLAG)
+                if len(info) > 1:
+                    info_content = info[1].strip().split(" ")
+                    info_content = [item for item in info_content if item != '']
+                    pattern_num = re.compile(r'^([0-9]+)\.?([0-9]+)?')
+                    pattern_nan = re.compile(r'NaN', re.I)
+                    match = pattern_num.match(info_content[0])
+                    if match:
+                        result = info_content
+                    if not match and pattern_nan.match(info_content[0]):
+                        result = info_content
+            return result
+        except (OSError, SystemError, ValueError, TypeError, RuntimeError, MemoryError):
+            utils.print_warn_log('Failed to parse the alg compare result!')
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_NET_OUTPUT_ERROR)
+        finally:
+            pass
+
+    def execute_msaccucmp_command(self, cmd, catch=False):
         """
         Function Description:
             run the following command
@@ -224,12 +255,6 @@ class NetCompare(object):
             line = line.strip()
             if line:
                 print(line)
-                if catch_log:
-                    # get the compare result by alg
-                    message = line.decode().split("[INFO]")[1].strip().split(" ")
-                    message = [item for item in message if item != '']
-                    pattern = re.compile(r'^([0-9]+)\.?([0-9]+)?')
-                    match = pattern.match(message[0])
-                    if match is not None:
-                        result = message
+                compare_result = self._catch_compare_result(line, catch)
+                result = compare_result if compare_result else result
         return process.returncode, result

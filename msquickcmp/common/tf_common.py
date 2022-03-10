@@ -81,7 +81,7 @@ def verify_and_adapt_dynamic_shape(input_shapes, op_name, tensor):
             utils.print_error_log(message)
             raise utils.AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
         for index, dim in enumerate(model_shape):
-            fixed_tensor_dim = fixed_tensor_shape[index]
+            fixed_tensor_dim = int(fixed_tensor_shape[index])
             if dim is not None and fixed_tensor_dim != dim:
                 utils.print_error_log(message)
                 raise utils.AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)

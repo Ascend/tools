@@ -91,12 +91,12 @@ public:
     /**
     * @brief check dynamic input image size valid
     */
-    Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string, int64_t *> &dym_shape_map, std::vector<int64_t> &dims_num);
+    Result CheckDynamicShape(std::vector<std::string> dym_shape_tmp, std::map<std::string, std::vector<int64_t>> &dym_shape_map, std::vector<int64_t> &dims_num);
     
     /**
     * @brief set dynamic input dims 
     */    
-    Result SetDynamicShape(std::map<std::string, int64_t *> dym_shape_map, std::vector<int64_t> &dims_num);
+    Result SetDynamicShape(std::map<std::string, std::vector<int64_t>> dym_shape_map, std::vector<int64_t> &dims_num);
 
     /**
     * @brief set dynamic batch size

@@ -47,6 +47,15 @@ class NpuDumpData(DumpData):
         self.msame_compile(msame_dir)
         return self.msame_run(msame_dir)
 
+    def get_expect_output_name(self):
+        """
+        Function Description:
+            get expect output node name in golden net
+        Return Value:
+            output node name in golden net
+        """
+        return self.om_parser.get_expect_net_output_name()
+
     def msame_compile(self, msame_dir):
         """
         Function Description:
@@ -69,39 +78,39 @@ class NpuDumpData(DumpData):
 
     def _make_msame_cmd_for_shape_range(self, msame_cmd):
         pattern = re.compile(r'^[0-9]+$')
+        count = self.om_parser.get_net_output_count()
         if self.om_parser.shape_range:
             if not self.arguments.input_shape:
                 utils.print_error_log('In the dynamic shape scenario, the "-s" or "--input-shape" is mandatory.')
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
             msame_cmd.append('--dymShape')
-            msame_cmd.append(self.arguments.input_shape)
-            count = self.om_parser.get_net_output_count()
+            msame_cmd.append('"%s"' % self.arguments.input_shape)
             if not self.arguments.output_size:
                 if count > 0:
                     count_list = []
                     for _ in range(count):
                         count_list.append("90000000")
                     self.arguments.output_size = ",".join(count_list)
-            if self.arguments.output_size:
-                output_size_list = self.arguments.output_size.split(',')
-                if len(output_size_list) != count:
-                    utils.print_error_log(
-                        'The output size (%d) is not equal %d in model. Please check the "--output-size" argument.'
-                        % (len(output_size_list), count))
+        if self.arguments.output_size:
+            output_size_list = self.arguments.output_size.split(',')
+            if len(output_size_list) != count:
+                utils.print_error_log(
+                    'The output size (%d) is not equal %d in model. Please check the "--output-size" argument.'
+                    % (len(output_size_list), count))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            for item in output_size_list:
+                item = item.strip()
+                match = pattern.match(item)
+                if match is None:
+                    utils.print_error_log("The size (%s) is invalid. Please check the output size."
+                                          % self.arguments.output_size)
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-                for item in output_size_list:
-                    item = item.strip()
-                    match = pattern.match(item)
-                    if match is None:
-                        utils.print_error_log("The size (%s) is invalid. Please check the output size."
-                                              % self.arguments.output_size)
-                        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-                    if int(item) <= 0:
-                        utils.print_error_log("The size (%s) must be large than zero. Please check the output size."
-                                              % self.arguments.output_size)
-                        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-                msame_cmd.append('--outputSize')
-                msame_cmd.append(self.arguments.output_size)
+                if int(item) <= 0:
+                    utils.print_error_log("The size (%s) must be large than zero. Please check the output size."
+                                          % self.arguments.output_size)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            msame_cmd.append('--outputSize')
+            msame_cmd.append(self.arguments.output_size)
 
     def msame_run(self, msame_dir):
         """
@@ -123,7 +132,7 @@ class NpuDumpData(DumpData):
             os.mknod(acl_json_path, mode=0o600)
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
-                     self.arguments.input_path, "--output", npu_data_output_dir]
+                     self.arguments.input_path, "--device", self.arguments.device, "--output", npu_data_output_dir]
         self._make_msame_cmd_for_shape_range(msame_cmd)
         os.chdir(os.path.join(msame_dir, OUT_PATH))
         # do msame command

@@ -21,7 +21,7 @@ For details about the usage restrictions of the tool, visit https://support.huaw
 4. Install TensorFlow 1.15.0.
 
    For details, visit: https://bbs.huaweicloud.com/blogs/181055
-
+- Note: If the installation of dependent modules fails using the pip command, it is recommended to execute the command **pip3 install --upgrade pip** to avoid installation failure due to low pip version.
 ### Tool Download
 
 - By downloading the package:
@@ -125,9 +125,10 @@ export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
 | -i, --input-path                         | Path of model input data, which is generated based on model inputs by default. Separate model inputs with commas (,), for example, **/home/input\_0.bin, /home/input\_1.bin**. | No       |
 | -c, --cann-path                          | CANN installation path, defaulted to **/usr/local/Ascend/ascend-toolkit/latest** | No       |
 | -o, --output-path                        | Output path, defaulted to the current directory | No       |
-| -s，--input_shape                        | Shape information of model inputs. Separate multiple nodes with semicolons, for example, **input_name1:1,224,224,3;input_name2:3,300**. By default, this option is left blank. **input_name** must be the node name in the network model before model conversion. | No       |
+| -s，--input-shape                         | Shape information of model inputs. Separate multiple nodes with semicolons, for example, **input_name1:1,224,224,3;input_name2:3,300**. By default, this option is left blank. **input_name** must be the node name in the network model before model conversion. | No       |
+| -d，--device                              | Specify running device [0,255], default 0. | No       |
 | --output-nodes                           | Output node specified by the user. Separate multiple nodes with semicolons, for example, **node_name1:0;node_name2:1;node_name3:0**. | No       |
-| --output-size                            | Specify the output size of the model. If there are several outputs, set several values. In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate a more appropriate value according to the input shape to apply for memory. Multiple output sizes are separated by English semicolons (,), such as "10000,10000,10000"。| No   |
+| --output-size                            | Specify the output size of the model. If there are several outputs, set several values. In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate a more appropriate value according to the input shape to apply for memory. Multiple output sizes are separated by English semicolons (,), such as "10000,10000,10000"。 | No       |
 
 ### Sample Execution
 

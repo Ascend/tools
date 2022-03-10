@@ -98,24 +98,28 @@ class TfDumpData(DumpData):
 
     def _make_pt_command(self, tensor_name_path):
         pt_command_list = []
+        tensor_count = {}
         with open(tensor_name_path) as tensor_name_file:
             # skip 3 line
             next(tensor_name_file)
             next(tensor_name_file)
             next(tensor_name_file)
             # start to convert tensor to pt command
-            output_index = 0
             for line in tensor_name_file:
                 new_line = line.strip()
                 tensor_name = new_line[new_line.rfind(' ') + 1:]
+                if tensor_name not in tensor_count:
+                    tensor_count[tensor_name] = 0
+                else:
+                    tensor_count[tensor_name] += 1
+                count_tensor_name = tensor_count.get(tensor_name)
                 npy_file_name = "%s.%s.npy" % (tensor_name.replace("/", "_").replace(":", "."),
                                                str(round(time.time() * 1000000)))
                 npy_file_path = os.path.join(self.tf_dump_data_dir, npy_file_name)
                 # get the net_output dump file info
                 if tensor_name in self.net_output_name:
-                    self.net_output[output_index] = npy_file_path
-                    output_index += 1
-                pt_command_list.append("pt %s -n 0 -w %s" % (tensor_name, npy_file_path))
+                    self.net_output[self.net_output_name.index(tensor_name)] = npy_file_path
+                pt_command_list.append("pt %s -n %d -w %s" % (tensor_name, count_tensor_name, npy_file_path))
         return pt_command_list
 
     def _run_tf_dbg_dump(self, cmd_line):

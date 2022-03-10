@@ -48,8 +48,9 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
             return nullptr;
         }
     } else {
-        ret = aclrtMalloc(&binFileBufferData, binFileBufferLen, ACL_MEM_MALLOC_NORMAL_ONLY);
+        ret = aclrtMalloc(&binFileBufferData, binFileBufferLen, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
+            cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("malloc device buffer failed. size is %u", binFileBufferLen);
             binFile.close();
             return nullptr;
@@ -72,8 +73,9 @@ void* Utils::GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize)
     if (!g_is_device) {
         void* inBufferDev = nullptr;
         uint32_t inBufferSize = inputHostBuffSize;
-        aclError ret = aclrtMalloc(&inBufferDev, inBufferSize, ACL_MEM_MALLOC_NORMAL_ONLY);
+        aclError ret = aclrtMalloc(&inBufferDev, inBufferSize, ACL_MEM_MALLOC_HUGE_FIRST);
         if (ret != ACL_SUCCESS) {
+            cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("malloc device buffer failed. size is %u", inBufferSize);
             aclrtFreeHost(inputHostBuff);
             return nullptr;
@@ -81,6 +83,7 @@ void* Utils::GetDeviceBufferOfFile(std::string fileName, uint32_t& fileSize)
 
         ret = aclrtMemcpy(inBufferDev, inBufferSize, inputHostBuff, inputHostBuffSize, ACL_MEMCPY_HOST_TO_DEVICE);
         if (ret != ACL_SUCCESS) {
+            cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("memcpy failed. device buffer size is %u, input host buffer size is %u",
                 inBufferSize, inputHostBuffSize);
             aclrtFree(inBufferDev);
@@ -238,6 +241,7 @@ void Utils::ProfilerJson(bool isprof, map<char, string>& params)
         std::string out_profiler_path = out_path + "/profiler";
         ofstream outstr("acl.json", ios::out);
         outstr << "{\n\"profiler\": {\n    \"switch\": \"on\",\n";
+        outstr << "\"aicpu\": \"on\",\n";
         outstr << "\"output\": \"" << out_profiler_path << "\",\n    ";
         outstr << "\"aic_metrics\": \"\"}\n}";
         outstr.close();

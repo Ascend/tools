@@ -262,44 +262,6 @@ def process_local_installation(dev_name, sector_num, sector_size):
     cann_package_list = []
     cann_pkg_file = "none"
     
-    ret, cann_package_list = execute(
-        "find {path} -maxdepth 1 -name 'Ascend-cann-nnrt_*.run'".format(path=CURRENT_PATH,))
-    if not ret:
-        print("[ERROR] find nnrt command execute failed")
-        execute("echo '[ERROR] find nnrt command execute failed' >> %s" % (MAKE_SD_LOG_PATH))
-        return False  
-    cann_package_list = list(filter(None, cann_package_list))        
-    if cann_package_list == []:
-        print("make sd card only with driver package")
-        execute("echo 'make sd card only with driver package' >> %s" % (MAKE_SD_LOG_PATH))
-    elif len(cann_package_list) > 1:
-        package_index=[]
-        confirm_tips = "There are multiple cann packages:" + \
-            "\n\t Current cann packages list:"
-        for index, cann_package in enumerate(cann_package_list):
-            confirm_tips += "\n\t {index} : {cann_package}".format(index=index+1, cann_package=cann_package)
-            package_index.append(str(index+1))
-        confirm_tips += "\n Please input your cann package in this list(eg:1):"
-        confirm = input(confirm_tips)
-        confirm = confirm.strip()
-        choice_time=1
-        while (confirm not in package_index):
-            print ("[ERROR] Input CANN_CHOICE Error, Please check your input.")
-            execute("[ERROR] Input CANN_CHOICE Error, Please check your input.' >> %s" % (MAKE_SD_LOG_PATH))
-            if (choice_time >= 3):
-                break
-            else:
-                choice_time += 1
-            confirm = input("Please input your cann package in this list(eg:1):")
-            confirm = confirm.strip()
-        if (choice_time >= 3):
-            return False 
-        else:
-            confirm = int(confirm)
-            cann_pkg_file = cann_package_list[confirm-1]
-    elif len(cann_package_list) == 1:
-        cann_pkg_file = cann_package_list[0]
-        
     ret, paths = execute(
         "find {path} -name \"make_ubuntu_sd.sh\"".format(path=CURRENT_PATH))
     if not ret or len(paths[0]) == 0:
