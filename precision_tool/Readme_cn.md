@@ -135,7 +135,7 @@ sudo yum install graphviz
 * 【不推荐】方法二：参考[使用溢出检测工具分析算子溢出](https://www.hiascend.com/document?tag=community-developer) 修改训练脚本，
    并将溢出数据拷贝至【precision_tool/dump/overflow/】目录
 
-#### 4. TF的DUMP数据获取（缺少该数据无法使用数据比对功能）
+#### 4. TF的DUMP数据获取（缺少该数据无法使用数据比对功能）(适用于TF 1.15， TF2.x参考tfdbg_ascend)
 * 【推荐】方法一：在CPU/GPU训练脚本中添加tf_debug代码，并使用precision_tool中提供的辅助命令行工具生成标杆DUMP数据
    ```python
     import precision_tool.tf_config as npu_tf_config
@@ -263,12 +263,12 @@ sudo yum install graphviz
    [Mul][TbeMultiOutputFusionPass] InceptionV3/InceptionV3/Mixed_6b/Branch_1/mul_3
     ```
 
-4. ni (-n) [op_name] -d -s [save sub graph deep]
+4. ni (-n) [op_name] -s [save sub graph deep]
     ```shell
     # 通过[算子名]查询算子节点信息
     # -d 显示相应的dump数据信息
     # -s 保存一个以当前算子节点为根，深度为参数值的子图
-   PrecisionTool >  ni gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual -d -s 3
+   PrecisionTool >  ni gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual -s 3
    ╭─────────────────── [GreaterEqual]gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual ────────────────────╮
    │ [GreaterEqual] gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual                                       │
    │ Input:                                                                                                                               │
@@ -354,6 +354,7 @@ sudo yum install graphviz
     # -lt 必选，其中一个文件目录
     # -rt 必选，另一个目录，一般是标杆目录 
     # -g 可选，指定-g将尝试解析graph内的映射关系比对（一般用于NPU和TF之间的数据比对， NPU与NPU之间比对不需要，直接按照算子name对比）
+    # 需要指定到dump数据所在的目录层级，precision_data/npu/debug_0/dump/20220217095546/3/ge_default_20220217095547_1/1/0/
    ```
 8. vcs -f [file_name] -c [cos_sim_threshold] -l [limit]
    ```python
@@ -438,9 +439,22 @@ NET_TYPE = 'infer'
 #    只有第一次需要使用infer子命令导入，后续直接python3 precision_tool/cli.py
 python3 precision_tool/cli.py infer output-path/timestamp
 ```  
-  
 
+### 基于checkpoint进行训练精度分析
+#### 获取checkpoint和网络数据数据
+```python
+from precision_tool.tf_session import PrecisionTfSession
+with PrecisionTfSession() as sess:
+    sess.run()
+# 执行完成后，将在precision_data/tf/checkpoint 目录生成一个checkpoint
+# 在precision_data/tf/checkpoint/inputs目录保存[input_tensor_name].npy的输入数据
+```
 
+#### 使用【train】命令进行cpu和npu dump数据的获取
+```shell
+# train -d [all/npu/cpu] -a [dump|fusion_off|overflow]
+python3 precision_tool/cli.py train -d all -a dump
+```
 
 ### TF脚本修改参考
 

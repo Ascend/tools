@@ -49,7 +49,7 @@ do
         continue
     fi
 
-    if [ $cpu_shape == "shape:[1]" ];then
+    if [[ $cpu_shape == "shape:[1]" ]];then
         cpu_shape="shape:[]"
     fi
 

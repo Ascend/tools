@@ -2,16 +2,17 @@ import argparse
 import os
 import time
 
-from lib.overflow import Overflow
-from lib.dump_manager import DumpManager
-from lib.graph_manager import GraphManager
-from lib.compare import Compare
-from lib.fusion import Fusion
-from lib.util import util
-from lib.constant import Constant
-import config as cfg
-from lib.precision_tool_exception import PrecisionToolException
-from lib.precision_tool_exception import catch_tool_exception
+from .adapter.overflow import Overflow
+from .dump.dump_manager import DumpManager
+from .graph.graph_manager import GraphManager
+from .compare.compare import Compare
+from .adapter.fusion import Fusion
+from .train.train_analysis import TrainAnalysis
+from .util.util import util
+from .util.constant import Constant
+from .config import config as cfg
+from .util.precision_tool_exception import PrecisionToolException
+from .util.precision_tool_exception import catch_tool_exception
 
 
 class PrecisionTool(object):
@@ -22,6 +23,7 @@ class PrecisionTool(object):
         self.dump_manager = DumpManager()
         self.compare = Compare()
         self.fusion = Fusion()
+        self.train_analysis = TrainAnalysis()
         self.log = util.get_log()
 
     @catch_tool_exception
@@ -143,12 +145,14 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
         parser.add_argument('-g', '--graph', dest='graph', help='graph name')
+        parser.add_argument('-d', '--dump', dest='dump', action='store_true', help='show dump data info')
+        parser.add_argument('-a', '--attr', dest='attr', action='store_true', help='show all attr info')
         parser.add_argument('-s', '--save', dest='save', type=int, default=0,
                             help='save subgraph, param gives the deep of subgraph')
         args = parser.parse_args(argv)
         # print graph op info
         npu_ops, _ = self.graph_manager.get_ops(args.name, args.graph)
-        npu_op_summary, tf_op_summary = self.graph_manager.op_graph_summary(npu_ops)
+        npu_op_summary, tf_op_summary = self.graph_manager.op_graph_summary(npu_ops, args.attr)
         npu_dump_summary, tf_dump_summary = self.dump_manager.op_dump_summary(npu_ops)
         # merge graph/dump/compare info
         for debug_id, graph_summary in npu_op_summary.items():
@@ -203,9 +207,20 @@ class PrecisionTool(object):
     def check_graph_similarity(self):
         """ Check graph similarity """
 
+    @catch_tool_exception
+    def do_train_analysis(self, argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-d', '--device', dest='device', default='all', required=False,
+                            help='train device, support cpu/npu/all')
+        parser.add_argument('-a', '--action', dest='action', default='dump', required=False,
+                            help='action, support dump(-d cpu/npu)[overflow]|fusion_off|fusion_switch(npu)')
+        args = parser.parse_args(argv)
+        self.train_analysis.run(args.device, args.action)
+
     def single_cmd(self, argv):
         cmd_func_map = {'compare': self.do_compare_data,
-                        'vector_compare': self.do_vector_compare}
+                        'vector_compare': self.do_vector_compare,
+                        'train': self.do_train_analysis}
         if argv[1] in cmd_func_map:
             func = cmd_func_map[argv[1]]
             return func(argv[2:])
