@@ -1,0 +1,10 @@
+/.idea
+venv
+tenv
+__pycache__
+/tests/tada/packages/
+/build
+/ada.egg-info
+/dist
+/tests/**/*.json
+/tests/**/*.csv
