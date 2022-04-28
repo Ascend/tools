@@ -97,7 +97,7 @@ def execute(cmd, timeout=3600, cwd=None):
     for i in std_output_lines:
         std_output_lines_last.append(i)
 
-    if process.returncode != 0 or "Traceback" in str_std_output:
+    if process.returncode != 0 or "Traceback" in str_std_output or str_std_output == "":
         return False, std_output_lines_last
 
     return True, std_output_lines_last
