@@ -85,11 +85,11 @@ class TfDumpData(DumpData):
                     len(inputs_tensor), len(input_path)))
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_DATA_ERROR)
 
-    def _run_model(self, outputs_tensor):
+    def _run_model(self, outputs_tensor, input_list):
         tf_debug_runner_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../", "tf_debug_runner.py")
         cmd = '%s %s -m %s -i %s --output-nodes %s -o %s' \
               % (sys.executable, tf_debug_runner_path, self.args.model_path, self.input_path,
-                 ";".join(outputs_tensor), os.path.join(self.tmp_dir, "tf_dbg"))
+                 ";".join(input_list), os.path.join(self.tmp_dir, "tf_dbg"))
         for _, tensor_name in enumerate(outputs_tensor):
             self.net_output_name.append(tensor_name)
         if self.args.input_shape:
@@ -156,14 +156,16 @@ class TfDumpData(DumpData):
     def _get_all_node_and_input_node(self):
         input_nodes = []
         node_list = []
+        input_list = []
         operations = self.global_graph.get_operations()
         for op in operations:
             node_list.append(op.name)
             for tensor in op.inputs:
+                input_list.append(tensor.name)
                 input_name = tensor.name.split(':')[0]
                 if input_name not in input_nodes:
                     input_nodes.append(input_name)
-        return input_nodes, node_list
+        return input_nodes, node_list, input_list
 
     def _check_node_output(self, node_name):
         op = self.global_graph.get_operation_by_name(node_name)
@@ -205,7 +207,7 @@ class TfDumpData(DumpData):
                 raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
 
     def _get_outputs_tensor(self):
-        input_nodes, node_list = self._get_all_node_and_input_node()
+        input_nodes, node_list, input_list = self._get_all_node_and_input_node()
         outputs_tensor = []
         if self.args.output_nodes:
             outputs_tensor = self.args.output_nodes.strip().split(';')
@@ -216,7 +218,8 @@ class TfDumpData(DumpData):
                 if self._check_node_output(name):
                     outputs_tensor.append(name + ":0")
         utils.print_info_log("The outputs tensor:\n{}\n".format(outputs_tensor))
-        return outputs_tensor
+        input_list.extend(outputs_tensor)
+        return outputs_tensor, input_list
 
     def generate_dump_data(self):
         """
@@ -227,8 +230,8 @@ class TfDumpData(DumpData):
         self._create_dir()
         inputs_tensor = tf_common.get_inputs_tensor(self.global_graph, self.args.input_shape)
         self._make_inputs_data(inputs_tensor)
-        outputs_tensor = self._get_outputs_tensor()
-        self._run_model(outputs_tensor)
+        outputs_tensor, input_list = self._get_outputs_tensor()
+        self._run_model(outputs_tensor, input_list)
         return self.tf_dump_data_dir
 
     def get_net_output_info(self):
