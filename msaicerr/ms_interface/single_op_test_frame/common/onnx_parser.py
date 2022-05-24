@@ -8,7 +8,7 @@ import sys
 import tbe.common.platform
 from google.protobuf import text_format
 
-ascend_opp_path = os.environ.get('ASCEND_OPP_PATH') or os.path.join("usr", "local", "Ascend", "opp")
+ascend_opp_path = os.environ.get('ASCEND_OPP_PATH') or "/usr/local/Ascend/latest/opp"
 aic_info_path = os.path.join(ascend_opp_path, "op_impl", "built-in", "ai_core", "tbe", "config")
 
 

@@ -1,0 +1,75 @@
+diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
+--- origin/pretrain_eval.py	2021-12-10 14:27:15.670000000 +0800
++++ code/pretrain_eval.py	2021-12-10 14:27:15.680000000 +0800
+@@ -53,6 +53,15 @@
+     print("==============================================================")
+     for _, v in res.items():
+         print("Accuracy is: ", v)
++        ACC_DIR = os.getenv("RESULT_PATH")
++        if ACC_DIR is None:
++           print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++        elif not os.path.isdir(ACC_DIR):
++           print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++        else:
++           ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
++           with open(ACC_LOG, 'w') as f:
++              f.write("{}".format(v))
+     print("==============================================================")
+
+
+diff -Nur origin/run_pretrain.py code/run_pretrain.py
+--- origin/run_pretrain.py	2021-12-10 14:27:15.670000000 +0800
++++ code/run_pretrain.py	2021-12-10 14:27:15.670000000 +0800
+@@ -17,6 +17,7 @@
+ python run_pretrain.py
+ """
+ import os
++import time
+ import mindspore.communication.management as D
+ from mindspore.communication.management import get_rank
+ import mindspore.common.dtype as mstype
+@@ -45,6 +46,12 @@
+ from src.model_utils.device_adapter import get_device_id, get_device_num
+ _current_dir = os.path.dirname(os.path.realpath(__file__))
+
++try:
++   import ais_utils
++except ImportError:
++   ais_utils_is_existed = False
++else:
++   ais_utils_is_existed = True
+
+ def _set_bert_all_reduce_split():
+     """set bert all_reduce fusion split, support num_hidden_layers is 12 and 24."""
+@@ -262,8 +269,31 @@
+         callback.append(eval_callback)
+
+     model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
++    model.build(ds, sink_size=cfg.data_sink_steps, epoch=new_repeat_count)
++    if ais_utils_is_existed:
++       start_time = ais_utils.get_datatime()
++    else:
++       start_time = time.time()
+     model.train(new_repeat_count, ds, callbacks=callback,
+                 dataset_sink_mode=(cfg.enable_data_sink == "true"), sink_size=cfg.data_sink_steps)
++    all_data_sum = new_repeat_count * cfg.data_sink_steps * cfg.batch_size
++    if ais_utils_is_existed:
++        end_time = ais_utils.get_datatime()
++        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, start_time, end_time)
++    else:
++        end_time = time.time()
++        throughput_rate = all_data_sum/(end_time - start_time)
++
++    rank_id = int(os.getenv('RANK_ID'))
++    THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++    if THROUGHPUT_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(THROUGHPUT_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++      THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++      with open(THROUGHPUT_LOG, 'w') as f:
++          f.write("{}".format(throughput_rate))
+
+
+ if __name__ == '__main__':

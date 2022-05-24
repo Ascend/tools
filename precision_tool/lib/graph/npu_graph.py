@@ -24,9 +24,10 @@ OP_CAST = 'Cast'
 
 
 class NpuSubGraph(object):
-    def __init__(self, graph_json, build_file):
+    def __init__(self, graph_json, build_file, npu_graph):
         self.log = util.get_log()
         self.graph_name = graph_json['name']
+        self.npu_graph = npu_graph
         self.graph = graph_json
         self.build_file = build_file
         self.ops_list = collections.OrderedDict()
@@ -41,7 +42,7 @@ class NpuSubGraph(object):
             op_type = op_json['type']
             if op_name not in self.ops_list:
                 self.ops_list[op_name] = []
-            op = Op(op_json, self.ops_list, self.graph['name'])
+            op = Op(op_json, self.ops_list, self.graph['name'], self.npu_graph, self)
             if op_type not in self.ops_type_list:
                 self.ops_type_list[op_type] = {}
             self.ops_list[op_name] = op
@@ -90,6 +91,20 @@ class NpuSubGraph(object):
             if name in op_detail.name():
                 guess_op_list.append(op_detail)
         return guess_op_list
+
+    def get_parent_node_by_subgraph_name(self, graph_name):
+        ops = []
+        for op_detail in self.ops_list.values():
+            if graph_name in op_detail.subgraph_names():
+                ops.append(op_detail)
+        return ops
+
+    def get_op_by_type(self, op_type):
+        ops = []
+        for op_detail in self.ops_list.values():
+            if op_type == op_detail.type():
+                ops.append(op_detail)
+        return ops
 
     def check_cast(self):
         cast_list = {}
@@ -265,6 +280,12 @@ class NpuGraph(object):
         util.print_panel(Constant.NEW_LINE.join(guess_op_name_list), title='Possible Operators')
         return ops
 
+    def get_parent_node_by_subgraph_name(self, graph_name):
+        ops = []
+        for sub_graph in self.sub_graphs.values():
+            ops.extend(sub_graph.get_parent_node_by_subgraph_name(graph_name))
+        return ops
+
     def _prepare_npu_graphs(self):
         """prepare ge graphs  """
         # move graphs to precision data dir
@@ -290,6 +311,6 @@ class NpuGraph(object):
                 self.log.warning("There are more then one graph in ge build file, find %d" % len(graph_json['graph']))
             # sub_graphs = []
             for graph in graph_json['graph']:
-                npu_sub_graph = NpuSubGraph(graph, build_file)
+                npu_sub_graph = NpuSubGraph(graph, build_file, self)
                 self.sub_graphs[graph['name']] = npu_sub_graph
                 self.ops_list.extend(npu_sub_graph.ops_list.values())

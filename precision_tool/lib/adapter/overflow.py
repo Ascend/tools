@@ -138,6 +138,9 @@ class Overflow(object):
         self.log.debug('Decode AI Core Overflow status:[%s]', hex(status))
         for i in range(len(bin_status)):
             if bin_status[i] == '1':
+                if hex(int('1' + prefix, 2)) not in AI_CORE_OVERFLOW_STATUS:
+                    self.log.warning("Unknown AI Core overflow status: [%s]", hex(int('1' + prefix, 2)))
+                    continue
                 error_code.append(AI_CORE_OVERFLOW_STATUS[hex(int('1' + prefix, 2))])
             prefix += '0'
         return error_code

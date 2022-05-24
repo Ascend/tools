@@ -71,12 +71,33 @@ export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
       - 昇腾AI处理器的离线模型（.om）路径
       - 模型文件（.pb或.onnx）路径
       - 模型的输入数据（.bin）路径
-   2. 执行命令
+   2. 执行命令  
       1.示例
          ```
       python3 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
-         ```
-      2. **注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明
+         ```  
+      2.**注意**：如果有多个输入，需要用**英文逗号**隔开，其他参数详情可使用--help查询，也可以不指定-c参数，详细内容请查看参数说明  
+      3.若为batch输入请将数据文件合并为一个文件作为模型的输入：  
+        一键式全流程精度比对（推理）工具支持多batch，但对于多batch，若用户是逐个保存输入数据文件，那么需要将这些数据文件合并为一个文件作为模型的输入。如下提供一个具体操作样例：
+    获取网络模型进行网络训练时，假设保存的模型输入数据文件为.bin，将逐个保存的输入数据文件保存在某一目录，例如：/home/HwHiAiUser/input_bin/。
+    调用Python执行如下代码。  
+      **请根据原始模型的属性填写以下代码的各个参数。**  
+      
+            ```
+            import os
+            import numpy as np
+             data_sets = []
+             sample_batch_input_bin_dir = "/home/HwHiAiUser/input_bin/"
+             for item in os.listdir(sample_batch_input_bin_dir):
+               # 读取bin文件时，bin文件内的dtype类型须根据模型的输入类型确定，下面以float32为例
+               original_input_data = np.fromfile(os.path.join(sample_batch_input_bin_dir, item), dtype=np.float32)
+               # 将数据重新组织，具体根据模型输入中的shape值确定
+               current_input_data = original_input_data.reshape(1024, 1024, 3)
+               # 将当前的数据添加到列表中
+               data_sets.append(current_input_data)
+             # 将每个batch的数据保存到一个输入bin文件中，从而得到一个包含多batch的输入bin文件
+             np.array(data_sets).tofile("input.bin")
+            ```
 
 - 用户不指定模型输入
    1. 参数准备

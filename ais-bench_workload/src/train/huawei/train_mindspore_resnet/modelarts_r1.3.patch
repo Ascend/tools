@@ -1,0 +1,224 @@
+diff -Nur origin/src/eval_callback.py code/src/eval_callback.py
+--- origin/src/eval_callback.py	2022-04-08 15:27:56.657877699 +0800
++++ code/src/eval_callback.py	2022-04-08 15:27:56.669877890 +0800
+@@ -21,6 +21,9 @@
+ from mindspore import log as logger
+ from mindspore.train.callback import Callback
+ 
++import json
++from src.model_utils.config import config
++from src.model_utils.device_adapter import get_rank_id, get_device_num
+ 
+ class EvalCallBack(Callback):
+     """
+@@ -93,3 +96,11 @@
+         print("End training, the best {0} is: {1}, the best {0} epoch is {2}".format(self.metrics_name,
+                                                                                      self.best_res,
+                                                                                      self.best_epoch), flush=True)
++        if get_rank_id() == 0:
++            import moxing as mox
++            server_id = os.getenv("BATCH_TASK_INDEX", 0)
++            accuracy_file = os.path.join(config.train_url, "accuracy_{}.json".format(server_id))
++            mox.file.write(accuracy_file, str(self.best_res))
++            ranksize_file = os.path.join(config.train_url, "ranksize.json")
++            if mox.file.exists(ranksize_file) == False:
++                mox.file.write(ranksize_file, str(get_device_num()))
+diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
+--- origin/src/model_utils/config.py	2022-04-08 15:27:56.657877699 +0800
++++ code/src/model_utils/config.py	2022-04-08 15:27:56.665877826 +0800
+@@ -120,6 +120,8 @@
+     parser.add_argument("--config_path", type=str, default=os.path.join(current_dir, \
+         "../resnet50_cifar10_config.yaml"), help="Config file path")
+     path_args, _ = parser.parse_known_args()
++    if not os.path.exists(path_args.config_path):
++        path_args.config_path = os.path.join(current_dir, '..', '..', path_args.config_path)
+     default, helper, choices = parse_yaml(path_args.config_path)
+     pprint(default)
+     args = parse_cli_to_yaml(parser=parser, cfg=default, helper=helper, choices=choices, cfg_path=path_args.config_path)
+diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
+--- origin/src/model_utils/moxing_adapter.py	2022-04-08 15:27:56.657877699 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-04-08 15:27:56.665877826 +0800
+@@ -98,6 +98,12 @@
+                 if not os.path.exists(config.output_path):
+                     os.makedirs(config.output_path)
+ 
++                base_path = config.data_path
++                if os.path.exists(os.path.join(base_path, "train")):
++                    config.data_path = os.path.join(base_path, "train")
++                if config.run_eval and os.path.exists(os.path.join(base_path, "val")):
++                    config.eval_dataset_path = os.path.join(os.path.join(base_path, "val"))
++
+                 if pre_process:
+                     pre_process()
+ 
+@@ -111,5 +117,6 @@
+                 if config.train_url:
+                     print("Start to copy output directory")
+                     sync_data(config.output_path, config.train_url)
++
+         return wrapped_func
+     return wrapper
+diff -Nur origin/train.py code/train.py
+--- origin/train.py	2022-04-08 15:27:56.657877699 +0800
++++ code/train.py	2022-04-08 15:27:56.661877763 +0800
+@@ -17,6 +17,7 @@
+ import glob
+ import os
+ import numpy as np
++import time
+ 
+ from mindspore import context
+ from mindspore import Tensor, Parameter
+@@ -47,6 +48,61 @@
+ 
+ set_seed(1)
+ 
++import json
++import time
++from mindspore.train.callback._callback import Callback
++
++skip_sumary_count = 1
++skip_data_sum = 0
++skip_time_sum = 0
++real_start_time = 0.0
++all_data_sum = 0
++
++class ThroughputRate(Callback):
++    """
++    Monitor the time in training.
++
++    Args:
++        data_size (int): Dataset size. Default: None.
++    """
++
++    def __init__(self, data_size=None):
++        super(ThroughputRate, self).__init__()
++        self.data_size = data_size
++        self.count = 0
++
++    def epoch_begin(self, run_context):
++        self.epoch_time = time.time()
++        global real_start_time
++        if self.count == 1:
++            real_start_time = self.epoch_time
++        self.count += 1
++
++    def epoch_end(self, run_context):
++        epoch_seconds = (time.time() - self.epoch_time) * 1000
++        step_size = self.data_size
++        cb_params = run_context.original_args()
++        if hasattr(cb_params, "batch_num"):
++            batch_num = cb_params.batch_num
++            if isinstance(batch_num, int) and batch_num > 0:
++                step_size = cb_params.batch_num
++
++        if not isinstance(step_size, int) or step_size < 1:
++            logger.error("data_size must be positive int.")
++            return
++
++        global skip_sumary_count
++        global skip_data_sum
++        global skip_time_sum
++        global all_data_sum
++        if skip_sumary_count > 0:
++            skip_sumary_count = skip_sumary_count -1
++            skip_data_sum += self.data_size * config.batch_size
++            skip_time_sum += (time.time() - self.epoch_time)
++        all_data_sum += self.data_size * config.batch_size
++        print("data_size:{} batch_size:{} datasum:{} skipcount:{} skip_data_sum:{} skip_time_sum:{}".format(
++            self.data_size, config.batch_size, all_data_sum, skip_sumary_count, skip_data_sum, skip_time_sum))
++
+ 
+ class LossCallBack(LossMonitor):
+     """
+@@ -373,7 +429,7 @@
+     # define callbacks
+     time_cb = TimeMonitor(data_size=step_size)
+     loss_cb = LossCallBack(config.has_trained_epoch)
+-    cb = [time_cb, loss_cb]
++    cb = [time_cb, loss_cb, ThroughputRate(data_size=step_size)]
+     ckpt_save_dir = set_save_ckpt_dir()
+     if config.save_checkpoint:
+         ckpt_append_info = [{"epoch_num": config.has_trained_epoch, "step_num": config.has_trained_step}]
+@@ -388,12 +444,81 @@
+         config.epoch_size = config.train_epoch_size
+     dataset_sink_mode = (not config.parameter_server) and target != "CPU"
+     config.pretrain_epoch_size = config.has_trained_epoch
++
++    start_time = time.time()
+     model.train(config.epoch_size - config.pretrain_epoch_size, dataset, callbacks=cb,
+                 sink_size=dataset.get_dataset_size(), dataset_sink_mode=dataset_sink_mode)
++    end_time = time.time()
++    throughput_rate = (all_data_sum - skip_data_sum ) / (end_time  - real_start_time)
++    print("train done starttime:{} real:{} endtime:{} alldatasum:{} skipcount:{} skiptime:{}".format(
++        start_time, real_start_time, end_time, all_data_sum, skip_data_sum, skip_time_sum))
++    import moxing as mox
++    result_url = config.train_url
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        result_url = os.path.join(config.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        mox.file.make_dirs(result_url)
++    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
++    mox.file.write(throughput_file, str(throughput_rate))
+ 
+     if config.run_eval and config.enable_cache:
+         print("Remember to shut down the cache server via \"cache_admin --stop\"")
+ 
++import json
++import time
++import os
++
++class FileOperator:
++    @staticmethod
++    def create_empty_file(file_path):
++        f = open(file_path, "w")
++        f.close()
++
++    @staticmethod
++    def read_json_to_dict(file_path):
++        f = open(file_path, 'r')
++        dic = json.load(f)
++        f.close()
++        return dic
++
++    @staticmethod
++    def write_json_from_dict(file_path, source_dict):
++        json_str = json.dumps(source_dict)
++        with open(file_path, 'w') as json_file:
++            json_file.write(json_str)
++
++def generate_single_node_rank_table(rank_table, old_rank_id):
++    import copy
++    server_list = copy.deepcopy(rank_table['server_list'])
++    server_index = old_rank_id // 8
++    cur_server = server_list[server_index]
++    for device in cur_server['device']:
++        device['rank_id'] = str(int(device['rank_id']) % 8)
++    rank_table['server_list'] = [cur_server]
++    rank_table['server_count'] = "1"
++    FileOperator.write_json_from_dict(os.getenv("RANK_TABLE_FILE"), rank_table)
++
++def set_singleserver_mode():
++    old_rank_id = int(os.environ['RANK_ID'])
++    new_rank_id = old_rank_id % 8
++    os.environ['RANK_ID'] = str(new_rank_id)
++    os.environ['DEVICE_ID'] = str(new_rank_id)
++    os.environ["RANK_SIZE"] = str(8)
++    #os.environ["SERVER_ID"] = str(old_rank_id // 8)
++
++    empty_file_path = "/tmp/tmp.txt"
++    if new_rank_id != 0:
++        while not os.path.exists(empty_file_path):
++            time.sleep(1)
++    else:
++        rank_table = FileOperator.read_json_to_dict(os.getenv("RANK_TABLE_FILE"))
++        generate_single_node_rank_table(rank_table, old_rank_id)
++        FileOperator.create_empty_file(empty_file_path)
++    return new_rank_id
+ 
+ if __name__ == '__main__':
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        set_singleserver_mode()
++        print("singleserver_mode set")
++    else:
++        print("singleserver_mode not set")
+     train_net()

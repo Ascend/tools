@@ -87,3 +87,22 @@ def update_custom_op(custom_op, action=None):
     :return:
     """
     return adapter.update_custom_op(custom_op, action)
+
+
+class NpuPrintLossScaleCallBack(tf.keras.callbacks.Callback):
+    """
+    For TF2.x callbacks. Usage:
+        callbacks = []
+        # append other callbacks.
+        callbacks.append(NpuPrintLossScaleCallBack(opt))
+        model.fit(xx, xx, callbacks=callbacks)
+    """
+    def __init__(self, optimizer, loss=None):
+        super(NpuPrintLossScaleCallBack, self).__init__()
+        self.optimizer = optimizer
+        self.loss = loss
+
+    def on_train_batch_begin(self, batch, logs=None):
+        print("PrecisionTool: Train steps {}, loss_scale={:.3f} / not_overflow_status={}".format(
+            batch, self.optimizer.loss_scale.numpy(), self.optimizer.last_step_finite.numpy()
+        ), flush=True)

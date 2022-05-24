@@ -1,0 +1,59 @@
+diff -Nur -x '.git*' origin/official/resnet/resnet_run_loop.py code/official/resnet/resnet_run_loop.py
+--- origin/official/resnet/resnet_run_loop.py	2021-09-03 18:05:29.200000000 +0800
++++ code/official/resnet/resnet_run_loop.py	2021-09-03 18:05:29.220000000 +0800
+@@ -27,6 +27,7 @@
+ import math
+ import multiprocessing
+ import os
++import time
+
+ # pylint: disable=g-bad-import-order
+ from absl import flags
+@@ -41,7 +42,12 @@
+ from official.resnet import imagenet_preprocessing
+ from official.utils.misc import distribution_utils
+ from official.utils.misc import model_helpers
++import ais_utils
+
++NUM_IMAGES = {
++    'train': 1281167,
++    'validation': 50000,
++}
+
+ ################################################################################
+ # Functions for input processing.
+@@ -478,7 +484,7 @@
+   run_config = tf.estimator.RunConfig(
+       train_distribute=distribution_strategy,
+       session_config=session_config,
+-      save_checkpoints_secs=60*60*24)
++      save_checkpoints_secs=60*60*24, keep_checkpoint_max=1)
+
+   # Initializes model with all but the dense layer from pretrained ResNet.
+   if flags_obj.pretrained_model_checkpoint_path is not None:
+@@ -560,8 +566,15 @@
+     tf.logging.info('Starting cycle: %d/%d', cycle_index, int(n_loops))
+
+     if num_train_epochs:
++      start = time.process_time()
+       classifier.train(input_fn=lambda: input_fn_train(num_train_epochs),
+                        hooks=train_hooks, max_steps=flags_obj.max_train_steps)
++      end = time.process_time()
++      data_sum = NUM_IMAGES['train'] * flags.FLAGS.train_epochs
++      throughput_rate = ais_utils.calc_throughput_rate(data_sum, (int)(end - start))
++      ais_utils.set_result("training", "throughput_ratio", throughput_rate)
++      print("starttime: {} endtime：{} image_number: {} epoch_size: {} throughput_ratio: {}".format(start, \
++        end, NUM_IMAGES['train'], flags.FLAGS.train_epochs, throughput_rate))
+
+     tf.logging.info('Starting to evaluate.')
+
+@@ -573,6 +586,9 @@
+     # global_step count.
+     eval_results = classifier.evaluate(input_fn=input_fn_eval,
+                                        steps=flags_obj.max_train_steps)
++    print("eval_results: {}".format(eval_results))
++    if 'accuracy' in eval_results:
++      ais_utils.set_result('training', 'accuracy', eval_results['accuracy'])
+
+     benchmark_logger.log_evaluation_result(eval_results)
+

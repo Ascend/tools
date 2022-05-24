@@ -9,7 +9,7 @@ from ..util.constant import Constant
 from ..util.precision_tool_exception import PrecisionToolException
 
 NO_INPUT_NODES = ['Data', 'AtomicAddrClean', 'Recv', 'Constant']
-NO_OUTPUT_NODES = ['Send', 'Recv', 'NetOutput']
+NO_OUTPUT_NODES = ['Send', 'Recv', 'NetOutput', 'PartitionedCall']
 
 JSON_KEY_NAME = 'name'
 JSON_KEY_ID = 'id'
@@ -24,6 +24,7 @@ JSON_KEY_PASS_NAME = 'pass_name'
 JSON_KEY_DATA_DUMP_ORIGINAL_OP_NAMES = '_datadump_original_op_names'
 JSON_KEY_GE_ATTR_OP_KERNEL_LIB_NAME = "_ge_attr_op_kernel_lib_name"
 JSON_KEY_PARENT_NODE_INDEX = "_parent_node_index"
+JSON_KEY_SUBGRAPH_NAME = "subgraph_name"
 
 KERNEL_NAME_SHUFFIX = '_kernelname'
 
@@ -35,11 +36,13 @@ class Op(object):
         inputs: list of input descs
         outputs: list of output descs
     """
-    def __init__(self, op_json, op_list, graph_name):
+    def __init__(self, op_json, op_list, graph_name, npu_graph, sub_graph):
         """Init"""
         self.op_json = op_json
         self.op_list = op_list
         self.graph_name = graph_name
+        self.npu_graph = npu_graph
+        self.sub_graph = sub_graph
         self.input_list = None
         self.output_list = None
         self.log = util.get_log()
@@ -59,16 +62,24 @@ class Op(object):
         """Get op type"""
         return self.op_json[JSON_KEY_TYPE]
 
+    def subgraph_names(self):
+        return self.op_json[JSON_KEY_SUBGRAPH_NAME] if JSON_KEY_SUBGRAPH_NAME in self.op_json else []
+
     def inputs(self):
         """Get the input list"""
         if self.input_list is None:
             self._parse_inputs()
+        if len(self.input_list) == 0 and self.type() == 'Data':
+            # Looking for Real Data
+            self._looking_for_real_inputs()
         return self.input_list
 
     def outputs(self):
         """Get output list"""
         if self.output_list is None:
             self._parse_outputs()
+        if len(self.output_list) == 0 and self.type() == 'PartitionedCall':
+            self._looking_for_real_outputs()
         return self.output_list
 
     def pass_name(self):
@@ -204,3 +215,30 @@ class Op(object):
                 desc_index += 1
         self.output_list.sort(key=lambda x: x.index)
         return self.output_list
+
+    def _looking_for_real_inputs(self):
+        """Find real inputs of subgraph data node."""
+        graph_name = self.graph_name
+        parent_node_idx = self.parent_node_index()
+        parent_nodes = self.npu_graph.get_parent_node_by_subgraph_name(graph_name)
+        self.log.debug("Find %s parent nodes." % len(parent_nodes))
+        for parent_node in parent_nodes:
+            inputs = parent_node.inputs()
+            if len(inputs) <= parent_node_idx:
+                self.log.warning("Parent node has %d inputs, bug need index %d" % (len(inputs), parent_node_idx))
+                continue
+            self.input_list.append(inputs[parent_node_idx])
+
+    def _looking_for_real_outputs(self):
+        """Find real outputs of PartitionedCall Node"""
+        subgraph_names = self.subgraph_names()
+        for subgraph_name in subgraph_names:
+            net_output_with_subgraph_name = subgraph_name + '_Node_Output'
+            net_output_nodes = self.npu_graph.get_op(net_output_with_subgraph_name)
+            self.log.debug("Find %s net output nodes, just need one." % len(net_output_nodes))
+            for output_node in net_output_nodes:
+                self.output_list = output_node.inputs()
+
+
+
+

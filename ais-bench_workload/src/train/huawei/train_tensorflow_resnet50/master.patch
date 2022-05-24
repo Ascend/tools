@@ -1,0 +1,48 @@
+diff -Nur origin/official/r1/resnet/imagenet_main.py code/official/r1/resnet/imagenet_main.py
+--- origin/official/r1/resnet/imagenet_main.py	2021-12-01 14:49:02.440337230 +0800
++++ code/official/r1/resnet/imagenet_main.py	2021-12-01 14:49:02.556337859 +0800
+@@ -405,6 +405,21 @@
+       flags_obj, imagenet_model_fn, input_function, DATASET_NAME,NUM_IMAGES,
+       shape=[DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE, NUM_CHANNELS],)
+ 
++  try:
++    if 'accuracy' in result.get("eval_results",None):
++      ACC_DIR = os.getenv("RESULT_PATH")
++      if ACC_DIR is None:
++        print("ais-bench Warning: 'RESULT_PATH' is not set. ")
++      elif not os.path.isdir(ACC_DIR):
++        print("ais-bench Warning: 'RESULT_PATH' is not a valid directory. ")
++      else:
++        ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
++        with open(ACC_LOG, 'w') as f:
++          f.write("{}".format(result["eval_results"]['accuracy']))
++          print("ais-bench set accuracy:{}".format(result["eval_results"]['accuracy']))
++  except Exception as msg:
++      print("ais-bench accuracy set failed {}".format(msg))
++
+   return result
+ def main(_):
+   ############## npu modify begin #############
+diff -Nur origin/official/utils/logs/hooks.py code/official/utils/logs/hooks.py
+--- origin/official/utils/logs/hooks.py	2021-12-01 14:49:02.444337252 +0800
++++ code/official/utils/logs/hooks.py	2021-12-01 14:49:02.560337881 +0800
+@@ -159,3 +159,19 @@
+             "steps: %s,elapsed_steps:%d,batch:%d,FPS:%f,ips:%f,batch_time:%f", int(self._total_steps),
+             int(elapsed_steps),int(self._batch_size),float(current_examples_per_sec),float(ips),
+             float(batch_time))
++      try:
++        rank_id = int(os.getenv('DEVICE_INDEX'))
++        THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++        if THROUGHPUT_DIR is None:
++          print("ais-bench Warning: 'RESULT_PATH' is not set. ")
++        elif not os.path.isdir(THROUGHPUT_DIR):
++          print("ais-bench Warning: 'RESULT_PATH' is not a valid directory. ")
++        else:
++          if rank_id == 0:
++            THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++            with open(THROUGHPUT_LOG, 'w') as f:
++              throughput = current_examples_per_sec
++              print("ais-bench {} set throughput:{}".format(rank_id, throughput))
++              f.write("{}".format(throughput))
++      except Exception as msg:
++        print("write throught failed {}".format(msg))

@@ -1,3 +1,4 @@
+from platform import node
 import time
 from abc import abstractmethod
 
@@ -153,7 +154,7 @@ class HostLogParser(LogParser):
         data = self._get_node_and_kernel_name_execute_command()
         regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device_id=\d+\s*,\s*stream_id=" \
                  r"(\d+)\s*.+?\s*task_id=(\d+)\s*,.*?fault kernel_name=" \
-                 r"[-\d_]{0,}(\S+?),\s*func_name=(\S+)__kernel\d+"
+                 r"[-\d_]{0,}(\S+?),\s*func_name=(\S+),"
         ret = re.findall(regexp, data, re.M | re.S)
         if len(ret) == 0:
             utils.print_error_log(
@@ -164,8 +165,39 @@ class HostLogParser(LogParser):
 
         if len(ret) > 1:
             max_i = self._get_the_latest_aicerr_form_ret(ret, err_time)
-            return ret[max_i][1:]
-        return ret[0][1:]
+            result = ret[max_i][1:]
+        result = ret[0][1:]
+
+        kernel_name_list = result[3].split('_')
+        if "" in kernel_name_list:
+            kernel_name_list.remove("")
+        kernel_name_list = kernel_name_list[:-1]
+        kernel_name = '_'.join(kernel_name_list)
+
+        node_name = self._get_node_name_by_kernel_name(kernel_name)
+        result_list = list(result)
+        result_list[2] =  node_name
+        result_list[3] = kernel_name
+        return result_list
+
+    def _get_node_name_by_kernel_name(self: any, kernel_name: any) -> str:
+        """
+        get node name by kernel name
+        :param kernel_name:
+        :return:  node_name  
+        """
+        node_name = ''
+        aic_info_cmd = ['grep', '-r',  '-C', '7',  "\[AIC_INFO\] dev_func:{}".format(kernel_name),
+                        self.collect_applog_path]
+        _, aic_info = utils.execute_command(aic_info_cmd)
+        aic_info_dev_func_regex = r"\[AIC_INFO\]\snode_name:(.*?),"
+        aic_info_dev_func_ret = re.findall(aic_info_dev_func_regex, aic_info)
+        if len(aic_info_dev_func_ret) == 0:
+            utils.print_warn_log("Failed to get node name by kernel name.")
+            return node_name
+        node_name = aic_info_dev_func_ret[0]
+        return node_name
+
 
     def _get_air_error_execute_command(self):
         grep_cmd = ['grep', 'PrintCoreErrorInfo:.*?there is an aicore error',

@@ -1,0 +1,28 @@
+diff -Nur origin/src/pretrain/run_pretraining.py code/src/pretrain/run_pretraining.py
+--- origin/src/pretrain/run_pretraining.py	2021-12-01 14:52:58.809717535 +0800
++++ code/src/pretrain/run_pretraining.py	2021-12-01 14:52:58.817717584 +0800
+@@ -237,6 +237,24 @@
+           else:
+             print('Step = %6i Throughput = %11.1f MLM Loss = %10.4e NSP Loss = %10.4e Loss = %9.6f Average Loss = %9.6f LR = %6.4e' %
+                   (print_step, sent_per_sec, mlm_loss, nsp_loss, total_loss, avg_loss_step, lr), flush=True)
++        
++        try:
++          rank_id = int(os.getenv('RANK_ID'))
++          THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++          if THROUGHPUT_DIR is None:
++            print("ais-bench Warning: 'RESULT_PATH' is not set. ")
++          elif not os.path.isdir(THROUGHPUT_DIR):
++            print("ais-bench Warning: 'RESULT_PATH' is not a valid directory. ")
++          else:
++            if rank_id == 0:
++              THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++              with open(THROUGHPUT_LOG, 'w') as f:
++                throughput = sent_per_sec
++                print("ais-bench {} set throughput:{}".format(rank_id, throughput))
++                f.write("{}".format(throughput))
++        except Exception as msg:
++          print("write throught failed {}".format(msg))
++
+         self.elapsed_secs = 0.
+         self.count = 0
+         self.avg_loss = 0.0

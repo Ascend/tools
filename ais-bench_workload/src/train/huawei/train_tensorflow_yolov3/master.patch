@@ -1,0 +1,43 @@
+diff -Nur origin/train.py code/train.py
+--- origin/train.py	2021-12-17 19:18:34.127267733 +0800
++++ code/train.py	2021-12-17 19:18:34.131267604 +0800
+@@ -309,6 +309,8 @@
+     best_mAP = -np.Inf
+     train_op = util.set_iteration_per_loop(sess, train_op, args.iterations_per_loop)
+     sess.run(train_init_op)
++    fps_sum = 0
++    fps_num = 0    
+     for epoch in range(args.total_epoches):
+         loss_total, loss_xy, loss_wh, loss_conf, loss_class = AverageMeter(), AverageMeter(), AverageMeter(), AverageMeter(), AverageMeter()
+         for i in trange(args.train_batch_num // args.iterations_per_loop):
+@@ -317,7 +319,8 @@
+                 [train_op, merged, y_true, loss, global_step, learning_rate]
+             )
+             fps = 1 / (time.time() - t) * args.iterations_per_loop * args.num_gpus * args.batch_size
+-
++            fps_num += 1
++            fps_sum += fps
+             writer.add_summary(summary, global_step=__global_step)
+ 
+             loss_total.update(__loss[0], len(__y_true[0]))
+@@ -351,6 +354,20 @@
+         if __global_step >= 500:
+             break
+ 
++    # output throughtout
++    throughput_rate = fps_sum/fps_num
++    rank_id = int(os.getenv('RANK_ID'))
++    THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++    if THROUGHPUT_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(THROUGHPUT_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++      print("THROUGHPUT_DIR:", THROUGHPUT_DIR)
++      THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++      with open(THROUGHPUT_LOG, 'w') as f:
++          f.write("{}".format(throughput_rate))
++
+     saver_to_save.save(sess, args.save_dir + 'model-final_step_{}_loss_{:.4f}_lr_{:.5g}'.format( \
+         int(__global_step),
+         loss_total.average,

@@ -1,0 +1,73 @@
+diff -Nur origin/eval.py code/eval.py
+--- origin/eval.py	2021-12-10 16:23:44.520000000 +0800
++++ code/eval.py	2021-12-10 16:23:44.530000000 +0800
+@@ -112,7 +112,14 @@
+ 
+     eval_callback = EvalCallBack(model, ds_eval, auc_metric, config)
+ 
+-    model.eval(ds_eval, callbacks=eval_callback)
++    res = model.eval(ds_eval, callbacks=eval_callback)
++    ACC_DIR = os.getenv("RESULT_PATH")
++    print("ACC_DIR:", ACC_DIR)
++    if not os.path.exists(ACC_DIR):
++        os.mkdir(ACC_DIR)
++    ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
++    with open(ACC_LOG, 'w') as f:
++        f.write("{}".format(res["auc"]))
+ 
+ 
+ def modelarts_pre_process():
+diff -Nur origin/train.py code/train.py
+--- origin/train.py	2021-12-10 16:23:44.520000000 +0800
++++ code/train.py	2021-12-10 16:23:44.530000000 +0800
+@@ -13,6 +13,7 @@
+ # limitations under the License.
+ """ test_training """
+ import os
++import time
+ from mindspore import Model, context
+ from mindspore.train.callback import ModelCheckpoint, CheckpointConfig, TimeMonitor
+ from src.wide_and_deep import PredictWithSigmoid, TrainStepWrap, NetWithLossClass, WideDeepModel
+@@ -20,7 +21,12 @@
+ from src.datasets import create_dataset, DataType
+ from src.model_utils.config import config
+ from src.model_utils.moxing_adapter import moxing_wrapper
+-
++try:
++   import ais_utils
++except ImportError:
++   ais_utils_is_existed = False
++else:
++   ais_utils_is_existed = True
+ 
+ def get_WideDeep_net(configure):
+     """
+@@ -83,7 +89,28 @@
+     ckptconfig = CheckpointConfig(save_checkpoint_steps=ds_train.get_dataset_size(),
+                                   keep_checkpoint_max=5)
+     ckpoint_cb = ModelCheckpoint(prefix='widedeep_train', directory=configure.ckpt_path, config=ckptconfig)
++    model.build(ds_train, None, sink_size=ds_train.get_dataset_size(), epoch=epochs)
++
++    if ais_utils_is_existed:
++       start_time = ais_utils.get_datatime()
++    else:
++       start_time = time.time()
+     model.train(epochs, ds_train, callbacks=[TimeMonitor(ds_train.get_dataset_size()), callback, ckpoint_cb])
++    all_data_sum = ds_train.get_dataset_size() * batch_size * epochs
++    if ais_utils_is_existed:
++        end_time = ais_utils.get_datatime()
++        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, start_time, end_time)
++    else:
++        end_time = time.time()
++        throughput_rate = all_data_sum/(end_time - start_time)
++
++    rank_id = int(os.getenv('RANK_ID'))
++    THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++    if not os.path.exists(THROUGHPUT_DIR):
++        os.mkdir(THROUGHPUT_DIR)
++    THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++    with open(THROUGHPUT_LOG, 'w') as f:
++        f.write("{}".format(throughput_rate))
+ 
+ 
+ def modelarts_pre_process():

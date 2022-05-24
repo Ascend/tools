@@ -1,0 +1,162 @@
+diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
+--- origin/src/model_utils/config.py	2022-05-22 20:29:23.680000000 +0800
++++ code/src/model_utils/config.py	2022-05-22 20:29:23.710000000 +0800
+@@ -120,6 +120,8 @@
+     parser.add_argument("--config_path", type=str, default=os.path.join(current_dir, \
+         "../../config/resnet50_cifar10_config.yaml"), help="Config file path")
+     path_args, _ = parser.parse_known_args()
++    if not os.path.exists(path_args.config_path):
++        path_args.config_path = os.path.join(current_dir, '../../config', path_args.config_path)
+     default, helper, choices = parse_yaml(path_args.config_path)
+     args = parse_cli_to_yaml(parser=parser, cfg=default, helper=helper, choices=choices, cfg_path=path_args.config_path)
+     final_config = merge(args, default)
+diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
+--- origin/src/model_utils/moxing_adapter.py	2022-05-22 20:29:23.680000000 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-05-22 20:29:23.710000000 +0800
+@@ -97,6 +97,12 @@
+                 config.device_id = get_device_id()
+                 if not os.path.exists(config.output_path):
+                     os.makedirs(config.output_path)
++                 
++                base_path = config.data_path
++                if os.path.exists(os.path.join(base_path, "train")):
++                    config.data_path = os.path.join(base_path, "train")
++                if os.path.exists(os.path.join(base_path, "val")):
++                    config.eval_dataset_path = os.path.join(os.path.join(base_path, "val"))
+ 
+                 if pre_process:
+                     pre_process()
+diff -Nur origin/train.py code/train.py
+--- origin/train.py	2022-05-22 20:29:23.710000000 +0800
++++ code/train.py	2022-05-22 20:29:23.740000000 +0800
+@@ -17,6 +17,7 @@
+ import glob
+ import os
+ import numpy as np
++import time
+ 
+ import mindspore as ms
+ from mindspore import Tensor
+@@ -294,6 +295,17 @@
+                                metrics_name="acc")
+         cb += [eval_cb]
+ 
++def run_eval_ckpt(target, model):
++    eval_dataset = create_dataset(dataset_path=config.eval_dataset_path, do_train=False,
++                                batch_size=config.batch_size, train_image_size=config.train_image_size,
++                                eval_image_size=config.eval_image_size,
++                                target=target, enable_cache=config.enable_cache,
++                                cache_session_id=config.cache_session_id)
++    eval_param_dict = {"model": model, "dataset": eval_dataset, "metrics_name": "acc"}
++    print("eval ckpt begin")
++    res = apply_eval(eval_param_dict)
++    print("eval ckpt result:{}".format(res))
++    return res
+ 
+ def set_save_ckpt_dir():
+     """set save ckpt dir"""
+@@ -356,6 +368,8 @@
+         config.run_eval = False
+         logger.warning("Thor optimizer not support evaluation while training.")
+ 
++    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size - config.pretrain_epoch_size)
++
+     # define callbacks
+     time_cb = TimeMonitor(data_size=step_size)
+     loss_cb = LossCallBack(config.has_trained_epoch)
+@@ -374,12 +388,95 @@
+         config.epoch_size = config.train_epoch_size
+     dataset_sink_mode = (not config.parameter_server) and target != "CPU"
+     config.pretrain_epoch_size = config.has_trained_epoch
++
++    start_time = time.time()
+     model.train(config.epoch_size - config.pretrain_epoch_size, dataset, callbacks=cb,
+                 sink_size=dataset.get_dataset_size(), dataset_sink_mode=dataset_sink_mode)
++    end_time = time.time()
++    all_data_sum = step_size * config.batch_size * config.epoch_size
++    throughput_rate = all_data_sum / (int)(end_time - start_time)
++    print("train done starttime:{} endtime:{} stepsize:{} batchsize:{} epochsize:{} alldatasum:{} single_throughput_rate:{}".format(
++        start_time, end_time, step_size, config.batch_size, config.epoch_size, all_data_sum, throughput_rate))
++    import moxing as mox
++    result_url = config.train_url
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        result_url = os.path.join(config.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        mox.file.make_dirs(result_url)
++    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
++    mox.file.write(throughput_file, str(throughput_rate))
++
++    best_res = run_eval_ckpt(target, model)
++    if get_rank_id() == 0:
++        import moxing as mox
++        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        accuracy_file = os.path.join(config.train_url, "accuracy_{}.json".format(server_id))
++        mox.file.write(accuracy_file, str(best_res))
++        accuracy_file1 = os.path.join(config.train_url, "accuracy.json")
++        with mox.file.File(accuracy_file1, 'w') as f:
++            f.write(str(best_res))
++        ranksize_file = os.path.join(config.train_url, "ranksize.json")
++        if mox.file.exists(ranksize_file) == False:
++            mox.file.write(ranksize_file, str(get_device_num()))
+ 
+     if config.run_eval and config.enable_cache:
+         print("Remember to shut down the cache server via \"cache_admin --stop\"")
+ 
++import json
++import time
++import os
++
++class FileOperator:
++    @staticmethod
++    def create_empty_file(file_path):
++        f = open(file_path, "w")
++        f.close()
++
++    @staticmethod
++    def read_json_to_dict(file_path):
++        f = open(file_path, 'r')
++        dic = json.load(f)
++        f.close()
++        return dic
++
++    @staticmethod
++    def write_json_from_dict(file_path, source_dict):
++        json_str = json.dumps(source_dict)
++        with open(file_path, 'w') as json_file:
++            json_file.write(json_str)
++
++def generate_single_node_rank_table(rank_table, old_rank_id):
++    import copy
++    server_list = copy.deepcopy(rank_table['server_list'])
++    server_index = old_rank_id // 8
++    cur_server = server_list[server_index]
++    for device in cur_server['device']:
++        device['rank_id'] = str(int(device['rank_id']) % 8)
++    rank_table['server_list'] = [cur_server]
++    rank_table['server_count'] = "1"
++    FileOperator.write_json_from_dict(os.getenv("RANK_TABLE_FILE"), rank_table)
++
++def set_singleserver_mode():
++    old_rank_id = int(os.environ['RANK_ID'])
++    new_rank_id = old_rank_id % 8
++    os.environ['RANK_ID'] = str(new_rank_id)
++    os.environ['DEVICE_ID'] = str(new_rank_id)
++    os.environ["RANK_SIZE"] = str(8)
++    #os.environ["SERVER_ID"] = str(old_rank_id // 8)
++
++    empty_file_path = "/tmp/tmp.txt"
++    if new_rank_id != 0:
++        while not os.path.exists(empty_file_path):
++            time.sleep(1)
++    else:
++        rank_table = FileOperator.read_json_to_dict(os.getenv("RANK_TABLE_FILE"))
++        generate_single_node_rank_table(rank_table, old_rank_id)
++        FileOperator.create_empty_file(empty_file_path)
++    return new_rank_id
+ 
+ if __name__ == '__main__':
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        set_singleserver_mode()
++        print("singleserver_mode set")
++    else:
++        print("singleserver_mode not set")
+     train_net()

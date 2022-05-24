@@ -1,0 +1,199 @@
+diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
+--- origin/pretrain_eval.py	2022-04-07 15:09:25.390427182 +0800
++++ code/pretrain_eval.py	2022-04-07 15:09:25.402427373 +0800
+@@ -150,8 +150,16 @@
+     res = net.eval(dataset, dataset_sink_mode=False)
+     print("==============================================================")
+     for _, v in res.items():
+-        print("Accuracy is: ")
+-        print(v)
++        print("Accuracy is: ", v)
++        v = v.item()
++        import moxing as mox
++        from src.model_utils.device_adapter import get_device_num
++        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        accuracy_file = os.path.join(cfg.train_url, "accuracy_{}.json".format(server_id))
++        mox.file.write(accuracy_file, str(v))
++        ranksize_file = os.path.join(cfg.train_url, "ranksize.json")
++        if mox.file.exists(ranksize_file) == False:
++            mox.file.write(ranksize_file, str(get_device_num()))
+     print("==============================================================")
+ 
+ 
+diff -Nur origin/run_pretrain.py code/run_pretrain.py
+--- origin/run_pretrain.py	2022-04-07 15:09:25.394427246 +0800
++++ code/run_pretrain.py	2022-04-07 15:09:25.406427437 +0800
+@@ -39,9 +39,37 @@
+ from src.utils import LossCallBack, BertLearningRate
+ from src.model_utils.config import config as cfg, bert_net_cfg
+ from src.model_utils.moxing_adapter import moxing_wrapper
+-from src.model_utils.device_adapter import get_device_id, get_device_num
++from src.model_utils.device_adapter import get_device_id, get_device_num, get_rank_id
+ _current_dir = os.path.dirname(os.path.realpath(__file__))
+ 
++import time
++from mindspore.train.callback._callback import Callback
++
++skip_pre_step_size = 1
++skip_pre_step_time_sum = 0
++real_start_time = 0.0
++
++class ThroughputRate(Callback):
++    def __init__(self):
++        super(ThroughputRate, self).__init__()
++        self.count = 0
++
++    def step_begin(self, run_context):
++        self.step_time = time.time()
++        if self.count == skip_pre_step_size:
++            global real_start_time
++            real_start_time = self.step_time
++
++    def step_end(self, run_context):
++        step_seconds = (time.time() - self.step_time)
++
++        global skip_pre_epoch_size
++        global skip_pre_step_time_sum
++
++        if self.count < skip_pre_step_size:
++            skip_pre_step_time_sum += step_seconds
++            print("skip:{} of {} step_seconds:{} time_sum:{}".format(self.count, skip_pre_step_size, step_seconds, skip_pre_step_time_sum))
++        self.count = self.count + 1
+ 
+ def _set_bert_all_reduce_split():
+     """set bert all_reduce fusion split, support num_hidden_layers is 12 and 24."""
+@@ -158,7 +186,19 @@
+     cfg.save_checkpoint_path = os.path.join(cfg.output_path, cfg.save_checkpoint_path)
+ 
+ 
+-@moxing_wrapper(pre_process=modelarts_pre_process)
++def modelarts_post_process():
++    def is_ckpt(name):
++        if name.endswith('ckpt'):
++            return True
++        return False
++    ckpt_save_dir = os.path.join(cfg.save_checkpoint_path, 'ckpt_' + str(get_rank()))
++    if os.path.exists(ckpt_save_dir):
++        ckpts = list(filter(is_ckpt, os.listdir(ckpt_save_dir)))
++        ckpts.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
++        cfg.finetune_ckpt = os.path.join(ckpt_save_dir, ckpts[-1])
++
++
++@moxing_wrapper(pre_process=modelarts_pre_process, post_process=modelarts_post_process)
+ def run_pretrain():
+     """pre-train bert_clue"""
+     context.set_context(mode=context.GRAPH_MODE, device_target=cfg.device_target, device_id=cfg.device_id)
+@@ -209,6 +249,7 @@
+ 
+     optimizer = _get_optimizer(cfg, net_with_loss)
+     callback = [TimeMonitor(cfg.data_sink_steps), LossCallBack(ds.get_dataset_size())]
++    callback.append(ThroughputRate())
+     if cfg.enable_save_ckpt == "true" and cfg.device_id % min(8, device_num) == 0:
+         config_ck = CheckpointConfig(save_checkpoint_steps=cfg.save_checkpoint_steps,
+                                      keep_checkpoint_max=cfg.save_checkpoint_num)
+@@ -250,10 +291,84 @@
+ 
+     model = Model(net_with_grads)
+     model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
++
++    start_time = time.time()
+     model.train(new_repeat_count, ds, callbacks=callback,
+                 dataset_sink_mode=(cfg.enable_data_sink == "true"), sink_size=cfg.data_sink_steps)
+-
++    end_time = time.time()
++    data_sum = ((new_repeat_count - skip_pre_step_size) * cfg.data_sink_steps * cfg.batch_size)
++    throughput_rate = data_sum / (end_time  - real_start_time)
++    print("train done starttime:{} real:{} endtime:{} train_step:{} skiptime:{} ds getdataset:{} new_repeat_count:{} data_sum:{} throughput_rate:{}".format(
++        start_time, real_start_time, end_time, cfg.train_steps, skip_pre_step_time_sum, ds.get_dataset_size(), new_repeat_count, data_sum, throughput_rate))
++    import moxing as mox
++    result_url = cfg.train_url
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        result_url = os.path.join(cfg.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        mox.file.make_dirs(result_url)
++    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
++    mox.file.write(throughput_file, str(throughput_rate))
++
++import json
++import time
++import os
++
++class FileOperator:
++    @staticmethod
++    def create_empty_file(file_path):
++        f = open(file_path, "w")
++        f.close()
++
++    @staticmethod
++    def read_json_to_dict(file_path):
++        f = open(file_path, 'r')
++        dic = json.load(f)
++        f.close()
++        return dic
++
++    @staticmethod
++    def write_json_from_dict(file_path, source_dict):
++        json_str = json.dumps(source_dict)
++        with open(file_path, 'w') as json_file:
++            json_file.write(json_str)
++
++def generate_single_node_rank_table(rank_table, old_rank_id):
++    import copy
++    server_list = copy.deepcopy(rank_table['server_list'])
++    server_index = old_rank_id // 8
++    cur_server = server_list[server_index]
++    for device in cur_server['device']:
++        device['rank_id'] = str(int(device['rank_id']) % 8)
++    rank_table['server_list'] = [cur_server]
++    rank_table['server_count'] = "1"
++    FileOperator.write_json_from_dict(os.getenv("RANK_TABLE_FILE"), rank_table)
++
++def set_singleserver_mode():
++    old_rank_id = int(os.environ['RANK_ID'])
++    new_rank_id = old_rank_id % 8
++    os.environ['RANK_ID'] = str(new_rank_id)
++    os.environ['DEVICE_ID'] = str(new_rank_id)
++    os.environ["RANK_SIZE"] = str(8)
++    #os.environ["SERVER_ID"] = str(old_rank_id // 8)
++
++    empty_file_path = "/tmp/tmp.txt"
++    if new_rank_id != 0:
++        while not os.path.exists(empty_file_path):
++            time.sleep(1)
++    else:
++        rank_table = FileOperator.read_json_to_dict(os.getenv("RANK_TABLE_FILE"))
++        generate_single_node_rank_table(rank_table, old_rank_id)
++        FileOperator.create_empty_file(empty_file_path)
++    return new_rank_id
+ 
+ if __name__ == '__main__':
++    if os.getenv("SINGLESERVER_MODE", "") == "True":
++        set_singleserver_mode()
++        print("singleserver_mode set OK")
++    else:
++        print("singleserver_mode not set")
+     set_seed(0)
+     run_pretrain()
++
++    if get_rank() == 0:
++        from pretrain_eval import MLM_eval
++        MLM_eval()
+diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
+--- origin/src/model_utils/moxing_adapter.py	2022-04-07 15:09:25.394427246 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-04-07 15:09:25.406427437 +0800
+@@ -100,6 +100,16 @@
+                 if not os.path.exists(config.output_path):
+                     os.makedirs(config.output_path)
+ 
++                # modelarts sdk fit
++                config.schema_file = None
++                base_path = config.data_path
++                if os.path.exists(os.path.join(base_path, "train")):
++                    config.data_path = os.path.join(base_path, "train")
++                if os.path.exists(os.path.join(base_path, "ms_bert_large.ckpt")):
++                    config.load_checkpoint_path = os.path.join(base_path, "ms_bert_large.ckpt")
++                if os.path.exists(os.path.join(base_path, "val/eval_10k.tfrecord")):
++                    config.data_file = os.path.join(base_path, "val/eval_10k.tfrecord")
++
+                 if pre_process:
+                     pre_process()
+ 

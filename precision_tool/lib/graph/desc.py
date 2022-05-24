@@ -95,6 +95,9 @@ class Desc(object):
                 self.idx(), self.dtype(), self.format(), self.shape(),
                 right_desc.dtype(), right_desc.format(), right_desc.shape()), False
 
+    def data_dump_origin_name(self):
+        return ''
+
 
 class InputDesc(Desc):
     def __init__(self, name, desc_json, index):

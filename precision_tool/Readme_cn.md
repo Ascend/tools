@@ -196,6 +196,8 @@ sudo yum install graphviz
     # session run
     with tf.Session(config=npu_config_proto(session_config)):
         ......
+    # 如果有custom_op,也可以直接使用下面的方式配置
+    custom_op = npu_tf_config.update_custom_op(custom_op=custom_op, action='dump | fusion_off')
   ```
 ## 使用说明
 1.  配置文件precision_tool/config.py（正常默认即可）

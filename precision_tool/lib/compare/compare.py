@@ -39,8 +39,15 @@ class Compare(object):
                 continue
             for sub_graph in sub_graphs:
                 npu_dir = self._get_sub_dir_by_sub_graph_name(sub_graph, npu_root_dir)
+
                 if npu_dir is None:
-                    continue
+                    self.log.warning("Can not find any sub graph dir named %s", npu_dir)
+                    # for some infer case, sub_graph name may not match sub dir name.
+                    npu_dir_0 = self._get_sub_dir_by_sub_graph_name(sub_graph + '_0', npu_root_dir)
+                    if npu_dir_0 is None:
+                        self.log.warning("Can not find any sub graph dir named %s", npu_dir_0)
+                        continue
+                    npu_dir = npu_dir_0
                 self.vector_compare(npu_dir, tf_root_dir, result_dir, graph_file)
 
     @catch_tool_exception

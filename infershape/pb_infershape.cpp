@@ -20,7 +20,7 @@ using namespace tensorflow;
 using namespace std;
 using namespace shape_inference;
 
-using TensorShapes = tensorflow::gtl::InlinedVector<tensorflow::TensorShape, 4>;
+using TensorShapes = tensorflow::gtl::InlinedVector<tensorflow::PartialTensorShape, 4>;
 
 std::map<int, std::string> g_tf_dtype_to_string = {
   {0, "DT_INVALID"},
@@ -71,6 +71,51 @@ std::map<int, std::string> g_tf_dtype_to_string = {
   {122, "DT_UINT32_REF"},
   {123, "DT_UINT64_REF"},
 };
+
+REGISTER_OP("SendH2D")
+  .Input("inputs: Tin")
+  .Attr("channel_name: string")
+  .Attr("device_ids: list(int)")
+  .Attr(
+    "Tin: list(type) = [DT_FLOAT, DT_HALF, DT_INT8, DT_INT32, DT_UINT8, DT_INT16, DT_UINT16, DT_UINT32, "
+    "DT_INT64, DT_UINT64, DT_DOUBLE, DT_BOOL, DT_STRING]")
+  .SetIsStateful();
+
+REGISTER_OP("IteratorH2D")
+  .Input("input: resource")
+  .Input("nums: int64")
+  .Attr("channel_name: string")
+  .Attr("device_ids: list(int)")
+  .SetIsStateful();
+
+REGISTER_OP("NpuCall")
+  .Input("args: Tin")
+  .Output("output: Tout")
+  .Attr("Tin: list(type) >= 0")
+  .Attr("Tout: list(type) >= 0")
+  .Attr("f: func")
+  .Attr("device: int")
+  .SetIsStateful()
+  .SetShapeFn(shape_inference::UnknownShape);
+
+REGISTER_OP("FastGelu")
+    .Input("features: T")
+    .Output("activations: T")
+    .Attr("T: realnumbertype")
+    .SetShapeFn(tensorflow::shape_inference::UnchangedShape);
+
+REGISTER_OP("FastGeluV2")
+    .Input("features: T")
+    .Output("activations: T")
+    .Attr("T: realnumbertype")
+    .SetShapeFn(tensorflow::shape_inference::UnchangedShape);
+
+REGISTER_OP("FastGeluGrad")
+    .Input("gradients: T")
+    .Input("features: T")
+    .Output("backprops: T")
+    .Attr("T: realnumbertype")
+    .SetShapeFn(tensorflow::shape_inference::MergeBothInputsShapeFn);
 
 REGISTER_OP("GetNext")
     .Output("components: output_types")
@@ -261,7 +306,7 @@ vector<string> SplitInputShape(const std::string &input_shape) {
   return shape_pair_vec;
 }
 
-int parseInputShape(const std::string &input_shape, std::map<std::string, TensorShape> &input_shape_map) {
+int parseInputShape(const std::string &input_shape, std::map<std::string, PartialTensorShape> &input_shape_map) {
   try {
     vector<string> shape_vec = StringUtils::Split(input_shape, ';');
     if (shape_vec.empty()) {
@@ -279,7 +324,7 @@ int parseInputShape(const std::string &input_shape, std::map<std::string, Tensor
       }
 
       vector<string> shape_value_strs = StringUtils::Split(shape_pair_vec[1], ',');
-      TensorShape tensor_shape;
+      PartialTensorShape tensor_shape;
       for (auto &shape_value_str : shape_value_strs) {
         int64 left_result = stol(StringUtils::Trim(shape_value_str));
         tensor_shape.AddDim(left_result);
@@ -305,7 +350,7 @@ std::vector<int64> ShapeProtoToVec(const TensorShapeProto& shape_pb) {
   return shape_vec;
 }
 
-bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorShape> &input_shape_map,
+bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, PartialTensorShape> &input_shape_map,
                               const std::string &result_file) {
   ShapeRefiner shape_refiner(graph->versions(), OpRegistry::Global());
   ofstream fs(result_file, ios::out);
@@ -321,7 +366,7 @@ bool graphInferShapeFromInput(Graph *graph, const std::map<std::string, TensorSh
     if (node->IsArg()) {
       auto func = node->attrs().Find("output_tensor_desc")->list().func()[0];
       std::map<string, AttrValue> attr_map(func.attr().begin(), func.attr().end());
-      TensorShape tensor_shape;
+      PartialTensorShape tensor_shape;
       for (auto dim : attr_map["serialize_shape"].list().i()) {
         tensor_shape.AddDim(dim);
       }
@@ -473,7 +518,7 @@ int main(int argc, char *argv[]) {
   }
 
   std::string result_file = "cpu_infershape_result";
-  std::map<std::string, TensorShape> input_shape_map;
+  std::map<std::string, PartialTensorShape> input_shape_map;
   if (is_pb && input_shape != "") {
     if (parseInputShape(input_shape, input_shape_map) == -1) {
       std::cout << "[ERROR] parse input shape failed. input_shape:" << input_shape << std::endl;

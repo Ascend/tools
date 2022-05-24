@@ -26,7 +26,7 @@ infershape故障诊断工具适用于对CANN框架的**编译态**infershape推�
 
 使用infershape故障诊断工具前，请确保环境已安装以下模块：
 
-1.  已安装g++软件，需要g++5.2版本以上。
+1.  已安装g++软件，需要**g++5.2**版本以上。
 2.  已安装python软件，推荐使用python3版本。
 
     ubuntu系统下可使用apt-get install python3 命令安装。
@@ -69,16 +69,16 @@ https://github.com/Ascend/tools/tree/master/infershape
 
 **arg参数说明：**
 
--   arg1:  CANN框架执行训练或atc模型转换时生成的dump图数据，请选择名称里带“after\_infershape”关键字的pbtxt格式dump图传入。**必选 **。
+-   arg1:  CANN框架执行训练或atc模型转换时生成的dump图数据，请选择名称里带“after\_infershape”关键字的pbtxt格式dump图传入。**必选**。
 
     >![](figures/icon-note.gif) **说明：** 
     >-   infershape推导失败的话，直接取最后一张生成的pbtxt图即可。
     >-   设置环境变量export DUMP\_GE\_GRAPH=2后执行训练或atc模型转换任务，会在执行文件夹下生成dump图数据。
 
--   arg2:  tf训练场景，请传入TF\_GeOp开头的dump图数据；tf/onnx atc模型转换场景，请传入原始的pb/onnx格式的模型文件。**必选。**
+-   arg2:  tf训练场景，请传入dump图数据, tf1.x是TF\_GeOp开头的, tf2.x是npu\_cluster\_开头；tf/onnx atc模型转换场景，请传入原始的pb/onnx格式的模型文件。**必选。**
 
     >![](figures/icon-note.gif) **说明：** 
-    >设置环境变量export PRINT\_MODEL=1后执行训练，会在执行文件夹下生成TF\_GeOp开头的图数据，取最后一张即可。
+    >设置环境变量export PRINT\_MODEL=1后执行训练，会在执行文件夹下生成TF\_GeOp或者npu\_cluster\_开头的图数据，取最后一张即可。
 
 -   arg3:  用于指定输入算子的shape规格， atc模型转换场景使用，格式同atc命令中的input\_shape选项，详细介绍请参考《ATC工具使用指南》。 **可选。**
 -   arg4:  结束比对的算子名称，对于infershape阶段直接报错的场景，可用此选项设置比对结束点，以免扫描到后续还未进行infershape的算子，造成干扰。**可选。**

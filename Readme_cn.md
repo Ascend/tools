@@ -37,13 +37,16 @@ Ascend tools，昇腾工具仓库。
 
    **一键式全流程精度比对工具**：该工具适用于tensorflow和onnx模型，输入原始模型和对应的离线om模型，输出精度比对结果。    
 
-8. [precision_tool](./precision_tool)    
+8. [precision_tool](https://github.com/Ascend/tools/tree/master/precision_tool)    
    **精度问题分析工具**：该工具包提供了精度比对常用的功能，当前该工具主要适配Tensorflow训练场景，同时提供Dump数据/图信息的交互式查询和操作入口。 
 
-9. [cann-benchmark_infer_scripts](./cann-benchmark_infer_scripts)    
+9. [cann-benchmark_infer_scripts](https://github.com/Ascend/tools/tree/master/cann-benchmark_infer_scripts)    
     **cann-benchmark推理软件对应的模型前后处理脚本**： 该工具包含cann-benchmark推理工具模型处理脚本, 包括：结果解析脚本和前后处理脚本等。这些脚本需根据cann-benchmark指导手册说明使用。
-10. [tfdbg_ascend](./tfdbg_ascend)    
+10. [tfdbg_ascend](https://github.com/Ascend/tools/tree/master/tfdbg_ascend)    
     **Tensorflow2.x dump工具**：该工具提供CPU/GPU平台上Tensorflow2.x运行时数据Dump能力。
+
+11. [ais-bench_workload](https://github.com/Ascend/tools/tree/master/ais-bench_workload)    
+    **ais-bench_workload**： 该目录包含基于Ais-Bench软件的训练和推理负载程序，用于测试验证。Ais-Bench是基于AI标准针对AI服务器进行性能测试的工具软件。
 #### 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。

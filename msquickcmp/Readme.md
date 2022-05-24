@@ -75,7 +75,25 @@ export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
          python3 main.py -m /home/HwHiAiUser/onnx_prouce_data/resnet_offical.onnx -om /home/HwHiAiUser/onnx_prouce_data/model/resnet50.om -i /home/HwHiAiUser/result/test/input_0.bin -c /usr/local/Ascend/ascend-toolkit/latest -o /home/HwHiAiUser/result/test
          ```
       2. **Note**: If there is more than one input data file, separate them with commas (,). For more available command-line options, use the **--help** option. The **-c** option is optional. For more details, see the Command-line Options table below.
-
+      3. For batch input, please combine the data files into one file as the input of the model:
+           The full-process accuracy comparison (inference) tool supports multiple batches, but for multiple batches, if the user saves the input data files one by one, these data files need to be combined into one file as the input of the model. A specific operation example is provided as follows:
+         When acquiring a network model for network training, assuming that the saved model input data file is .bin, save the input data files saved one by one in a certain directory, for example: /home/HwHiAiUser/input_bin/. Call Python to execute the following code.  
+         **Please fill in each parameter of the following code according to the properties of the original model.**
+         ```
+            import os
+            import numpy as np
+             data_sets = []
+             sample_batch_input_bin_dir = "/home/HwHiAiUser/input_bin/"
+             for item in os.listdir(sample_batch_input_bin_dir):
+               # When reading the bin file, the dtype type in the bin file must be determined according to the input type of the model. The following takes float32 as an example.
+               original_input_data = np.fromfile(os.path.join(sample_batch_input_bin_dir, item), dtype=np.float32)
+               # Reorganize the data according to the shape value in the model input.
+               current_input_data = original_input_data.reshape(1024, 1024, 3)
+               # Add the current data to the list.
+               data_sets.append(current_input_data)
+             # Save the data of each batch to an input bin file to get an input bin file containing multiple batches.
+             np.array(data_sets).tofile("input.bin")
+            ```
 - With model input not specified:
    1. Prepare the following parameters:
 

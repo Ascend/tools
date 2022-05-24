@@ -1,0 +1,4 @@
+git_url: https://gitee.com/mindspore/models.git
+branch: master
+commitid: f6537762d0aea541adfed8644da452a476c28321
+patch_file_name: r1.5.patch
