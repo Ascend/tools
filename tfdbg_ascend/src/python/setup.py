@@ -19,7 +19,7 @@
 import setuptools
 
 setuptools.setup(name='tfdbg_ascend',
-      version='0.1',
+      version='0.2',
       description='This is a demo package',
       long_description='This is a demo package',
       packages=setuptools.find_packages(),

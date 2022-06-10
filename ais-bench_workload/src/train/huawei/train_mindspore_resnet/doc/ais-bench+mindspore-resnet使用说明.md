@@ -118,3 +118,17 @@ export RANK_TABLE_FILE=/home/tools/rank_table_8p.json
 配置文件默认是8卡训练。
 单卡训练时，需要设置RANK_SIZE=1，DEVICE_NUM=1，且不能使用RANK_TABLE_FILE环境变量.
 同时还请按需增加指定执行卡序号变量声明export SINGLE_CARD_INDEX。默认 SINGLE_CARD_INDEX=0，可以不显式声明。其它卡时需要显式声明，比如export SINGLE_CARD_INDEX=6
+
+## 6.训练日志级别设置
+对于modelarts训练，根据模型文档--doc/ais-bench支持modelartgs的训练任务.md, 修改ma-pre-start.sh中日志级别
+```
+    export GLOG_v=3
+    export ASCEND_GLOBAL_LOG_LEVEL=3
+```
+对于非modelarts训练，修改common/mindspore_env.sh中日志级别
+```
+export GLOG_v=3
+```
+备注：
++ GLOG日志级别 INFO、 WARNING、 ERROR、FATAL对应的值分别为0、1、2、3.
++ ASCEND_GLOBAL_LOG_LEVEL日志级别DEBUG、INFO、WARNING、ERROR、NULL对应的值分别为0、1、2、3、4.

@@ -26,6 +26,7 @@ limitations under the License.
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/shape_inference.h"
 #include "tensorflow/core/util/env_var.h"
+#include "./dump_config.h"
 
 namespace {
 const static char kSysEndian = []() {
@@ -130,7 +131,10 @@ class AscendDump : public OpKernel {
       std::string tensor_name = absl::StrReplaceAll(tensor_names_[i], {{"/", "_"}, {":", "."}});
       std::string file_name = absl::StrCat(tensor_name, ".", nanos_uuid, ".npy");
       VLOG(1) << "Dump " << tensor_names_[i] << " to " << file_name;
-      WriteTensor2Npy(inputs[i], file_name);
+      if (g_dumpConfig.dumpSwitch != 0) {
+        std::string real_file_name = absl::StrCat(g_dumpConfig.dumpPath, file_name);
+        WriteTensor2Npy(inputs[i], real_file_name);
+      }
       VLOG(1) << tensor_names_[i] << " " << inputs[i].DebugString() << std::endl;
     }
   }

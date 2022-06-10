@@ -57,7 +57,7 @@ class Summary(object):
         npu_compute_time = Summary.get_list_info(self.npu_compute_time_list, scale)
         h2d_latency = Summary.get_list_info(self.h2d_latency_list, scale)
         d2h_latency = Summary.get_list_info(self.d2h_latency_list, scale)
-        throughput = 1000/npu_compute_time.mean/batchsize
+        throughput = 1000*batchsize/npu_compute_time.mean
 
         self.infodict['NPU_compute_time'] = {"min": npu_compute_time.min, "max": npu_compute_time.max, "mean": npu_compute_time.mean,
                                     "median": npu_compute_time.median, "percentile({}%)".format(scale): npu_compute_time.percentile}
@@ -78,7 +78,7 @@ class Summary(object):
         logger.info("D2H_latency (ms): min = {0}, max = {1}, mean = {2}, median = {3}, percentile({4}%) = {5}"
                     .format(d2h_latency.min, d2h_latency.max, d2h_latency.mean, d2h_latency.median, scale,
                             d2h_latency.percentile))
-        logger.info("throughput (1000/NPU_compute_time/batchsize): {}".format(throughput))
+        logger.info("throughput (1000*batchsize/NPU_compute_time): {}".format(throughput))
         logger.info("------------------------------------------------------")
 
         if output_prefix is not None:

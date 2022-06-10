@@ -1,4 +1,5 @@
 import os
+import random
 import time
 
 import aclruntime
@@ -8,24 +9,32 @@ from summary import summary
 from utils import (get_files_datasize, get_fileslist_from_dir, list_split,
                    logger, save_data_to_files)
 
-pure_infer_dump_file = "pure_infer_zerodata"
+pure_infer_dump_file = "pure_infer_data"
 
-def get_zero_ndata(size):
-    barray = bytearray(size)
-    ndata = np.frombuffer(barray, dtype=np.int8)
+def get_pure_infer_data(size, pure_data_type):
+    lst = []
+    if pure_data_type == "random":
+        # random value from [0, 255]
+        lst = [random.randrange(0, 256) for _ in range(size)]
+    else:
+        # zero value, default
+        lst = [0 for _ in range(size)]
+
+    barray = bytearray(lst)
+    ndata = np.frombuffer(barray, dtype=np.uint8)
     return ndata
 
 # get tensors from files list combile all files
-def get_tensor_from_files_list(files_list, device_id, size):
+def get_tensor_from_files_list(files_list, device_id, size, pure_data_type):
     ndatalist = []
     for i, file_path in enumerate(files_list):
         logger.debug("get tensor from filepath:{} i:{} of all:{}".format(file_path, i, len(files_list)))
         if file_path == pure_infer_dump_file:
-            ndata = get_zero_ndata(size)
+            ndata = get_pure_infer_data(size, pure_data_type)
         elif file_path == None or os.path.exists(file_path) == False:
             logger.error('filepath:{} not valid'.format(file_path))
             raise RuntimeError()
-            #ndata = get_zero_ndata(size)
+            #ndata = get_pure_infer_data(size)
         elif file_path.endswith(".npy"):
             ndata = np.load(file_path)
         else:
@@ -63,11 +72,11 @@ def get_files_count_per_batch(intensors_desc, fileslist):
     return files_count_per_batch, runcount
 
 # out api 创建空数据
-def create_intensors_zerodata(intensors_desc, device_id):
+def create_intensors_zerodata(intensors_desc, device_id, pure_data_type):
     intensors = []
     for info in intensors_desc:
         logger.debug("info shape:{} type:{} val:{} realsize:{} size:{}".format(info.shape, info.datatype, int(info.datatype), info.realsize, info.size))
-        ndata = get_zero_ndata(info.realsize)
+        ndata = get_pure_infer_data(info.realsize, pure_data_type)
         tensor = aclruntime.Tensor(ndata)
         starttime = time.time()
         tensor.to_device(device_id)
@@ -99,12 +108,12 @@ def check_and_get_fileslist(inputs_list, intensors_desc):
     return fileslist
 
 #  outapi 根据输入filelist获取tensor信息和files信息 create intensor form files list
-def create_intensors_from_infileslist(infileslist, intensors_desc, device_id):
+def create_intensors_from_infileslist(infileslist, intensors_desc, device_id, pure_data_type):
     intensorslist = []
     for i, infiles in enumerate(infileslist):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, device_id, intensors_desc[j].realsize)
+            tensor = get_tensor_from_files_list(files, device_id, intensors_desc[j].realsize, pure_data_type)
             intensors.append(tensor)
         intensorslist.append(intensors)
     return intensorslist

@@ -39,7 +39,7 @@ fi
 
 is_train=0
 is_pb=0
-if grep -q -E '.*TF_GeOp.*\.pbtxt$' <<< "$cpu_file"; then
+if grep -q -E '*.*\.pbtxt$' <<< "$cpu_file"; then
     is_train=1
     is_pb=1
 elif grep -q -e '\.pb$' <<< "$cpu_file"; then

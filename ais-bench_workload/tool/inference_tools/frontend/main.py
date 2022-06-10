@@ -1,10 +1,10 @@
 import argparse
+import asyncio
 import json
 import logging
 import os
 import sys
 import time
-import asyncio
 
 import aclruntime
 from tqdm import tqdm
@@ -12,10 +12,11 @@ from tqdm import tqdm
 from io_oprations import (create_infileslist_from_inputs_list,
                           create_intensors_from_infileslist,
                           create_intensors_zerodata,
-                          get_tensor_from_files_list, save_tensors_to_file,
-                          pure_infer_dump_file)
+                          get_tensor_from_files_list, pure_infer_dump_file,
+                          save_tensors_to_file)
 from summary import summary
 from utils import logger
+
 
 def set_session_options(session, args):
     # 增加校验
@@ -60,9 +61,9 @@ def run_inference(session, inputs, outputs_names, loop=1):
 
     return outputs
 
-def warmup(session, intensors_desc, outputs_names):
+def warmup(session, args, intensors_desc, outputs_names):
     n_loop = 5
-    inputs = create_intensors_zerodata(intensors_desc, args.device_id)
+    inputs = create_intensors_zerodata(intensors_desc, args.device_id, args.pure_data_type)
     for i in range(n_loop):
         run_inference(session, inputs, outputs_names, 1)
     summary.reset()
@@ -74,7 +75,7 @@ def infer_loop_run(session, args, intensors_desc, infileslist, outputs_names, ou
     for i, infiles in enumerate(tqdm(infileslist, desc='Inference Processing')):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize)
+            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize, args.pure_data_type)
             intensors.append(tensor)
         outputs = run_inference(session, intensors, outputs_names, args.loop)
         if args.output != None:
@@ -83,7 +84,7 @@ def infer_loop_run(session, args, intensors_desc, infileslist, outputs_names, ou
 # 先准备好数据 然后执行推理 然后统一写文件
 def infer_fulltensors_run(session, args, intensors_desc, infileslist, outputs_names, output_prefix):
     outtensors = []
-    intensorslist = create_intensors_from_infileslist(infileslist, intensors_desc, args.device_id)
+    intensorslist = create_intensors_from_infileslist(infileslist, intensors_desc, args.device_id, args.pure_data_type)
 
     #for inputs in intensorslist:
     for inputs in tqdm(intensorslist, desc='Inference Processing full'):
@@ -99,7 +100,7 @@ async def in_task(inque, args, intensors_desc, infileslist):
     for i, infiles in enumerate(tqdm(infileslist, desc='Inference Processing task')):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize)
+            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize, args.pure_data_type)
             intensors.append(tensor)
         await inque.put([intensors, infiles, i])
     await inque.put([None, None, None])
@@ -152,6 +153,7 @@ def get_args():
     parser.add_argument("--outputSize", type=str, default=None, help="output size for dynamic shape mode")
     parser.add_argument("--acl_json_path", type=str, default=None, help="acl json path for profiling or dump")
     parser.add_argument("--batchsize", type=int, default=1, help="batch size of input tensor")
+    parser.add_argument("--pure_data_type", type=str, default="zero", choices=["zero", "random"], help="null data type for pure inference(zero or random")
 
     args = parser.parse_args()
     return args
@@ -174,7 +176,7 @@ if __name__ == "__main__":
 
     outputs_names = [desc.name for desc in outtensors_desc ]
 
-    warmup(session, intensors_desc, outputs_names)
+    warmup(session, args, intensors_desc, outputs_names)
 
     inputs_list = [] if args.input == None else args.input.split(',')
 

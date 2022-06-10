@@ -4,12 +4,14 @@
 Function:
 This class mainly involves tf common function.
 Copyright Information:
-HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
+HuaWei Technologies Co.,Ltd. All Rights Reserved © 2022
 """
+import os
 import numpy as np
 import tensorflow as tf
-
+import subprocess
 from common import utils
+from common.utils import AccuracyCompareException
 
 DTYPE_MAP = {
     tf.float32: np.float32,
@@ -24,6 +26,27 @@ DTYPE_MAP = {
 }
 
 TF_DEBUG_TIMEOUT = 3600
+VERSION_TF2X = "2."
+VERSION_TF1X = "1."
+
+
+def check_tf_version(version):
+    tf_version = tf.__version__
+    if tf_version.startswith(version):
+        return True
+
+
+def execute_command(cmd: str):
+    """ Execute shell command
+    :param cmd: command
+    :return: status code
+    """
+    if cmd is None:
+        utils.print_error_log("Command is None.")
+        return -1
+    utils.print_info_log("[Run CMD]: %s" % cmd)
+    complete_process = subprocess.run(cmd, shell=True)
+    return complete_process.returncode
 
 
 def convert_to_numpy_type(tensor_type):
@@ -116,3 +139,20 @@ def get_inputs_tensor(global_graph, input_shape_str):
             inputs_tensor.append(tensor)
     utils.print_info_log("model inputs tensor:\n{}\n".format(inputs_tensor))
     return inputs_tensor
+
+
+def get_inputs_data(inputs_tensor, input_paths):
+    inputs_map = {}
+    input_path = input_paths.split(",")
+    for index, tensor in enumerate(inputs_tensor):
+        try:
+            input_data = np.fromfile(input_path[index], convert_to_numpy_type(tensor.dtype))
+            if tensor.shape:
+                input_data = input_data.reshape(tensor.shape)
+            inputs_map[tensor] = input_data
+            utils.print_info_log("load file name: {}, shape: {}, dtype: {}".format(
+                os.path.basename(input_path[index]), input_data.shape, input_data.dtype))
+        except Exception as err:
+            utils.print_error_log("Failed to load data %s. %s" % (input_path[index], err))
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
+    return inputs_map

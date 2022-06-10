@@ -39,7 +39,7 @@ session_config = ed({
     'boot_file': '/zgwtest/lcm_test/resnet/train.py',
 
     # 如下为运行相关参数
-    # job名称 如果存在就增加版本创建
+    # job名称  如果云环境Modelarts服务训练作业job队列中没有，则会新建一个job；若和已有job同名，则会在该job中，新建测试实例.
     'job_name': "aisbench-debug",
 
     # 使用容器类型与镜像版本

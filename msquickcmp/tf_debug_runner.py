@@ -4,7 +4,7 @@
 Function:
 This class is used to generate GUP dump data of the TensorFlow model.
 Copyright Information:
-Huawei Technologies Co., Ltd. All Rights Reserved © 2021
+Huawei Technologies Co., Ltd. All Rights Reserved © 2022
 """
 import argparse
 import sys
@@ -13,6 +13,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python import debug as tf_debug
 from common import utils, tf_common
+if tf_common.check_tf_version(tf_common.VERSION_TF2X):
+    import tfdbg_ascend as dbg
 from common.utils import AccuracyCompareException
 
 
@@ -27,6 +29,11 @@ class TfDebugRunner(object):
         self.input_shapes = utils.parse_input_shape(self.args.input_shape)
         self.input_path = self.args.input_path
         self.dump_root = os.path.realpath(self.args.out_path)
+
+    def _dump_control(self):
+        if tf_common.check_tf_version(tf_common.VERSION_TF2X):
+            dbg.enable()
+            dbg.set_dump_path(self.dump_root)
 
     def _load_graph(self):
         try:
@@ -47,26 +54,11 @@ class TfDebugRunner(object):
             outputs_tensor.append(tensor)
         return outputs_tensor
 
-    def _get_inputs_data(self, inputs_tensor):
-        inputs_map = {}
-        input_path = self.args.input_path.split(",")
-        for index, tensor in enumerate(inputs_tensor):
-            try:
-                input_data = np.fromfile(input_path[index], tf_common.convert_to_numpy_type(tensor.dtype))
-                if tensor.shape:
-                    input_data = input_data.reshape(tensor.shape)
-                inputs_map[tensor] = input_data
-                utils.print_info_log("load file name: {}, shape: {}, dtype: {}".format(
-                    os.path.basename(input_path[index]), input_data.shape, input_data.dtype))
-            except Exception as err:
-                utils.print_error_log("Failed to load data %s. %s" % (input_path[index], err))
-                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
-        return inputs_map
-
     def _run_model(self, inputs_map, outputs_tensor):
         config = tf.compat.v1.ConfigProto(log_device_placement=False, allow_soft_placement=True)
         with tf.compat.v1.Session(graph=self.global_graph, config=config) as sess:
-            sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type="readline", dump_root=self.dump_root)
+            if tf_common.check_tf_version(tf_common.VERSION_TF1X):
+                sess = tf_debug.LocalCLIDebugWrapperSession(sess, ui_type="readline", dump_root=self.dump_root)
             return sess.run(outputs_tensor, feed_dict=inputs_map)
 
     def run(self):
@@ -74,9 +66,10 @@ class TfDebugRunner(object):
         Function description:
             run TensorFlow model
         """
+        self._dump_control()
         self._load_graph()
         inputs_tensor = tf_common.get_inputs_tensor(self.global_graph, self.args.input_shape)
-        inputs_map = self._get_inputs_data(inputs_tensor)
+        inputs_map = tf_common.get_inputs_data(inputs_tensor, self.args.input_path)
         outputs_tensor = self._get_outputs_tensor()
         self._run_model(inputs_map, outputs_tensor)
 

@@ -1,7 +1,7 @@
 diff -Nur origin/eval.py code/eval.py
---- origin/eval.py	2022-04-08 17:45:10.644800101 +0800
-+++ code/eval.py	2022-04-08 17:45:10.656800292 +0800
-@@ -84,6 +84,15 @@
+--- origin/eval.py	2022-05-30 13:48:49.358918532 +0800
++++ code/eval.py	2022-05-30 13:48:49.374918725 +0800
+@@ -82,6 +82,15 @@
      # eval model
      res = model.eval(dataset)
      print("result:", res, "ckpt=", config.checkpoint_file_path)
@@ -13,13 +13,13 @@ diff -Nur origin/eval.py code/eval.py
 +    else:
 +        ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
 +        with open(ACC_LOG, 'w') as f:
-+            f.write("{}".format(res['top_1_accuracy']))     
++            f.write("{}".format(res['top_1_accuracy']))    
  
  if __name__ == '__main__':
      eval_net()
 diff -Nur origin/train.py code/train.py
---- origin/train.py	2022-04-08 17:45:10.652800228 +0800
-+++ code/train.py	2022-04-08 17:45:10.656800292 +0800
+--- origin/train.py	2022-05-30 13:48:49.362918580 +0800
++++ code/train.py	2022-05-30 13:48:49.374918725 +0800
 @@ -17,6 +17,7 @@
  import glob
  import os
@@ -27,11 +27,11 @@ diff -Nur origin/train.py code/train.py
 +import time
  
  import mindspore as ms
- from mindspore import Tensor
-@@ -42,6 +43,12 @@
+ import mindspore.nn as nn
+@@ -35,6 +36,12 @@
+ from src.model_utils.moxing_adapter import moxing_wrapper
  from src.model_utils.device_adapter import get_rank_id, get_device_num
  from src.resnet import conv_variance_scaling_initializer
- 
 +try:
 +   import ais_utils
 +except ImportError:
@@ -39,9 +39,9 @@ diff -Nur origin/train.py code/train.py
 +else:
 +   ais_utils_is_existed = True
  
- set_seed(1)
+ ms.set_seed(1)
  
-@@ -356,6 +363,7 @@
+@@ -351,6 +358,7 @@
          config.run_eval = False
          logger.warning("Thor optimizer not support evaluation while training.")
  
@@ -49,7 +49,7 @@ diff -Nur origin/train.py code/train.py
      # define callbacks
      time_cb = TimeMonitor(data_size=step_size)
      loss_cb = LossCallBack(config.has_trained_epoch)
-@@ -374,8 +382,30 @@
+@@ -369,9 +377,31 @@
          config.epoch_size = config.train_epoch_size
      dataset_sink_mode = (not config.parameter_server) and target != "CPU"
      config.pretrain_epoch_size = config.has_trained_epoch
@@ -59,6 +59,7 @@ diff -Nur origin/train.py code/train.py
 +        start_time = time.time()    
      model.train(config.epoch_size - config.pretrain_epoch_size, dataset, callbacks=cb,
                  sink_size=dataset.get_dataset_size(), dataset_sink_mode=dataset_sink_mode)
+ 
 +    all_data_sum = step_size * config.batch_size * config.epoch_size
 +    if ais_utils_is_existed:
 +        end_time = ais_utils.get_datatime()
@@ -76,7 +77,7 @@ diff -Nur origin/train.py code/train.py
 +    else:
 +        THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
 +        with open(THROUGHPUT_LOG, 'w') as f:
-+            f.write("{}".format(throughput_rate))
- 
++            f.write("{}".format(throughput_rate))    
      if config.run_eval and config.enable_cache:
          print("Remember to shut down the cache server via \"cache_admin --stop\"")
+ 

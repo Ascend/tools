@@ -18,3 +18,6 @@
 
 from tfdbg_ascend.tfdbg_ascend import enable
 from tfdbg_ascend.tfdbg_ascend import disable
+from tfdbg_ascend.tfdbg_ascend import get_dump_switch
+from tfdbg_ascend.tfdbg_ascend import set_dump_path
+from tfdbg_ascend.tfdbg_ascend import get_dump_path

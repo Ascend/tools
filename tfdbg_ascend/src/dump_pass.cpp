@@ -1,4 +1,4 @@
-/* Copyright (C) 2021. Huawei Technologies Co., Ltd. All rights reserved.
+/* Copyright (C) 2022. Huawei Technologies Co., Ltd. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -20,6 +20,13 @@ limitations under the License.
 
 namespace tensorflow {
 
+struct subGraphPrefixInfo {
+  std::string preFuncName;
+  std::string prefixOneHierarchy;
+};
+
+std::map <std::string, struct subGraphPrefixInfo> PrefixInfos;
+
 class DbgDumpPass : public GraphOptimizationPass {
  public:
   DbgDumpPass() = default;
@@ -28,12 +35,18 @@ class DbgDumpPass : public GraphOptimizationPass {
 
  private:
   Status ProcessGraph(Graph *graph, FunctionLibraryDefinition *func_lib, std::string prefix = "");
+  Status BuildPrefixInfos(const GraphOptimizationPassOptions &options);
+  Status AnalyzeSubGraph(Graph *graph, FunctionLibraryDefinition *funcLib, std::string funcName = "");
+  Status GetPrefixName(const std::string &currFuncName, std::string &NamePrefix);
+  void FreePrefixInfos();
 };
 
 Status DbgDumpPass::Run(const GraphOptimizationPassOptions &options) {
   if (options.graph == nullptr && options.partition_graphs == nullptr) {
     return Status::OK();
   }
+
+  TF_RETURN_IF_ERROR(BuildPrefixInfos(options));
 
   FunctionLibraryDefinition *func_lib = options.flib_def;
   Status status = Status::OK();
@@ -52,7 +65,9 @@ Status DbgDumpPass::Run(const GraphOptimizationPassOptions &options) {
     std::unique_ptr<tensorflow::FunctionBody> fbody;
     FunctionDefToBodyHelper(*fdef, tensorflow::AttrSlice{}, func_lib, &fbody);
 
-    TF_RETURN_IF_ERROR(ProcessGraph(fbody->graph, func_lib));
+    std::string prefixNodeName;
+    TF_RETURN_IF_ERROR(GetPrefixName(func_name, prefixNodeName));
+    TF_RETURN_IF_ERROR(ProcessGraph(fbody->graph, func_lib, prefixNodeName));
 
     auto lookup = [&fdef](const tensorflow::Node *node) -> absl::optional<std::string> {
       for (const auto &control_ret : fdef->control_ret()) {
@@ -68,7 +83,118 @@ Status DbgDumpPass::Run(const GraphOptimizationPassOptions &options) {
     TF_RETURN_IF_ERROR(func_lib->AddFunctionDef(optimized_fdef));
   }
 
+  FreePrefixInfos();
   return Status::OK();
+}
+
+Status DbgDumpPass::BuildPrefixInfos(const GraphOptimizationPassOptions &options) {
+  FunctionLibraryDefinition *funcLib = options.flib_def;
+  Status status = Status::OK();
+  if (options.graph != nullptr) {
+    std::unique_ptr<Graph> *graph = options.graph;
+    TF_RETURN_IF_ERROR(AnalyzeSubGraph((*graph).get(), funcLib));
+  } else if (options.partition_graphs != nullptr) {
+    for (auto &pg : *options.partition_graphs) {
+      TF_RETURN_IF_ERROR(AnalyzeSubGraph(pg.second.get(), funcLib));
+    }
+  }
+
+  auto funcNames = funcLib->ListFunctionNames();
+  for (const auto &funcName : funcNames) {
+    const tensorflow::FunctionDef *fdef = funcLib->Find(funcName);
+    std::unique_ptr<tensorflow::FunctionBody> fbody;
+    FunctionDefToBodyHelper(*fdef, tensorflow::AttrSlice{}, funcLib, &fbody);
+    TF_RETURN_IF_ERROR(AnalyzeSubGraph(fbody->graph, funcLib, funcName));
+  }
+
+  return Status::OK();
+}
+
+Status AnalyzeNode(Node *node, FunctionLibraryDefinition *funcLib, std::string funcName) {
+  std::string subGraphFuncName;
+  std::string attrName;
+
+  for (const auto& attr : node->attrs()) {
+    const AttrValue& attr_value = attr.second;
+    if (!attr_value.has_func()) {
+      continue;
+    }
+    subGraphFuncName = attr_value.func().name();
+    attrName = attr.first;
+
+    auto funcNames = funcLib->ListFunctionNames();
+    bool match = false;
+    for (auto funcName : funcNames) {
+      if (strcmp(funcName.c_str(), subGraphFuncName.c_str()) == 0) {
+        match = true;
+        break;
+      }
+    }
+    if (!match) {
+      LOG(ERROR) << "the subGraph funcName is not valid!";
+    }
+
+    std::string NamePrefix = absl::StrCat(node->name(), "/", attrName, "/");
+    struct subGraphPrefixInfo PrefixInfo = {funcName, NamePrefix};
+
+    auto PrefixTmp = PrefixInfos.find(subGraphFuncName);
+    if (PrefixTmp == PrefixInfos.end()) {
+        PrefixInfos[subGraphFuncName] = PrefixInfo;
+    } else {
+      LOG(ERROR) << "This node is analyzed repeatedly!, Node name is " << node->name();
+    }
+  }
+
+  return Status::OK();
+}
+
+Status DbgDumpPass::AnalyzeSubGraph(Graph *graph, FunctionLibraryDefinition *funcLib, std::string funcName) {
+  if (graph == nullptr) {
+    return Status::OK();
+  }
+
+  for (auto node : graph->op_nodes()) {
+    if (node->type_string() == "AscendDump") {
+      LOG(ERROR) << "The dump node should not appear in the subgraph analysis phase.";
+      return Status::OK();
+    }
+  }
+
+    int numNodes = graph->num_node_ids();
+  for (int i = 0; i < numNodes; i++) {
+    Node *node = graph->FindNodeId(i);
+    if (node == nullptr || !node->IsOp()) {
+      continue;
+    }
+    TF_RETURN_IF_ERROR(AnalyzeNode(node, funcLib, funcName));
+  }
+  return Status::OK();
+}
+
+Status DbgDumpPass::GetPrefixName(const std::string &currFuncName, std::string &NamePrefix) {
+  std::string preFuncNameTmp;
+
+  NamePrefix = "";
+  preFuncNameTmp = currFuncName;
+  while (!preFuncNameTmp.empty()) {
+    auto PrefixInfo = PrefixInfos.find(preFuncNameTmp);
+    if (PrefixInfo == PrefixInfos.end()) {
+      break;
+    } else {
+      if (NamePrefix.empty()) {
+        NamePrefix = PrefixInfo->second.prefixOneHierarchy;
+      } else {
+        NamePrefix = absl::StrCat(PrefixInfo->second.prefixOneHierarchy, NamePrefix);
+      }
+    }
+    preFuncNameTmp = PrefixInfo->second.preFuncName;
+  }
+
+  return Status::OK();
+}
+
+void DbgDumpPass::FreePrefixInfos() {
+    PrefixInfos.clear();
 }
 
 Status DumpOutputs(Graph *graph, Node *node, std::string prefix = "") {
