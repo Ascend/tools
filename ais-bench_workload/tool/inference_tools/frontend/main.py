@@ -35,7 +35,7 @@ def set_session_options(session, args):
     # 设置custom out tensors size
     if args.outputSize != None:
         customsizes = [int(n) for n in args.outputSize.split(',')]
-        logger.debug("set customsize:".format(customsizes))
+        logger.debug("set customsize:{}".format(customsizes))
         session.set_custom_outsize(customsizes)
 
 def init_inference_session(args):

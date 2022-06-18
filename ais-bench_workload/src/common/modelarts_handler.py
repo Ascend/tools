@@ -10,6 +10,10 @@ import logging
 logging.basicConfig(level = logging.DEBUG,format = '[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+
+def get_config_value(config, key):
+    return None if config.get(key) == "" else config.get(key)
+
 def continue_waiting(job_info):
     print("waiting for task, status %s, total time: %d(s)" % (JOB_STATE[job_info['status']], job_info['duration'] / 1000))
 
@@ -104,9 +108,32 @@ class modelarts_handler():
             project_id=access_config.project_id,
             region_name=access_config.region_name)
 
+    def print_train_instance_types(self):
         algo_info = Estimator.get_train_instance_types(modelarts_session=self.session)
-        print(algo_info)
+        print("get valid train_instance_types:{}".format(algo_info))
 
+    def stop_new_versions(self, session_config):
+        base_job_list_info = Estimator.get_job_list(modelarts_session=self.session, per_page=10, page=1, order="asc", search_content=session_config.job_name)
+        if base_job_list_info == None or base_job_list_info.get("job_total_count", 0) == 0:
+            print("find no match version return")
+            return
+        else:
+            pre_version_id = base_job_list_info["jobs"][0].get("version_id")
+            job_id = base_job_list_info["jobs"][0].get("job_id")
+            job_status = base_job_list_info["jobs"][0].get("status")
+            estimator = Estimator(modelarts_session=self.session, job_id=job_id, version_id=pre_version_id)
+            if JOB_STATE[job_status] == "JOBSTAT_INIT" \
+                or JOB_STATE[job_status] == "JOBSTAT_IMAGE_CREATING" \
+                or JOB_STATE[job_status] == "JOBSTAT_SUBMIT_TRYING" \
+                or JOB_STATE[job_status] == "JOBSTAT_WAITING" \
+                or JOB_STATE[job_status] == "JOBSTAT_RUNNING":
+                status = estimator.stop_job_version()
+                print("jobname:{} jobid:{} preversionid:{} jobstatus:{} stop status:{}".format(
+                    session_config.job_name, job_id, pre_version_id, JOB_STATE[job_status], status))
+            else:
+                print("jobname:{} jobid:{} preversionid:{} jobstatus:{} no need stop".format(
+                    session_config.job_name, job_id, pre_version_id, JOB_STATE[job_status]))
+            return
 
     def get_job_name_next_new_version(self, session_config):
         base_job_list_info = Estimator.get_job_list(modelarts_session=self.session, per_page=10, page=1, order="asc", search_content=session_config.job_name)
@@ -157,12 +184,12 @@ class modelarts_handler():
                             log_url=output_url[4:],
                             hyperparameters=session_config.hyperparameters,
                             output_path=output_url[4:],
-                            pool_id=session_config.pool_id,
-                            train_instance_type=session_config.train_instance_type,
+                            pool_id = get_config_value(session_config, "pool_id"),
+                            train_instance_type = get_config_value(session_config, "train_instance_type"),
                             train_instance_count=session_config.train_instance_count,
-                            nas_type=session_config.nas_type,
-                            nas_share_addr=session_config.nas_share_addr,
-                            nas_mount_path=session_config.nas_mount_path,
+                            nas_type = get_config_value(session_config, "nas_type"),
+                            nas_share_addr = get_config_value(session_config, "nas_share_addr"),
+                            nas_mount_path = get_config_value(session_config, "nas_mount_path"),
                             job_description=jobdesc,
                             user_command = None)
 
@@ -189,6 +216,8 @@ class modelarts_handler():
     def run_job(self, session_config, localpath):
         logger.debug("session config:{}".format(session_config))
     
+        self.print_train_instance_types()
+
         # 获取job_name的next 版本号
         next_version_id = self.get_job_name_next_new_version(session_config)
         # 生成输出路径

@@ -52,17 +52,24 @@ session_config = ed({
     'framework_type': 'Ascend-Powered-Engine',
     'framework_version': 'MindSpore-1.2.0-c77-python3.7-euleros2.8-aarch64',
 
+    # 资源参数类型主要包括如下2个值 train_instance_type和pool_id
+    # 不设置pool_id 默认是公共池 设置了就是专属资源池
+    # 只设置pool_id 不设置train_instance_type 默认为专属资源池的默认类型
+    # train_instance_type 在程序打印中有提示的 一般为如下四个值 分别对应 1卡 2卡 4卡 8卡
+    # ['modelarts.kat1.xlarge', 'modelarts.kat1.2xlarge', 'modelarts.kat1.4xlarge', 'modelarts.kat1.8xlarge']
+    # https://support.huaweicloud.com/sdkreference-modelarts/modelarts_04_0191.html 该链接指示获取方法
+
     # 专属资源池id 不是则为None
-    'pool_id' : 'pool09811b1c',
+    'pool_id' : 'None',
     # 训练类型 如下为8卡 如果是专属资源池id设置，那么该类型需要设置为None
-    'train_instance_type': None,    #'modelarts.kat1.8xlarge',
+    'train_instance_type': 'modelarts.kat1.8xlarge',
     # 训练结点数
     'train_instance_count': 2,
 
     # 云存储路径 默认为空
-    'nas_type' : None,
-    'nas_share_addr' : None,
-    'nas_mount_path' : None,
+    # 'nas_type' : None,
+    # 'nas_share_addr' : None,
+    # 'nas_mount_path' : None,
 
     # 输出信息基准路径 整体路径为 train_url = out_base_url/version_name
     "out_base_url": "/zgwtest/lcm_test/result",

@@ -32,7 +32,7 @@ OBS侧->>本地侧: 下载数据
 https://gitee.com/mindspore/mindspore/tree/r1.3/model_zoo/official/nlp/bert
 
 ### 环境依赖
-1. windows10以上环境运行modelarts时，需要先开启WSL2，并安装Ubuntu 20.04.4 LTS。 实现过程，请参照[这里](https://blog.csdn.net/li1325169021/article/details/124285018)
+1. 本程序运行需依赖联网的linux环境，如无linux设备环境，可以在windows上开启wsl linux子系统。安装说明请参考[官网链接](https://docs.microsoft.com/zh-cn/windows/wsl/install)  
 2. windows10以上环境WSL2中运行modelarts时，请更新config.sh中环境变量PYTHON_COMMAND为WSL2中的实际python版本
 3. 本程序需要安装 easydict程序包
     ```
@@ -148,6 +148,14 @@ export SINGLESERVER_MODE=True
 解压modelarts训练测试包，进入解压文件夹，配置好相关配置文件后，执行`./ais-bench-stubs test`，进行训练。整个训练过程，需要保持网络通畅。WSL2和linux环境执行命令一致。
 
 
-### 中断训练
-+ 云上modelarts界面操作
+### 中断和停止训练
++ 云上modelarts界面操作  
 在云环境modelarts服务“训练管理”->“训练作业”界面，点击正在运行的job链接并进入。在执行job界面，点击“更多操作”按钮，激活下拉菜单，在上下文菜单中点击“停止”，即可终止运行的job。
++ 本地停止方法，如下操作即可。该操作可以停止掉配置文件中job_name指示的最新一个作业版本
+```
+[root@node66 ]# ls
+ais-bench-stubs  code  log  result
+[root@node66 ]# cd code
+[root@node66 code]# python3  ./common/train_modelarts.py  --action stop
+jobname:aisbench-debug jobid:3043 preversionid:13231 jobstatus:JOBSTAT_RUNNING stop status:{'is_success': True}
+```

@@ -73,7 +73,10 @@ output目录生成以下文件：
 train_huawei_train_mindspore_resnet-Ais-Benchmark-Stubs-x86_64-1.0-r1.7.tar.gz
 train_huawei_train_mindspore_bert-Ais-Benchmark-Stubs-x86_64-1.0-r1.7.tar.gz
 
-4.2 构建推理测试包（待补充）
+4.2 构建推理测试包
+    ./build.sh $stubs_file inference vision classification_and_detection
+    ./build/build.sh $stubs_file inference language bert
+    参数说明：$stubs_file是指步骤3中Ais-Benchmark-Stubs-aarch64-1.0.tar.gz或Ais-Benchmark-Stubs-x86_64-1.0.tar.gz的路径
 ## 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](../CONTRIBUTING.md)。

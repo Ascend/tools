@@ -136,7 +136,7 @@ python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path .
 NPU_compute_time: 推理调用总时间
 H2D_latency: 推理host到device延迟时间(ms)
 D2H_latency: 推理device到host延迟时间(ms)
-throughput: 吞吐率。吞吐率计算公式：1000/npu_compute_time.mean/batchsize
+throughput: 吞吐率。吞吐率计算公式：1000 * batchsize/npu_compute_time.mean
 
 打印如下:
 sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258, 'mean': 2.5239520602756076, 'median': 2.529621124267578, 'percentile(99%)': 2.585916519165039}, 'H2D_latency': {'min': 0.5118846893310547, 'max': 1.0373592376708984, 'mean': 0.6650818718804253, 'median': 0.6296634674072266, 'percentile(99%)': 1.0063838958740234}, 'D2H_latency': {'min': 0.027894973754882812, 'max': 0.05745887756347656, 'mean': 0.04508760240342882, 'median': 0.04744529724121094, 'percentile(99%)': 0.05671501159667969}, 'throughput': 396.2040387925606}
@@ -159,4 +159,5 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --outputSize| 指定模型的输出size，有几个输出，就设几个值，可选参数。<br>动态shape场景下，获取模型的输出size可能为0，用户需根据输入的shape预估一个较合适的值去申请内存。<br>如 --outputSize "10000,10000,10000"|
 | --acl_json_path | acl json文件 profiling或者dump时设置      |
 | --batchsize | 模型batch size      |
+| --pure_data_type | 纯推理数据类型。可选参数，默认"zero",可取值"zero"或"random"。<br>设置为zero时，纯推理数据全部是0；设置为random时，每一个图例数据是[0,255]之间的随机整数      |
 | --help| 工具使用帮助信息                  |

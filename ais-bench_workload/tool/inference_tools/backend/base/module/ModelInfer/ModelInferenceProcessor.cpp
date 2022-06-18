@@ -135,10 +135,12 @@ APP_ERROR ModelInferenceProcessor::CreateOutMemoryData(std::vector<MemoryData>& 
             ERROR_LOG("out i:%d size is zero custom:%d %d\n", size, customIndex, customOutTensorSize_.size());
             return APP_ERR_ACL_FAILURE;
         }
+        DEBUG_LOG("Create OutMemory i:%d name:%s size:%d\n", i, modelDesc_.outTensorsDesc[i].name.c_str(), size);
         Base::MemoryData memorydata(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId_);
         auto ret = MemoryHelper::MxbsMalloc(memorydata);
         if (ret != APP_ERR_OK) {
-            ERROR_LOG("MemoryHelper::MxbsMalloc failed. ret=", ret);
+            ERROR_LOG("MemoryHelper::MxbsMalloc failed.i:%d name:%s size:%d ret:%d", \
+                    i, modelDesc_.outTensorsDesc[i].name.c_str(), size, ret);
             return ret;
         }
         outputs.push_back(std::move(memorydata));

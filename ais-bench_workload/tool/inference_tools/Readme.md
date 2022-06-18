@@ -143,7 +143,7 @@ The specific results are as follows:
 NPU_compute_time: total referencing call time
 H2D_latency: delay time from host to device during referencing
 D2H_latency: delay time from device to host during referencing
-throughput: throughput. Calculation formula：1000/npu_compute_time.mean/batchsize
+throughput: throughput. Calculation formula：1000 * batchsize/npu_compute_time.mean
 
 
 Print as follows:
@@ -159,7 +159,7 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --outfmt | Inference output format, either TXT or BIN.      |
 | --loop   | (Optional) Number of inferences. Must be in the range of \[1, 255]. Defaults to 1. When profiler is set to true, you are advised to set this option to 1. |
 | --debug  | (Optional) Debug switch for printing the model description, either true or false. Defaults to false. |
-| --device --device_id   | Specify operating equipment. Value range is [0,255]. Optional, default 0 |
+| --device --device_id   | (Optional)Specify operating equipment. Value range is [0,255]. Default 0 |
 | --dymBatch  | (Optional) Dynamic batch parameter， specifies the actual batch of the model input. <br>If ATC model conversion settings --input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8" , the dymBatch parameter can be set to --dymBatch 2.|
 | --dymHW  | (Optional) Dynamic image size parameter， specifies the actual image size of the model input. <br>If ATC model conversion settings --input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1"  --dynamic_image_size="300,500;600,800" , the dymBatch parameter can be set to --dymHW 300,500.|
 | --dymDims| (Optional) Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600;img_info:1,600".|
@@ -167,4 +167,5 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --outputSize| (Optional)Specify the output size of the model. If there are several outputs, set several values. <br>In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate an appropriate value according to the input shape to apply for memory.<br>Example： --outputSize "10000,10000,10000".|
 | --acl_json_path | Acl json file. For profiling or dump scenarios.      |
 | --batchsize | model batch size.            |
+| --pure_data_type | (Optional)Pure inference data type。Default "zero", can be set to "zero" or "random"。<br>When set to zero, all pure reasoning data are 0; When set to random, each legend data is a random integer between [0, 255]      |
 | --help| Help information.                  |

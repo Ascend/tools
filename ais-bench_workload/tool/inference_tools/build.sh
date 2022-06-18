@@ -14,7 +14,6 @@ main()
     pip3 wheel -v $CURDIR/backend/ || { echo "pip run failed"; return 1; }
 
     cp $CURDIR/frontend -rf $OUTPUT_PATH/
-    cp $CURDIR/test -rf $OUTPUT_PATH/
     cp $CURDIR/requirements.txt $OUTPUT_PATH/
     cp $CURDIR/README.md $OUTPUT_PATH/
 

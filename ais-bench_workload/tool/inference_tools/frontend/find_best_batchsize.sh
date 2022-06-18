@@ -51,7 +51,7 @@ check_args_valid()
     [[ $FRAMEWORK == 0 && ! -f "$WEIGHT_PATH" ]] && { echo "caffe wight_path:$WEIGHT_PATH not valid"; return 1; }
     [[ $MAX_BATCH_NUM -gt 0 && $MAX_BATCH_NUM -le 100 ]] || { echo "max_batch_num:$MAX_BATCH_NUM not valid"; }
     [ "$INPUT_SHAPE_STR" != "" ] || { echo "input_shape_str:$INPUT_SHAPE_STR not valid"; return 1; }
-    [[ "$SOC_VERSION" == "Ascend310" || "$SOC_VERSION" == "Ascend710" || "$SOC_VERSION" == "Ascend910" ]] || { echo "soc_version:$SOC_VERSION not valid"; return 1; }
+    [[ "$SOC_VERSION" == "Ascend310" || "$SOC_VERSION" == "Ascend310P3" || "$SOC_VERSION" == "Ascend710" || "$SOC_VERSION" == "Ascend910" ]] || { echo "soc_version:$SOC_VERSION not valid"; return 1; }
     return 0
 }
 
@@ -66,7 +66,7 @@ convert_and_run_model()
 {
     for batchsize in `seq $MAX_BATCH_NUM`; do
         input_shape=${INPUT_SHAPE_STR//batchsize/$batchsize}
-        om_path_pre="$CACHE_PATH/resnet50_v1_bs${batchsize}_fp32"
+        om_path_pre="$CACHE_PATH/model_bs${batchsize}"
         mkdir -p $CACHE_PATH/$batchsize
         om_path="$om_path_pre.om"
         if [ ! -f $om_path ];then

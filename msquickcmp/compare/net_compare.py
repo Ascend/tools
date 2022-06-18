@@ -177,7 +177,8 @@ class NetCompare(object):
             if line[LEFTOP_INDEX] != "Node_Output":
                 writer.writerow(line)
             else:
-                new_content = [line[0], "Node_Output", "NaN", npu_file_name, "NaN", golden_file_name, "[]"]
+                new_content = [line[0], "Node_Output", "NaN", "NaN",
+                               npu_file_name, "NaN", golden_file_name, "[]"]
                 new_content.extend(result)
                 new_content.extend([""])
                 if line[RIGHTOP_INDEX] == "*":

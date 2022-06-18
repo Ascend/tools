@@ -1,4 +1,5 @@
 import os
+import sys
 from statistics import mean
 import logging
 import argparse
@@ -58,9 +59,9 @@ def report_result_singlesever_mode(handler, server_count):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--local_code_path", required=True, help="the local path of run code")
+    parser.add_argument("--local_code_path", help="the local path of run code")
     parser.add_argument("--single_server_mode", action="store_true", help="the local path of run code")
-
+    parser.add_argument("--action", default="run", choices=["run", "stop"], help="action (run or stop)")
     args = parser.parse_args()
     return args
 
@@ -70,8 +71,15 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     handler = modelarts_handler()
-    handler.create_obs_handler(access_config)
     handler.create_session(access_config)
+
+    if args.action == "stop":
+        handler.stop_new_versions(session_config)
+        sys.exit()
+
+    handler.create_obs_handler(access_config)
+    
+    # default run mode
     handler.run_job(session_config, args.local_code_path)
 
     # handler.output_url = "s3://0923/00lcm/result_dump/res/V212/"
