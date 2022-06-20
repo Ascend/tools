@@ -5,7 +5,6 @@
 
 init()
 {
-    export PYTHONPATH=$PYTHONPATH:${CODE_PATH}
     CONFIG_FILE="config.sh"
     source ${CODE_PATH}/config/$CONFIG_FILE || { logger_Warn "source file failed:$?";return 1; }
     logger_Info "init called"

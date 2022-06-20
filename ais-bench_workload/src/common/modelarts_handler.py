@@ -125,7 +125,7 @@ class modelarts_handler():
             if JOB_STATE[job_status] == "JOBSTAT_INIT" \
                 or JOB_STATE[job_status] == "JOBSTAT_IMAGE_CREATING" \
                 or JOB_STATE[job_status] == "JOBSTAT_SUBMIT_TRYING" \
-                or JOB_STATE[job_status] == "JOBSTAT_WAITING" \
+                or JOB_STATE[job_status] == "JOBSTAT_DEPLOYING" \
                 or JOB_STATE[job_status] == "JOBSTAT_RUNNING":
                 status = estimator.stop_job_version()
                 print("jobname:{} jobid:{} preversionid:{} jobstatus:{} stop status:{}".format(

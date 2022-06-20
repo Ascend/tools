@@ -60,11 +60,11 @@ session_config = ed({
     # https://support.huaweicloud.com/sdkreference-modelarts/modelarts_04_0191.html 该链接指示获取方法
 
     # 专属资源池id 不是则为None
-    'pool_id' : 'None',
+    'pool_id' : None,
     # 训练类型 如下为8卡 如果是专属资源池id设置，那么该类型需要设置为None
     'train_instance_type': 'modelarts.kat1.8xlarge',
     # 训练结点数
-    'train_instance_count': 2,
+    'train_instance_count': 1,
 
     # 云存储路径 默认为空
     # 'nas_type' : None,

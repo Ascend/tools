@@ -3,6 +3,9 @@ import sys
 from statistics import mean
 import logging
 import argparse
+
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..'))
+
 from config.modelarts_config import access_config, session_config
 from modelarts_handler import modelarts_handler,logger
 import ais_utils

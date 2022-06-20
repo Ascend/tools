@@ -143,7 +143,6 @@ export SINGLESERVER_MODE=True
 ```
 [root@node66 ]# ls
 ais-bench-stubs  code  log  result
-[root@node66 ]# cd code
-[root@node66 code]# python3  ./common/train_modelarts.py  --action stop
+[root@node66 code]# python3  ./code/common/train_modelarts.py  --action stop
 jobname:aisbench-debug jobid:3043 preversionid:13231 jobstatus:JOBSTAT_RUNNING stop status:{'is_success': True}
 ```
