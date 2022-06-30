@@ -1,20 +1,21 @@
-from sklearn.model_selection import learning_curve
-import core.dataset as dataset
-import numpy as np
 import os
-from tqdm import tqdm
-import cv2
-from yolo.parse_VOC2007 import parse_info
-from yolo.yolo_caffe_preprocess import process
 import sys
+from os.path import join
+
+import core.dataset as dataset
+import cv2
 import numpy as np
 from PIL import Image
-from os.path import join
+from sklearn.model_selection import learning_curve
+from tqdm import tqdm
+
+from yolo.parse_VOC2007 import parse_info
+from yolo.yolo_caffe_preprocess import process
 
 
 class VOC(dataset.DataSet):
-    def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416], 
-                    data_format="NHWC", pre_process=None, count=0, cache_path=None, normalize=True):
+    def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416],
+                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True):
         super(VOC, self).__init__(cache_path)
         self.image_list = []
         self.output_dir = "processed_data"
@@ -22,7 +23,7 @@ class VOC(dataset.DataSet):
             os.mkdir(self.output_dir)
         self.name_index_map = {}
         self.dataset_path = dataset_path
-        
+
         self.seg_trainval_txt = os.path.join(self.dataset_path,"ImageSets/Segmentation/val.txt")
         with open(self.seg_trainval_txt,"r") as f:
             lines = f.readlines()
@@ -30,7 +31,7 @@ class VOC(dataset.DataSet):
                 pic_name = line.replace('\n','')
                 pic_path = os.path.join(self.dataset_path,'JPEGImages/{}.jpg'.format(pic_name))
                 self.image_list.append(pic_name)
-                self.name_index_map[pic_name] = i 
+                self.name_index_map[pic_name] = i
 
     def pre_proc_func(self, sample_list):
         with open(self.seg_trainval_txt,"r") as f:
@@ -43,7 +44,7 @@ class VOC(dataset.DataSet):
                 dst = os.path.join(self.output_dir,'{}.npy'.format(pic_name))
                 np.save(dst, inputValue)
         return 0
- 
+
     def get_processeddata_item(self, nr):
         file = f'{self.output_dir}/{self.image_list[nr]}.npy'
         img = np.load(file)
@@ -104,7 +105,7 @@ def compute_mIoU(gt_dir, pred_dir, devkit_dir, sample_list, name_index_map):  # 
 class PostProcessBase:
     def __init__(self):
         pass
-        
+
     # 后处理函数 对推理的结果进行处理和获取准确度等值，
     # 注意该函数必须要返回准确率信息
     def post_proc_func(self, sample_list):

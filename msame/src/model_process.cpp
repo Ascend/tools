@@ -1003,9 +1003,47 @@ void ModelProcess::DestroyOutput()
     (void)aclmdlDestroyDataset(output_);
     output_ = nullptr;
 }
+void callback(aclrtExceptionInfo *exceptionInfo)
+{
+    auto deviceId = aclrtGetDeviceIdFromExceptionInfo(exceptionInfo);
+    auto streamId = aclrtGetStreamIdFromExceptionInfo(exceptionInfo);
+    auto taskId = aclrtGetTaskIdFromExceptionInfo(exceptionInfo);
 
+    char opName[256];
+    aclTensorDesc *inputDesc = nullptr;
+    aclTensorDesc *outputDesc = nullptr;
+    size_t inputCnt = 0;
+    size_t outputCnt = 0;
+    aclmdlCreateAndGetOpDesc(deviceId, streamId, taskId, opName, 256, &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+    static int index = 0;
+    printf("lcm debug did: %d opname: %s incount:%d outcount:%d\n", deviceId, opName, inputCnt, outputCnt);
+    for (size_t i = 0;i<inputCnt;++i) {
+        const aclTensorDesc *desc = aclGetTensorDescByIndex(inputDesc, i);
+        void *addr = aclGetTensorDescAddress(desc);
+        size_t len = aclGetTensorDescSize(desc);
+
+        void* outHostData = nullptr;
+        aclrtMallocHost(&outHostData, len);
+        aclrtMemcpy(outHostData, len, addr, len, ACL_MEMCPY_DEVICE_TO_HOST);
+
+        std::string filename = "exception_" + std::to_string(index) +"_input_" + std::to_string(i) + ".bin";
+        printf("lcm debug i: %d Cnt: %lld addr:%p haddr:%p len:%d filename:%s\n", i, inputCnt, outHostData, len, filename.c_str());
+        ofstream outFile(filename, ios::out | ios::binary);
+        outFile.write((char*)outHostData, len);
+        aclGetTensorDescFormat(desc);
+    }
+    index++;
+    for (size_t i = 0;i<outputCnt;++i) {
+        const aclTensorDesc *desc = aclGetTensorDescByIndex(outputDesc, i);
+        aclGetTensorDescAddress(desc);
+        aclGetTensorDescFormat(desc);
+    }
+    aclDestroyTensorDesc(inputDesc);
+    aclDestroyTensorDesc(outputDesc);
+}
 Result ModelProcess::Execute()
 {
+    aclrtSetExceptionInfoCallback(callback);
     aclError ret = aclmdlExecute(modelId_, input_, output_);
     if (ret != ACL_SUCCESS) {
         cout << aclGetRecentErrMsg() << endl;

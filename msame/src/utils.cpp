@@ -317,14 +317,10 @@ void Utils::SplitStringSimple(string str, vector<string> &out, char split1, char
     while (getline(block, cell, split1)) {
         split1_out.push_back(cell);
     }
-    for (size_t i = 0; i < split1_out.size(); ++i){
-        istringstream block_tmp(split1_out[i]);
-        int index = 0;
-        while (getline(block_tmp, cell1, split2)) {
-            if (index == 1){
-                split2_out.push_back(cell1);
-            }
-            index += 1;
+    for (auto var : split1_out){
+        size_t pos = var.rfind(split2);
+        if(pos != var.npos){
+            split2_out.push_back(var.substr(pos + 1, var.size()-pos-1));
         }
     }
     for (size_t i = 0; i < split2_out.size(); ++i){

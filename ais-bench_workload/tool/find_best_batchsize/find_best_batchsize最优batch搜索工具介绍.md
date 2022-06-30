@@ -25,22 +25,22 @@
     root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set_env.sh
     ```
 
-3. 运行frontend/find_best_batchsize.sh 执行最优batch搜索命令操作
+3. 运行find_best_batchsize.sh 执行最优batch搜索命令操作
 
 ## 使用方法
 
  ### 运行指令
  onnx模型
 ```
-bash  ./frontend/find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx --input_shape_str actual_input_1:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 10
+bash  ./find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx --input_shape_str actual_input_1:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 10
 ```
 pb模型
 ```
-bash  ./frontend/find_best_batch.sh --model_path /home/lcm/tool/atc_bert_base_squad/save/model/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str "input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384" --soc_version "Ascend310" --max_batch_num 4
+bash  ./find_best_batch.sh --model_path /home/lcm/tool/atc_bert_base_squad/save/model/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str "input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384" --soc_version "Ascend310" --max_batch_num 4
 ```
 prototxt模型
 ```
-bash  ./frontend/find_best_batchsize.sh --model_path /home/lhb/model/resnet50.prototxt --weight_path /home/lhb/model/resnet50.caffemodel --input_shape_str data:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 4
+bash  ./find_best_batchsize.sh --model_path /home/lhb/model/resnet50.prototxt --weight_path /home/lhb/model/resnet50.caffemodel --input_shape_str data:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 4
 ```
 
 ### 运行参数说明
@@ -64,6 +64,3 @@ bash  ./frontend/find_best_batchsize.sh --model_path /home/lhb/model/resnet50.pr
 ```
 best_batchsize:8 best_throughput:3716.05793807153
 ```
-
-
-

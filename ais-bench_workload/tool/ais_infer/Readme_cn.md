@@ -1,4 +1,4 @@
-# ais-bench推理工具使用文档
+# ais_infer 推理工具使用文档
 
 ## 介绍
 本文介绍AisBench推理工具，该工具包含前端和后端两部分。
@@ -16,12 +16,12 @@ CANN_PATH
 /usr/local/Ascend/ascend-toolkit/latest
 分别尝试去获取
 
-1. 进入ais-bench/tool/inference_tools目录下执行如下命令进行编译，即可生成推理后端whl包
+1. 进入ais-bench/tool/ais_infer目录下执行如下命令进行编译，即可生成推理后端whl包
 
 ```Bash
-root@root:/home/ais-bench# cd tool/inference_tools/backend/
-root@root:/home/ais-bench/tool/inference_tools/backend# pip3.7 wheel ./
-root@root:/home/ais-bench/tool/inference_tools/backend# ls
+root@root:/home/ais-bench# cd tool/ais_infer/backend/
+root@root:/home/ais-bench/tool/ais_infer/backend# pip3.7 wheel ./
+root@root:/home/ais-bench/tool/ais_infer/backend# ls
 aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl  aisbench.egg-info  base  build  doc  frontend  pyproject.toml  python  setup.py  test
 
 ```
@@ -32,7 +32,7 @@ pip3 install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 如果安装提示已经安装了相同版本的whl，请执行命令请添加参数"--force-reinstall"
 
 ```
-root@root:/home/ais-bench/tool/inference_tools# pip3  install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
+root@root:/home/ais-bench/tool/ais_infer# pip3  install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
 Processing ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 Installing collected packages: aclruntime
@@ -64,13 +64,13 @@ root@root:/home/aclruntime-aarch64# pip3 install -r ./requirements.txt
 root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set_env.sh
 ```
 
-3. 运行frontend/main.py 执行相关推理命令操作
+3. 运行ais_infer.py 执行相关推理命令操作
 
 ## 使用方法
 
  ### 纯推理场景 会构造全为0的假数据送入模型推理
 ```
-python3.7.5 frontend/main.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
+python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
 ```
 
 
@@ -78,56 +78,55 @@ python3.7.5 frontend/main.py  --model /home/model/resnet50_v1.om --output ./ --o
  本场景会根据文件输入和模型实际输入进行组batch
 
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
 
 ```
 
 注意针对于动态分档或动态shape场景，会根据实际模型实际需要size与输入size判断进行组batch操作
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
+python3.7.5 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
 ```
 
  ### 文件夹输入场景 input传入文件夹列表 通过,进行分隔
  本场景会根据文件输入和模型输入进行组batch 根据 模型输入size与文件输入size进行对比得出
 
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --input "./"
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./"
 
 ```
 
 如下样例，模型输入需与传入文件夹的个数一致，比如bert有三个输入 则必须传入3个文件夹
 ```
-python3 frontend/main.py --model ./save/model/BERT_Base_SQuAD_BatchSize_1.om  --input ./data/SQuAD1.1/input_ids,./data/SQuAD1.1/input_mask,./data/SQuAD1.1/segment_ids
+python3 ais_infer.py --model ./save/model/BERT_Base_SQuAD_BatchSize_1.om  --input ./data/SQuAD1.1/input_ids,./data/SQuAD1.1/input_mask,./data/SQuAD1.1/segment_ids
 ```
 
  ### 动态分档场景 主要包含动态batch 动态宽高 动态Dims三种场景，需要分别传入dymBatch dymHW dymDims指定实际档位信息
 
 #### 动态batch场景 档位为1 2 4 8档，设置档位为2 本程序将获取实际模型输入组batch 每2个输入来组一组batch进行推理
 ```
-python3 frontend/main.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
+python3 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
 
 ```
 
 #### 动态HW宽高场景 档位为224,224;448,448档，设置档位为224,224 本程序将获取实际模型输入组batch
 ```
-python3 frontend/main.py --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
+python3 ais_infer.py --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
 
 ```
 
 #### 动态Dims场景 设置档位为1,3,224,224 本程序将获取实际模型输入组batch
 ```
-python3 frontend/main.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
+python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224 --outputSize 10000
 ```
 
 ### 动态shape场景 atc设置为[1~8,3,200~300,200~300]，设置档位为1,3,224,224 本程序将获取实际模型输入组batch 注意动态shape的输出大小经常为0需要通过outputSize参数设置对应参数的内存大小
-注意 动态shape场景当前无法获取tensor的shape 当前默认填写一维 所以输出numpy文件请注意下
 ```
-python3 frontend/main.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
+python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --dymShape actual_input_1:1,3,224,224 --outputSize 10000
 ```
 
 ### profiling或者dump场景
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
 
 ```
 ### 结果sumary功能

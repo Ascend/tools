@@ -1,4 +1,4 @@
-[中文](https://github.com/Ascend/tools/blob/master/msame/Readme_cn.md)|EN
+[中文](https://github.com/Ascend/tools/blob/master/ais-bench_workload/tool/ais_infer/Readme_cn.md)|EN
 
 # AIS-bench referencing tool usage document
 
@@ -25,9 +25,9 @@ git clone https://github.com/Ascend/ais-bench.git
 2. compile and generate the referencing back-end WHL package
 
 ```Bash
-root@root:/home/ais-bench# cd tool/inference_tools/backend/
-root@root:/home/ais-bench/tool/inference_tools/backend# pip3.7 wheel ./
-root@root:/home/ais-bench/tool/inference_tools/backend# ls
+root@root:/home/ais-bench# cd tool/ais_infer/backend/
+root@root:/home/ais-bench/tool/ais_infer/backend# pip3.7 wheel ./
+root@root:/home/ais-bench/tool/ais_infer/backend# ls
 aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl  aisbench.egg-info  base  build  doc  frontend  pyproject.toml  python  setup.py  test
 
 ```
@@ -38,7 +38,7 @@ pip3 install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 If the installation prompt indicates that the same version of WHL has been installed, execute the command and add the  parameter of "--force-reinstall"
 
 ```
-root@root:/home/ais-bench/tool/inference_tools# pip3  install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
+root@root:/home/ais-bench/tool/ais_infer# pip3  install ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 Looking in indexes: https://mirrors.aliyun.com/pypi/simple/
 Processing ./aclruntime-0.0.1-cp37-cp37m-linux_aarch64.whl
 Installing collected packages: aclruntime
@@ -71,13 +71,13 @@ root@root:/home/aclruntime-aarch64# pip3 install -r ./requirements.txt
 root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set_env.sh
 ```
 
-3. run frontend/main.py and executes related referencing commands
+3. run ais_infer.py and executes related referencing commands
 
 ## Usage Examples
 
  ### Pure referencing scenario. Fake data (all 0s) is constructed and fed to the model for inference.
 ```
-python3.7.5 frontend/main.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
+python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
 ```
 
 
@@ -85,56 +85,56 @@ python3.7.5 frontend/main.py  --model /home/model/resnet50_v1.om --output ./ --o
  In this scenario, group batch will be performed according to the file input and the actual input of the model.
 
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
 
 ```
 
 Note that for dynamic grading or dynamic shape scenes, the group batch operation will be judged according to the actual size and input size of the actual model.
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
+python3.7.5 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
 ```
 
  ### Folder input scenario. Input is passed into the folder list, separated by commas.
  This scenario will be grouped according to file input and model input. Batch is obtained by comparing the model input size with the file input size.
 
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --input "./"
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./"
 
 ```
 
 In the following example, the model input must be consistent with the number of incoming folders. For example, if Bert has three inputs, three folders must be imported.
 ```
-python3 frontend/main.py --model ./save/model/BERT_Base_SQuAD_BatchSize_1.om  --input ./data/SQuAD1.1/input_ids,./data/SQuAD1.1/input_mask,./data/SQuAD1.1/segment_ids
+python3 ais_infer.py --model ./save/model/BERT_Base_SQuAD_BatchSize_1.om  --input ./data/SQuAD1.1/input_ids,./data/SQuAD1.1/input_mask,./data/SQuAD1.1/segment_ids
 ```
 
  ### Dynamic grading scene. Includes three scenes: dynamic batch, dynamic width and height and dynamic dims. And need to input dymbatch, dymhw and dymdims respectively to specify the actual gear information.
 
 + Dynamic batch scene. The gears are 1, 2, 4 and 8,and setting gear is 2. This program will obtain the actual model input group batch and group a group of batch for referencing every two inputs.
 ```
-python3 frontend/main.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
+python3 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input=./data/ --dymBatch 2
 
 ```
 
 + Dynamic HW width height scene. The gears are 224,224;448,448. Setting gear is 224,224. This program will get the actual model input group batch.
 ```
-python3 frontend/main.py --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
+python3 ais_infer.py --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --dymHW 224,224
 
 ```
 
 + Dynamic dims scene. The gears are 1,3,224,224. This program will get the actual model input group batch.
 ```
-python3 frontend/main.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
+python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
 ```
 
 ### Dynamic shape scene. atc is set to [1~8,3,200~300,200~300]. Setting gears are 1,3,224,224. This program will get the actual model input group batch. Note that the output size of a dynamic shape is often 0, you need to set the memory size of the corresponding parameter through the outputsize parameter.
 Note that the dynamic shape scene cannot obtain the shape of the tensor at present. One dimension is filled in by default. So please pay attention to the following when outputting numpy file.
 ```
-python3 frontend/main.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
+python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
 ```
 
 ### Profiling or dump scenarios
 ```
-python3.7.5 frontend/main.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
 
 ```
 ### Result sumary function

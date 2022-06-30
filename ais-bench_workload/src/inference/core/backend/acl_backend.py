@@ -1,8 +1,10 @@
-import numpy as np
+import time
+
 import aclruntime
 import ais_utils
-
+import numpy as np
 from backendbase import BackendBase
+
 
 def get_zero_ndata(size):
     barray = bytearray(size)
@@ -64,9 +66,9 @@ class BackendAcl(BackendBase):
             intensors.append(cur_tensor)
         # outtensors = self.session.run(self.outputs, intensors)
         self.session.run_setinputs(intensors)
-        start = ais_utils.get_datatime()
+        start = time.time()
         self.session.run_execute()
-        end = ais_utils.get_datatime()
+        end = time.time()
         outtensors = self.session.run_getoutputs(self.outputs)
 
         self.elapsedtime += (end - start)*1000
@@ -82,8 +84,12 @@ class BackendAcl(BackendBase):
     def unload(self):
         return None
 
+    def calc_lantency(self, elapsedtime, count):
+        latency = 0 if count == 0 else elapsedtime/count
+        return latency
+
     def sumary(self):
-        infer_latency = ais_utils.calc_lantency(self.elapsedtime, self.infercount)
+        infer_latency = self.calc_lantency(self.elapsedtime, self.infercount)
         print("acl sumary infer_latency:{} elapasedtime:{} infercount:{}".format(infer_latency, self.elapsedtime, self.infercount))
         #print("acl session sumary", self.session.sumary())
         ais_utils.set_result("inference", "infer_latency", infer_latency)

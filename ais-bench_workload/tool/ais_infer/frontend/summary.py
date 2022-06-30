@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from utils import logger
+from frontend.utils import logger
 
 
 class ListInfo(object):

@@ -1,5 +1,6 @@
-import loadgen
 import math
+
+import loadgen
 
 QueryArrivalMode_map = {
     "continuous": loadgen.QueryArrivalMode.CONTINUOUS_MODE,
@@ -10,11 +11,15 @@ QueryArrivalMode_map = {
 }
 
 def run_loadgen(datasets, backend, postproc, args):
-
-    if args.maxloadsamples_count == 0:
+    if args.maxloadsamples_count == None:
         maxloadsamples_count = datasets.get_samples_count
     else:
         maxloadsamples_count = args.maxloadsamples_count
+
+    if maxloadsamples_count < datasets.get_samples_count:
+        samplesPerQuery = maxloadsamples_count
+    else:
+        samplesPerQuery = datasets.get_samples_count
 
     # 创建QSL设备
     params = loadgen.QslParams()
@@ -39,18 +44,18 @@ def run_loadgen(datasets, backend, postproc, args):
     # 离线模式设置
     settings.arrivalMode = QueryArrivalMode_map[args.query_arrival_mode]
     if args.query_arrival_mode == "offline":
-        settings.samplesPerQuery = maxloadsamples_count
+        settings.samplesPerQuery = samplesPerQuery
         settings.minQueryCount = math.ceil(datasets.get_samples_count/settings.samplesPerQuery)
-        settings.targetQPS = maxloadsamples_count
+        settings.targetQPS = samplesPerQuery
         settings.latencyConstraintNs = 100*3600*1000000000
     elif args.query_arrival_mode == "continuous":
-        settings.samplesPerQuery = maxloadsamples_count
+        settings.samplesPerQuery = samplesPerQuery
         settings.minQueryCount = math.ceil(datasets.get_samples_count/settings.samplesPerQuery)
-        settings.targetQPS = maxloadsamples_count
+        settings.targetQPS = samplesPerQuery
     elif args.query_arrival_mode == "periodic":
-        settings.samplesPerQuery = maxloadsamples_count
+        settings.samplesPerQuery = samplesPerQuery
         settings.minQueryCount = math.ceil(datasets.get_samples_count/settings.samplesPerQuery)
-        settings.targetQPS = maxloadsamples_count
+        settings.targetQPS = samplesPerQuery
     else:
         raise RuntimeError('arrival mode:{} not support'.format(args.query_arrival_mode))
 

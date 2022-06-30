@@ -1,16 +1,17 @@
 import argparse
+import logging
 import os
+import sys
 
+import core.utils as utils
+from backendbase import create_backend_instance
+from loadgen_interface import run_loadgen
+
+import coco
 import imagenet
 import imagenet_set
-import coco
 import voc
 import voc_deeplabv3
-import logging
-import core.utils as utils
-
-from loadgen_interface  import run_loadgen
-from backendbase import create_backend_instance
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("main")
@@ -110,6 +111,12 @@ SUPPORTED_PROFILES = {
 
 }
 
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
+
 def get_args():
     """Parse commandline."""
     parser = argparse.ArgumentParser()
@@ -124,12 +131,13 @@ def get_args():
     parser.add_argument("--query_arrival_mode",
         choices=["continuous", "periodic", "poison_distribute", "offline", "mixed"],
         default="offline", help="query_arrival_mode")
-    parser.add_argument("--maxloadsamples_count", type=int, default=0, help="dataset items to use")
-    parser.add_argument("--count", type=int, default=0, help="dataset items to use")
+    parser.add_argument("--maxloadsamples_count", type=check_positive, default=None, help="dataset items to use")
+    parser.add_argument('--count', type=check_positive, default=None,  help="positive integer, select dataset items count, default full data.")
     parser.add_argument("--dataset_list", help="path to the dataset list")
 
     args = parser.parse_args()
     defaults = SUPPORTED_PROFILES["defaults"]
+
     if args.profile:
         profile = SUPPORTED_PROFILES[args.profile]
         defaults.update(profile)
@@ -140,7 +148,6 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-
     print("begin args:", args)
 
     # dataset to use
@@ -151,7 +158,7 @@ if __name__ == "__main__":
                         pre_process=preproc,
                         cache_path=args.cache_path,
                         count=args.count,
-                        normalize=args.normalize, 
+                        normalize=args.normalize,
                         tag=args.tag,
                         **kwargs)
 

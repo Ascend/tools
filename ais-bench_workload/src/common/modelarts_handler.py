@@ -74,32 +74,43 @@ def wait_for_job_timeout(job_instance):
             raise RuntimeError('failed')
             break
 
+try:
+    import moxing as mox
+    moxing_import_flag = True
+except:
+    moxing_import_flag = False
+
 class modelarts_handler():
     def __init__(self):
         self.output_url = None
 
     def create_obs_output_dirs(self, output_url):
-        bucket_name = output_url[5:].split('/')[0]
-        sub_dir = output_url.replace(f"s3://{bucket_name}/", "", 1)
-
-        logger.debug('create obs output{} subdir:{} bucket:{}'.format(output_url, sub_dir, bucket_name))
-
-        resp = self.obsClient.putContent(bucket_name, sub_dir, content=None)
-        if resp.status < 300:
-            logger.debug('obs put content request ok')
+        if moxing_import_flag == True:
+            dstpath = output_url.replace("s3:", "obs:", 1)
+            logger.info("create obs outdir mox mkdir:{}".format(dstpath))
+            mox.file.make_dirs(dstpath)
         else:
-            logger.warn('errorCode:{} msg:{}'.format(resp.errorCode, resp.errorMessage))
-            raise RuntimeError('failed')
+            bucket_name = output_url[5:].split('/')[0]
+            sub_dir = output_url.replace(f"s3://{bucket_name}/", "", 1)
+            logger.debug('create obs output{} subdir:{} bucket:{}'.format(output_url, sub_dir, bucket_name))
+            resp = self.obsClient.putContent(bucket_name, sub_dir, content=None)
+            if resp.status < 300:
+                logger.debug('obs put content request ok')
+            else:
+                logger.warn('errorCode:{} msg:{}'.format(resp.errorCode, resp.errorMessage))
+                raise RuntimeError('failed')
 
     def create_obs_handler(self, access_config):
-        # 创建 obs登录句柄
-        self.obsClient = ObsClient(access_key_id=access_config.access_key,
-            secret_access_key=access_config.secret_access_key, server=access_config.server)
+        if moxing_import_flag == False:
+            # 创建 obs登录句柄
+            self.obsClient = ObsClient(access_key_id=access_config.access_key,
+                secret_access_key=access_config.secret_access_key, server=access_config.server)
 
     def create_session(self, access_config):
         # 如下配置针对计算中心等专有云 通用云不需要设置
-        if access_config.get("iam_endpoint") != "" and access_config.get("obs_endpoint") != "" \
-            and access_config.get("modelarts_endpoint") != "":
+        if access_config.get("iam_endpoint") != "" and access_config.get("iam_endpoint") != None \
+            and access_config.get("obs_endpoint") != "" and access_config.get("obs_endpoint") != None \
+            and access_config.get("modelarts_endpoint") != "" and access_config.get("modelarts_endpoint") != None:
             Session.set_endpoint(iam_endpoint=access_config.iam_endpoint, obs_endpoint=access_config.obs_endpoint, \
                 modelarts_endpoint=access_config.modelarts_endpoint, region_name=access_config.region_name)
         # 创建modelarts句柄
@@ -148,31 +159,34 @@ class modelarts_handler():
             return int(pre_version_id)+1
 
     def get_obs_url_content(self, obs_url):
-        bucket_name = obs_url[5:].split('/')[0]
-        obs_sub_path = obs_url.replace(f"s3://{bucket_name}/", "", 1)
-
-        resp = self.obsClient.getObject(bucket_name, obs_sub_path, loadStreamInMemory=True)
-        if resp.status < 300: 
-            logger.debug('request ok')
-            return resp.body.buffer.decode("utf-8")
+        if moxing_import_flag == True:
+            dsturl = obs_url.replace("s3:", "obs:", 1)
+            with mox.file.File(dsturl, 'r') as f:
+                file_str = f.read()
+                return file_str
         else:
-            raise RuntimeError('obs get object ret:{} url:{} bucket:{} path:{}'.format(resp.status, obs_url, bucket_name, obs_sub_path))
+            bucket_name = obs_url[5:].split('/')[0]
+            obs_sub_path = obs_url.replace(f"s3://{bucket_name}/", "", 1)
+            resp = self.obsClient.getObject(bucket_name, obs_sub_path, loadStreamInMemory=True)
+            if resp.status < 300: 
+                logger.debug('request ok')
+                return resp.body.buffer.decode("utf-8")
+            else:
+                raise RuntimeError('obs get object ret:{} url:{} bucket:{} path:{}'.format(resp.status, obs_url, bucket_name, obs_sub_path))
 
 
     def update_code_to_obs(self, session_config, localpath):
         # 待完善 验证
-        bucket_name = session_config.code_dir.split('/')[1]
-        sub_dir = "/".join(session_config.code_dir.strip("/").split('/')[1:])
-        logger.info("update code codepath:{} bucket:{} subdir:{}".format(
-            session_config.code_dir, bucket_name, sub_dir))
-        resp = self.obsClient.putFile(bucket_name, sub_dir, localpath)
-        # logger.debug("lcm resp:{}".format(resp))
-        # print("lcm resp:{}".format(resp))
-        # if resp.status < 300:
-        #     logger.debug('obs put content request ok')
-        # else:
-        #     logger.warn('errorCode:{} msg:{}'.format(resp.errorCode, resp.errorMessage))
-        #     raise RuntimeError('failed')
+        if moxing_import_flag == True:
+            dstpath = "obs:/" + session_config.code_dir
+            logger.info("mox update loaclpath:{} dstpath:{}".format(localpath, dstpath))
+            mox.file.copy_parallel(localpath, dstpath)
+        else:
+            bucket_name = session_config.code_dir.split('/')[1]
+            sub_dir = "/".join(session_config.code_dir.strip("/").split('/')[1:])
+            logger.info("update code localpath:{} codepath:{} bucket:{} subdir:{}".format(
+                localpath, session_config.code_dir, bucket_name, sub_dir))
+            resp = self.obsClient.putFile(bucket_name, sub_dir, localpath)
 
     def create_modelarts_job(self, session_config, output_url):
         jobdesc = session_config.job_description_prefix + "_jobname_" + session_config.job_name + "_" + str(session_config.train_instance_type) + "_"  + str(session_config.train_instance_count)

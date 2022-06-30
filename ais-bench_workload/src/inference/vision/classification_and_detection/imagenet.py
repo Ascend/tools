@@ -1,14 +1,16 @@
-from concurrent.futures import process
 import os
 import re
 import time
+from concurrent.futures import process
+
 import core.dataset as dataset
 import numpy as np
 from tqdm import tqdm
 
+
 class Imagenet(dataset.DataSet):
     def __init__(self, dataset_path, image_list=None, image_size=None, data_format=None,
-                    pre_process=None, count=0,cache_path=os.getcwd(), normalize=True, tag=None):
+                    pre_process=None, count=None,cache_path=os.getcwd(), normalize=True, tag=None):
         super(Imagenet, self).__init__(cache_path)
         self.dataset_path = dataset_path
         self.tag = tag
@@ -65,7 +67,7 @@ class Imagenet(dataset.DataSet):
                                                 normalize=self.normalize)
                     np.save(dst, processed_img)
         return 0
- 
+
     def get_processeddata_item(self, nr):
         """Get image by number in the list."""
         dst = os.path.join(self.cache_path, self.image_list[nr])
@@ -86,7 +88,7 @@ class PostProcessBase:
     def __init__(self):
         self.good = 0
         self.total = 0
-        
+
     # 后处理函数 对推理的结果进行处理和获取准确度等值，
     # 注意该函数必须要返回准确率信息
     def post_proc_func(self, sample_list):

@@ -12,7 +12,7 @@ export MODEL_PATH=/home/wb/ais-bench-master/src/inference/language/bert-maskedlm
 export DATASET_PATH=/home/wb/ais-bench-master/src/inference/language/bert-maskedlm/sample_text.txt
 export VOCAB_FILE=/home/wb/ais-bench-master/src/inference/language/bert-maskedlm/uncased_L-24_H-1024_A-16/vocab.txt
 export BATCH_SIZE=1
-
+export DEVICE_ID=0
 # export PROFILE=bert_large_squad
 # export MODEL_PATH=/home/lcm/tool/ais-bench-inference-tools-aarch64/test/bert/resource/bert_squad_bs1.om
 # export DATASET_PATH=/home/lcm/tool/infer_bert/data/SQuAD1.1/dev-v1.1.json

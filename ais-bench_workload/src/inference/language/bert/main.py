@@ -1,11 +1,13 @@
 import argparse
-import os
 import logging
-import squad
-import masked_lm
+import os
+import sys
 
-from loadgen_interface  import run_loadgen
 from backendbase import create_backend_instance
+from loadgen_interface import run_loadgen
+
+import masked_lm
+import squad
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("main")
@@ -36,6 +38,14 @@ SUPPORTED_PROFILES = {
     },
 }
 
+
+def check_positive(value):
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
+    return ivalue
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--profile", choices=SUPPORTED_PROFILES.keys(), help="standard profiles")
@@ -49,8 +59,8 @@ def get_args():
     parser.add_argument("--query_arrival_mode",
         choices=["continuous", "periodic", "poison_distribute", "offline", "mixed"],
         default="offline", help="query_arrival_mode")
-    parser.add_argument("--maxloadsamples_count", type=int, default=0, help="dataset items to use")
-    parser.add_argument("--count", type=int, help="dataset items to use")
+    parser.add_argument("--maxloadsamples_count", type=check_positive, default=None, help="dataset items to use")
+    parser.add_argument('--count', type=check_positive, default=None,  help="positive integer, select dataset items count, default full data.")
     parser.add_argument("--vocab_path", required=True, help="vocab file")
 
     args = parser.parse_args()

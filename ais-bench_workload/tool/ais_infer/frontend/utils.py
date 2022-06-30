@@ -1,9 +1,10 @@
 import os
+import sys
 from pickle import NONE
 import numpy as np
 
 import logging
-logging.basicConfig(level = logging.INFO,format = '[%(levelname)s] %(message)s')
+logging.basicConfig(stream=sys.stdout, level = logging.INFO,format = '[%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 # Split a List Into Even Chunks of N Elements
@@ -43,6 +44,6 @@ def get_files_datasize(file_path):
 
 def save_data_to_files(file_path, ndata):
     if file_path.endswith(".NPY") or file_path.endswith(".npy"):
-        np.save(file_path+".npy", ndata)
+        np.save(file_path, ndata)
     else:
         ndata.tofile(file_path)

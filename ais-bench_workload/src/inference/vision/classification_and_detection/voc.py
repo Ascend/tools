@@ -1,15 +1,18 @@
-from random import sample
-import core.dataset as dataset
-import numpy as np
 import os
-from tqdm import tqdm
+from random import sample
+
+import core.dataset as dataset
 import cv2
+import numpy as np
+from tqdm import tqdm
+
 from yolo.parse_VOC2007 import parse_info
 from yolo.yolo_caffe_preprocess import process
 
+
 class VOC(dataset.DataSet):
-    def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416], 
-                    data_format="NHWC", pre_process=None, count=0, cache_path=None, normalize=True):
+    def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416],
+                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True):
         super(VOC, self).__init__(cache_path)
         self.dataset_path = dataset_path
 
@@ -79,7 +82,7 @@ class VOC(dataset.DataSet):
             raise RuntimeError("cmd:{} run failed".format(cmd))
         print("pre process run done")
         return 0
- 
+
     def get_processeddata_item(self, nr):
         binfile = f'{self.cache_path}/input_bin/{self.image_list[nr]}.bin'
         with open(binfile, 'rb') as fd:
@@ -101,7 +104,7 @@ class VOC(dataset.DataSet):
 class PostProcessBase:
     def __init__(self):
         pass
-        
+
     # 后处理函数 对推理的结果进行处理和获取准确度等值，
     # 注意该函数必须要返回准确率信息
     def post_proc_func(self, sample_list):

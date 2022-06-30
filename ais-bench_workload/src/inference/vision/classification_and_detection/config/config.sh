@@ -8,11 +8,11 @@ export QUERY_ARRIVAL_MODE=offline
 #export CACHE_PATH=XXX
 
 # resnet
-export PROFILE=resnet50_pytorch
-export MODEL_PATH=/home/lcm/tool/inference_tools/test/resnet/resource/resnet50_v1_bs1_fp32.om
+export PROFILE=resnet50_onnx
+export MODEL_PATH=/home/lcm/tool/ais_infer/test/resnet/resource/resnet50_v1_bs1_fp32.om
 export BATCH_SIZE=1
 export DATASET_PATH=/home/datasets/imagenet/val/
-
+export DEVICE_ID=0
 # yolo
 #export PROFILE=yolov3-caffe_voc2012
 #export MODEL_PATH=/home/yxd/yolov3/models/YoloV3/yolov3_bs1_in32_out32.om
