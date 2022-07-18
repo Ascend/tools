@@ -53,7 +53,7 @@ main(){
         make_patch || { echo "warn make patch failed"; return $ret_error; }
     elif [ "$patch_type" == "loadcode" ];then
         load_code || { echo "warn make patch failed"; return $ret_error; }
-        mkdir $CUR_PATH/doc
+        mkdir -p  $CUR_PATH/doc
         mk_version_file $CUR_PATH/doc/version.txt
     else
         echo "null op"

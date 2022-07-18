@@ -42,12 +42,15 @@ class BackendAcl(BackendBase):
     def name(self):
         return "BackendAcl"
 
-    def load(self, model_path, inputs=None, outputs=None, device_id=0):
+    def load(self, model_path, inputs=None, outputs=None, device_id=0, args=None):
         self.device_id = device_id
         self.model_path = model_path
         options = aclruntime.session_options()
         #options.log_level = 1
         self.session = aclruntime.InferenceSession(model_path, device_id, options)
+
+        self.set_options(args)
+
         if not inputs:
             self.inputs = [meta.name for meta in self.session.get_inputs()]
         else:
@@ -57,6 +60,25 @@ class BackendAcl(BackendBase):
         else:
             self.outputs = outputs
         warmup(self.session, self.session.get_inputs(), self.session.get_outputs(), device_id)
+
+    def set_options(self, args):
+        # 增加校验
+        if args.dymBatch != 0:
+            self.session.set_dynamic_batchsize(args.dymBatch)
+        elif args.dymHW !=None:
+            hwstr = args.dymHW.split(",")
+            self.session.set_dynamic_hw((int)(hwstr[0]), (int)(hwstr[1]))
+        elif args.dymDims !=None:
+            self.session.set_dynamic_dims(args.dymDims)
+        elif args.dymShape !=None:
+            self.session.set_dynamic_shape(args.dymShape)
+        else:
+            self.session.set_staticbatch()
+
+        # 设置custom out tensors size
+        if args.outputSize != None:
+            customsizes = [int(n) for n in args.outputSize.split(',')]
+            self.session.set_custom_outsize(customsizes)
 
     def predict(self, inputs):
         intensors = []

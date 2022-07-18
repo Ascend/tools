@@ -51,6 +51,23 @@ function get_and_check_args()
     scripts_args="$@"
 }
 
+# copy doc files to packet
+copy_doc_files()
+{
+    local branch_args="$1"
+    local run_type="$2"
+
+    [ -d $OUTPUT_BASE_DIR/code/doc/ ] || mkdir -p $OUTPUT_BASE_DIR/code/doc/
+    cp $ROOT_PATH/doc/*.md $OUTPUT_BASE_DIR/code/doc/
+
+    [[ "$PACKET_TYPE" == "inference" ]] && { cp $OUTPUT_BASE_DIR/code/doc/ais-bench_workload_inference*.md $OUTPUT_BASE_DIR/README.md;return; }
+
+    # train modelarts mode
+    [[ "$PACKET_TYPE" == "train" && "$run_type" == "modelarts" ]] && { cp $OUTPUT_BASE_DIR/code/doc/ais-bench_workload_train_modelarts*.md $OUTPUT_BASE_DIR/README.md;return; }
+    # default as train offline mode
+    cp $OUTPUT_BASE_DIR/code/doc/ais-bench_workload_train_offline*.md $OUTPUT_BASE_DIR/README.md
+}
+
 function build_packet()
 {
     get_and_check_args "$@" || { echo "get check args failed ret:$ret";return $ret_error; }
@@ -69,7 +86,7 @@ function build_packet()
     if [ -f $TARGET_PATH/build.sh ];then
         bash $TARGET_PATH/build.sh $scripts_args || { echo "warn build target failed"; return $ret_error; }
     fi
-    
+
     if [ ! -d $TARGET_PATH/output ];then
         echo "targetdir:$TARGET_PATH not find output return"
         return $ret_error
@@ -89,7 +106,9 @@ function build_packet()
     # for stubs old versions add adapter new ais_utils.py file
     [ ! -f $OUTPUT_BASE_DIR/code/ais_utils.py ] && { cp ${ROOT_PATH}/src/ais_utils_adapter.py $OUTPUT_BASE_DIR/code/ais_utils.py; }
 
-    PLATFORM=`uname -i`
+    copy_doc_files $scripts_args
+    
+    #PLATFORM=`uname -i`
     # OUTPUT_PACKET_NAME="$PACKET_TYPE"_"$MANUFACTORY"_"$TARGETDIR-Ais-Bench-$PLATFORM-${scripts_args// /_}"
     OUTPUT_PACKET_NAME="$PACKET_TYPE"_"$MANUFACTORY"_"$TARGETDIR-$STUBS_SUBNAME-${scripts_args// /_}"
     rm -rf $OUTPUT_PATH/$OUTPUT_PACKET_NAME.tar.gz
@@ -111,13 +130,13 @@ function main()
         echo "target not valid in:[$1] not match [train inference]"
         return $ret_error
     fi
-    
+
     [ -d $OUTPUT_PATH ] || { mkdir -p $OUTPUT_PATH; }
 
     target=$2
     echo "target:$target now building"
     check_env || { ret=$?;echo "check env failed ret:$ret";return $ret; }
-    
+
     if [ "$target" == "inference" -o "$target" == "train" ];then
         build_packet "$@" || { echo "build build_inference failed:$?";return 1; }
     else

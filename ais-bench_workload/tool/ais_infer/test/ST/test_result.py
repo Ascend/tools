@@ -5,11 +5,12 @@ import pytest
 
 class TestClass:
     def get_cmd_prefix(self):
-        return sys.executable + " ../../ais_infer.py"
+        _current_dir = os.path.dirname(os.path.realpath(__file__))
+        return sys.executable + " " + os.path.join(_current_dir, " ../../ais_infer.py")
 
     def get_resnet_static_om_path(self, batchsize):
         _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_bs{}.om".format(batchsize))
+        return os.path.join(_current_dir, "../testdata/pth_resnet50_bs{}.om".format(batchsize))
 
     def test_args_ok(self):
         device_id = 0

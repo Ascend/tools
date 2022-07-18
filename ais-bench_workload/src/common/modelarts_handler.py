@@ -46,15 +46,6 @@ func_table = {
     22: exit_by_failure
 }
 
-def wait_for_job(job_instance):
-    while True:
-        time.sleep(10)
-        job_info = job_instance.get_job_info()
-        if job_info['status'] == 10:
-            print("task succeeded, total time %d(s)" % (job_info['duration'] / 1000))
-            break
-        func_table[job_info['status']](job_info)
-
 # 调试需要 超时后停止
 def wait_for_job_timeout(job_instance):
     count = 0
@@ -83,6 +74,34 @@ except:
 class modelarts_handler():
     def __init__(self):
         self.output_url = None
+        self.job_log_prefix = None
+
+    def sync_job_log(self, session_config):
+        dstpath = os.path.join(os.getenv("BASE_PATH", "./"), "log")
+        if not os.path.exists(dstpath):
+            print("dstpath:{} not exist no get log")
+            return
+        for id in range(session_config.train_instance_count):
+            logurl = self.job_log_prefix + '-' + str(id) + '.log'
+            logname = os.path.basename(logurl)
+            logpath = os.path.join(dstpath, logname)
+            if self.session.obs.is_obs_path_exists(logurl):
+                self.session.obs.download_file(logurl, logpath)
+                #print("logurl:{} sync log to dstpath:{}".format(logurl, logpath))
+
+    def wait_for_job(self, job_instance, session_config):
+        count = 0
+        while True:
+            time.sleep(10)
+            count = count + 1
+            if count > 10:
+                count = 10
+                self.sync_job_log(session_config)
+            job_info = job_instance.get_job_info()
+            if job_info['status'] == 10:
+                print("task succeeded, total time %d(s)" % (job_info['duration'] / 1000))
+                break
+            func_table[job_info['status']](job_info)
 
     def create_obs_output_dirs(self, output_url):
         if moxing_import_flag == True:
@@ -137,6 +156,7 @@ class modelarts_handler():
                 or JOB_STATE[job_status] == "JOBSTAT_IMAGE_CREATING" \
                 or JOB_STATE[job_status] == "JOBSTAT_SUBMIT_TRYING" \
                 or JOB_STATE[job_status] == "JOBSTAT_DEPLOYING" \
+                or JOB_STATE[job_status] == "JOBSTAT_WAITING" \
                 or JOB_STATE[job_status] == "JOBSTAT_RUNNING":
                 status = estimator.stop_job_version()
                 print("jobname:{} jobid:{} preversionid:{} jobstatus:{} stop status:{}".format(
@@ -223,6 +243,8 @@ class modelarts_handler():
             logger.error("failed to run job on modelarts, msg %s" % (job_info['error_msg']))
             raise RuntimeError('failed')
 
+        self.job_log_prefix = "obs:/" + output_url[4:] + job_info["resource_id"]  + "-job-" + session_config.job_name
+
         print("create sucess job_id:{} resource_id:{} version_name:{} create_time:{}".format(
             job_info["job_id"], job_info["resource_id"], job_info["version_name"], job_info["create_time"]))
         return job_instance
@@ -243,4 +265,4 @@ class modelarts_handler():
         self.update_code_to_obs(session_config, localpath)
 
         job_instance = self.create_modelarts_job(session_config, self.output_url)
-        wait_for_job(job_instance)
+        self.wait_for_job(job_instance, session_config)

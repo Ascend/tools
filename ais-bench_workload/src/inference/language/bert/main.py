@@ -52,7 +52,6 @@ def get_args():
     parser.add_argument("--backend", help="runtime to use")
     parser.add_argument("--model", required=True, help="model file")
     parser.add_argument("--dataset_path", required=True, help="path to the dataset")
-    parser.add_argument("--batchsize", default=1, type=int, help="max batch size in a single inference")
     parser.add_argument("--cache_path", default=os.getcwd(), help="cache path")
     parser.add_argument("--debug", action="store_true", help="debug, turn traces on")
     parser.add_argument("--device_id", type=int, default=0, help="specify the device_id to use for infering")
@@ -62,6 +61,14 @@ def get_args():
     parser.add_argument("--maxloadsamples_count", type=check_positive, default=None, help="dataset items to use")
     parser.add_argument('--count', type=check_positive, default=None,  help="positive integer, select dataset items count, default full data.")
     parser.add_argument("--vocab_path", required=True, help="vocab file")
+
+    parser.add_argument("--batchsize", default=1, type=int, help="max batch size in a single inference")
+    parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size paramsuch as --dymBatch 2")
+    parser.add_argument("--dymHW", type=str, default=None, help="dynamic image size param, such as --dymHW \"300,500\"")
+    parser.add_argument("--dymDims", type=str, default=None, help="dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"")
+    parser.add_argument("--dymShape", type=str, help="dynamic hape param, such as --dymShape \"data:1,600;img_info:1,600\"")
+    parser.add_argument("--outputSize", type=str, default=None, help="output size for dynamic shape mode")
+
 
     args = parser.parse_args()
     defaults = SUPPORTED_PROFILES["defaults"]
@@ -84,8 +91,8 @@ if __name__ == "__main__":
 
     # find backend
     backend = create_backend_instance(args.backend, args)
-
     backend.set_datasets(datasets)
+
     if hasattr(postproc, "set_datasets"):
         postproc.set_datasets(datasets)
     if hasattr(postproc, "set_backend"):

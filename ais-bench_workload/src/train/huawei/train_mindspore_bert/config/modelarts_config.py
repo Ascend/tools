@@ -1,5 +1,6 @@
 from easydict import EasyDict as ed
 
+# 该部分为认证信息，请向相关运维同事咨询并填写
 access_config = ed({
     # 登录需要的ak sk信息
     'access_key': '',
@@ -22,26 +23,41 @@ access_config = ed({
 })
 
 session_config = ed({
+    # 运行模型的传入超参
     'hyperparameters': [
+        # 模型配置文件，默认boost模式，不需要修改
         {'label': 'config_path', 'value': '../../pretrain_config_Ascend_Boost.yaml'},
+        # 是否使能modelarts 必须设置为True，不需要修改
         {'label': 'enable_modelarts', 'value': 'True'},
+        # 是否开启分布式，如果1卡以上的话都是True 一般不需要修改
         {'label': 'distribute', 'value': 'true'},
-        {'label': 'epoch_size', 'value': '2'},
+        # epoch次数 必须关注 当前默认设置为5 训练的epoch数
+        # 优先级低于train_steps，如果存在train_steps以此为准，否则以epoch_size为准
+        {'label': 'epoch_size', 'value': '5'},
+        # 训练step数 必须填写并审视 该值优先级高于train_steps数
+        {'label': 'train_steps', 'value': '12000'},
+        # 是否保存ckpt文件 默认为True 保存ckpt
         {'label': 'enable_save_ckpt', 'value': 'true'},
+        # 不需要修改
         {'label': 'enable_lossscale', 'value': 'true'},
+        # 不需要修改
         {'label': 'do_shuffle', 'value': 'true'},
+        # 不需要修改
         {'label': 'enable_data_sink', 'value': 'true'},
+        # 不需要修改
         {'label': 'data_sink_steps', 'value': '100'},
+        # 不需要修改
         {'label': 'accumulation_steps', 'value': '1'},
-        {'label': 'save_checkpoint_steps', 'value': '99'},
+        # 保存ckpt的step数 注意 该值必须要跟step数保存一致 这样提高性能
+        {'label': 'save_checkpoint_steps', 'value': '12000'},
+        # 保存ckpt的个数 默认为1 不需要修改
         {'label': 'save_checkpoint_num', 'value': '1'},
-        {'label': 'train_steps', 'value': '100'},
     ],
-    # 输入数据集目录
+    # 输入数据集obs目录,请按样例格式填写
     'inputs': '/zgwtest/lcm_test/dataset/enwiki_small/',
     # obs代码路径 程序会自动拷贝到该路径
     'code_dir': '/zgwtest/lcm_test/bert/',
-    # 启动文件 必须要在code_dir路径下
+    # 启动文件 必须要在code_dir路径下，请按样例格式填写
     'boot_file': '/zgwtest/lcm_test/bert/run_pretrain.py',
 
     # 如下为运行相关参数
@@ -50,7 +66,7 @@ session_config = ed({
 
     # 使用容器类型与镜像版本
     'framework_type': 'Ascend-Powered-Engine',
-    'framework_version': 'MindSpore-1.2.0-c77-python3.7-euleros2.8-aarch64',
+    'framework_version': 'MindSpore-1.3.0-c78-python3.7-euleros2.8-aarch64',
 
     # 资源参数类型主要包括如下2个值 train_instance_type和pool_id
     # 不设置pool_id 默认是公共池 设置了就是专属资源池

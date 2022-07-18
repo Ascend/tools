@@ -22,8 +22,8 @@ INFO_FLAG = "[INFO]"
 WRITE_FLAGS = os.O_WRONLY | os.O_CREAT
 WRITE_MODES = stat.S_IWUSR | stat.S_IRUSR
 # index of each member in compare result_*.csv file
-LEFTOP_INDEX = 1
-RIGHTOP_INDEX = 2
+NPU_DUMP_TAG = "NPUDump"
+GROUND_TRUTH_TAG = "GroundTruth"
 MIN_ELEMENT_NUM = 3
 
 
@@ -167,25 +167,26 @@ class NetCompare(object):
         table_header_info = next(fp_read)
         header_list = table_header_info.strip().split(',')
         writer.writerow(header_list)
+        npu_dump_index = header_list.index(NPU_DUMP_TAG)
+        ground_truth_index = header_list.index(GROUND_TRUTH_TAG)
 
         result_reader = csv.reader(fp_read)
         # update result data
+        new_content = []
         for line in result_reader:
             if len(line) < MIN_ELEMENT_NUM:
                 utils.print_warn_log('The content of line is {}'.format(line))
                 continue
-            if line[LEFTOP_INDEX] != "Node_Output":
+            if line[npu_dump_index] != "Node_Output":
                 writer.writerow(line)
             else:
                 new_content = [line[0], "Node_Output", "NaN", "NaN",
                                npu_file_name, "NaN", golden_file_name, "[]"]
                 new_content.extend(result)
                 new_content.extend([""])
-                if line[RIGHTOP_INDEX] == "*":
-                    writer.writerow(new_content)
-                else:
+                if line[ground_truth_index] != "*":
                     writer.writerow(line)
-                    writer.writerow(new_content)
+        writer.writerow(new_content)
 
     def save_net_output_result_to_csv(self, npu_file, golden_file, result):
         """

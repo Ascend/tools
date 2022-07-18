@@ -1,6 +1,6 @@
 diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
---- origin/pretrain_eval.py	2022-06-30 09:41:37.200000000 +0800
-+++ code/pretrain_eval.py	2022-06-30 09:41:37.208000000 +0800
+--- origin/pretrain_eval.py	2022-07-07 09:44:09.800000000 +0800
++++ code/pretrain_eval.py	2022-07-07 09:44:09.816000000 +0800
 @@ -53,6 +53,15 @@
      print("==============================================================")
      for _, v in res.items():
@@ -18,8 +18,8 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
  
  
 diff -Nur origin/run_pretrain.py code/run_pretrain.py
---- origin/run_pretrain.py	2022-06-30 09:41:37.200000000 +0800
-+++ code/run_pretrain.py	2022-06-30 09:41:37.208000000 +0800
+--- origin/run_pretrain.py	2022-07-07 09:44:09.800000000 +0800
++++ code/run_pretrain.py	2022-07-07 09:44:09.816000000 +0800
 @@ -17,6 +17,8 @@
  python run_pretrain.py
  """
@@ -43,7 +43,7 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
  _current_dir = os.path.dirname(os.path.realpath(__file__))
  
  
-@@ -262,8 +271,31 @@
+@@ -262,9 +271,31 @@
          callback.append(eval_callback)
  
      model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
@@ -51,9 +51,10 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +    if ais_utils_is_existed:
 +       start_time = ais_utils.get_datatime()
 +    else:
-+       start_time = time.time()    
++       start_time = time.time()   
      model.train(new_repeat_count, ds, callbacks=callback,
                  dataset_sink_mode=(cfg.enable_data_sink == "true"), sink_size=cfg.data_sink_steps)
+-
 +    all_data_sum = new_repeat_count * cfg.data_sink_steps * cfg.batch_size
 +    if ais_utils_is_existed:
 +        end_time = ais_utils.get_datatime()
@@ -73,5 +74,5 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +      with open(THROUGHPUT_LOG, 'w') as f:
 +          f.write("{}".format(throughput_rate))
  
- 
  if __name__ == '__main__':
+     set_seed(0)

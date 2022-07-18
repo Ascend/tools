@@ -25,7 +25,7 @@
     root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set_env.sh
     ```
 
-3. 运行find_best_batchsize.sh 执行最优batch搜索命令操作
+3. 下载[tools](https://github.com/Ascend/tools)工程代码到本地，进入目录--ais-bench_workload\tool\find_best_batchsize，运行find_best_batchsize.sh 执行最优batch搜索命令操作
 
 ## 使用方法
 

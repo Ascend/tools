@@ -1,28 +1,30 @@
 diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
---- origin/pretrain_eval.py	2022-04-07 15:09:25.390427182 +0800
-+++ code/pretrain_eval.py	2022-04-07 15:09:25.402427373 +0800
-@@ -150,8 +150,16 @@
-     res = net.eval(dataset, dataset_sink_mode=False)
+--- origin/pretrain_eval.py	2022-07-11 14:30:06.510000000 +0800
++++ code/pretrain_eval.py	2022-07-11 14:30:06.530000000 +0800
+@@ -151,7 +151,19 @@
      print("==============================================================")
      for _, v in res.items():
--        print("Accuracy is: ")
+         print("Accuracy is: ")
 -        print(v)
-+        print("Accuracy is: ", v)
 +        v = v.item()
 +        import moxing as mox
 +        from src.model_utils.device_adapter import get_device_num
 +        server_id = os.getenv("BATCH_TASK_INDEX", 0)
 +        accuracy_file = os.path.join(cfg.train_url, "accuracy_{}.json".format(server_id))
 +        mox.file.write(accuracy_file, str(v))
++        accuracy_file1 = os.path.join(cfg.train_url, "accuracy.json")
++        with mox.file.File(accuracy_file1, 'w') as f:
++            f.write(str(v))
 +        ranksize_file = os.path.join(cfg.train_url, "ranksize.json")
 +        if mox.file.exists(ranksize_file) == False:
-+            mox.file.write(ranksize_file, str(get_device_num()))
++            mox.file.write(ranksize_file, str(get_device_num()))        
++
      print("==============================================================")
  
  
 diff -Nur origin/run_pretrain.py code/run_pretrain.py
---- origin/run_pretrain.py	2022-04-07 15:09:25.394427246 +0800
-+++ code/run_pretrain.py	2022-04-07 15:09:25.406427437 +0800
+--- origin/run_pretrain.py	2022-07-11 14:30:06.510000000 +0800
++++ code/run_pretrain.py	2022-07-11 14:30:06.520000000 +0800
 @@ -39,9 +39,37 @@
  from src.utils import LossCallBack, BertLearningRate
  from src.model_utils.config import config as cfg, bert_net_cfg
@@ -62,11 +64,10 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
  
  def _set_bert_all_reduce_split():
      """set bert all_reduce fusion split, support num_hidden_layers is 12 and 24."""
-@@ -158,7 +186,19 @@
+@@ -157,8 +185,18 @@
+     cfg.data_dir = cfg.data_path
      cfg.save_checkpoint_path = os.path.join(cfg.output_path, cfg.save_checkpoint_path)
  
- 
--@moxing_wrapper(pre_process=modelarts_pre_process)
 +def modelarts_post_process():
 +    def is_ckpt(name):
 +        if name.endswith('ckpt'):
@@ -77,25 +78,24 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        ckpts = list(filter(is_ckpt, os.listdir(ckpt_save_dir)))
 +        ckpts.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
 +        cfg.finetune_ckpt = os.path.join(ckpt_save_dir, ckpts[-1])
-+
-+
+ 
+-@moxing_wrapper(pre_process=modelarts_pre_process)
 +@moxing_wrapper(pre_process=modelarts_pre_process, post_process=modelarts_post_process)
  def run_pretrain():
      """pre-train bert_clue"""
      context.set_context(mode=context.GRAPH_MODE, device_target=cfg.device_target, device_id=cfg.device_id)
-@@ -209,6 +249,7 @@
+@@ -209,6 +247,7 @@
  
      optimizer = _get_optimizer(cfg, net_with_loss)
      callback = [TimeMonitor(cfg.data_sink_steps), LossCallBack(ds.get_dataset_size())]
-+    callback.append(ThroughputRate())
++    callback.append(ThroughputRate())    
      if cfg.enable_save_ckpt == "true" and cfg.device_id % min(8, device_num) == 0:
          config_ck = CheckpointConfig(save_checkpoint_steps=cfg.save_checkpoint_steps,
                                       keep_checkpoint_max=cfg.save_checkpoint_num)
-@@ -250,10 +291,84 @@
+@@ -250,10 +289,83 @@
  
      model = Model(net_with_grads)
      model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
-+
 +    start_time = time.time()
      model.train(new_repeat_count, ds, callbacks=callback,
                  dataset_sink_mode=(cfg.enable_data_sink == "true"), sink_size=cfg.data_sink_steps)
@@ -170,7 +170,7 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        set_singleserver_mode()
 +        print("singleserver_mode set OK")
 +    else:
-+        print("singleserver_mode not set")
++        print("singleserver_mode not set")    
      set_seed(0)
      run_pretrain()
 +
@@ -178,8 +178,8 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        from pretrain_eval import MLM_eval
 +        MLM_eval()
 diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
---- origin/src/model_utils/moxing_adapter.py	2022-04-07 15:09:25.394427246 +0800
-+++ code/src/model_utils/moxing_adapter.py	2022-04-07 15:09:25.406427437 +0800
+--- origin/src/model_utils/moxing_adapter.py	2022-07-11 14:30:06.510000000 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-07-11 14:30:06.530000000 +0800
 @@ -100,6 +100,16 @@
                  if not os.path.exists(config.output_path):
                      os.makedirs(config.output_path)

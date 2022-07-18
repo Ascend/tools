@@ -46,11 +46,19 @@ exec_inference()
 
     cd ${WORK_PATH}
     infer_run_cmd="$PYTHON_COMMAND -u $WORK_PATH/main.py --profile=$PROFILE --dataset_path=$DATASET_PATH \
-            --model $MODEL_PATH --vocab_path $VOCAB_FILE --query_arrival_mode=$QUERY_ARRIVAL_MODE --batchsize=$BATCH_SIZE"
+            --model $MODEL_PATH --vocab_path $VOCAB_FILE --query_arrival_mode=$QUERY_ARRIVAL_MODE"
     [ "$SAMPLE_COUNT" != "" ] && infer_run_cmd="${infer_run_cmd} --count=$SAMPLE_COUNT"
     [ "$MAX_LOADSAMPLES_COUNT" != "" ] && infer_run_cmd="${infer_run_cmd} --maxloadsamples_count=$MAX_LOADSAMPLES_COUNT"
     [ "$CACHE_PATH" != "" ] && infer_run_cmd="${infer_run_cmd} --cache_path=$CACHE_PATH"
     [ "$DEVICE_ID" != "" ] && infer_run_cmd="${infer_run_cmd} --device_id=$DEVICE_ID"
+
+    [ "$BATCH_SIZE" != "" ] && infer_run_cmd="${infer_run_cmd} --batchsize=$BATCH_SIZE"
+    [ "$DYM_BATCH" != "" ] && infer_run_cmd="${infer_run_cmd} --dymBatch=$DYM_BATCH"
+    [ "$DYM_HW" != "" ] && infer_run_cmd="${infer_run_cmd} --dymHW=$DYM_HW"
+    [ "$DYM_DIMS" != "" ] && infer_run_cmd="${infer_run_cmd} --dymDims=$DYM_DIMS"
+    [ "$DYM_SHAPE" != "" ] && infer_run_cmd="${infer_run_cmd} --dymShape=$DYM_SHAPE"
+    [ "$OUTPUT_SIZE" != "" ] && infer_run_cmd="${infer_run_cmd} --outputSize=$OUTPUT_SIZE"
+
     ${infer_run_cmd} || { logger_Warn "inference run failed"; return $ret_inference_failed; }
 
     $PYTHON_COMMAND $WORK_PATH/ais_utils.py set_result "inference" "result" "OK"

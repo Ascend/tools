@@ -1,5 +1,6 @@
-from tqdm import tqdm
 import loadgen as lg
+from tqdm import tqdm
+
 
 class QueryInfo:
     def __init__(self, query_id, index, valid=True):
@@ -19,7 +20,7 @@ class BackendBase():
     def name(self):
         raise NotImplementedError("Backend:name")
 
-    def load(self, model_path, inputs=None, outputs=None):
+    def load(self, model_path, inputs=None, outputs=None, args=None):
         raise NotImplementedError("Backend:load")
 
     def predict(self, feed):
@@ -69,7 +70,7 @@ def create_backend_instance(backend_type, args):
     elif backend_type == "acl":
         from backend.acl_backend import BackendAcl
         backend = BackendAcl(args.batchsize)
-        backend.load(args.model, inputs=args.inputs, outputs=args.outputs, device_id=args.device_id)
+        backend.load(args.model, inputs=args.inputs, outputs=args.outputs, device_id=args.device_id, args=args)
     else:
         raise ValueError("unknown backend: ", backend_type)
     return backend

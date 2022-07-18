@@ -1,15 +1,3 @@
-diff -Nur origin/pretrain_config_Ascend_Boost.yaml code/pretrain_config_Ascend_Boost.yaml
---- origin/pretrain_config_Ascend_Boost.yaml	2022-05-22 21:56:20.710000000 +0800
-+++ code/pretrain_config_Ascend_Boost.yaml	2022-05-22 21:56:20.740000000 +0800
-@@ -34,7 +34,7 @@
- 
- # ==============================================================================
- # pretrain related
--batch_size: 32
-+batch_size: 24
- # Available: [base, nezha, large, large_boost]
- bert_network: 'large_boost'
- loss_scale_value: 65536
 diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 --- origin/pretrain_eval.py	2022-05-22 21:56:20.710000000 +0800
 +++ code/pretrain_eval.py	2022-05-22 21:56:20.740000000 +0800

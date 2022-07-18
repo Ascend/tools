@@ -45,7 +45,12 @@ def collect_remote_file(report_path: str, key: str, collect_path: str) -> str:
                 'There is no hisi_logs in %s.' % report_path)
     elif key == Constant.DIR_PLOG:
         plog_path = os.path.join(report_path, "log", "host", "cann")
-        if os.path.exists(plog_path) and \
+        debug_plog_path = os.path.join(report_path, "log", "host", "cann", "debug")
+        if os.path.exists(debug_plog_path) and \
+                os.path.isdir(debug_plog_path):
+            copy_file_to_dest(debug_plog_path, Constant.DIR_PLOG,
+                              collect_target_path, report_path)
+        elif os.path.exists(plog_path) and \
                 os.path.isdir(plog_path):
             copy_file_to_dest(plog_path, Constant.DIR_PLOG,
                               collect_target_path, report_path)

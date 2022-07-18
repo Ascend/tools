@@ -1,31 +1,6 @@
-diff -Nur origin/src/eval_callback.py code/src/eval_callback.py
---- origin/src/eval_callback.py	2022-03-22 16:11:47.790000000 +0800
-+++ code/src/eval_callback.py	2022-03-22 16:11:47.810000000 +0800
-@@ -21,6 +21,9 @@
- from mindspore import log as logger
- from mindspore.train.callback import Callback
- 
-+import json
-+from src.model_utils.config import config
-+from src.model_utils.device_adapter import get_rank_id, get_device_num
- 
- class EvalCallBack(Callback):
-     """
-@@ -93,3 +96,11 @@
-         print("End training, the best {0} is: {1}, the best {0} epoch is {2}".format(self.metrics_name,
-                                                                                      self.best_res,
-                                                                                      self.best_epoch), flush=True)
-+        if get_rank_id() == 0:
-+            import moxing as mox
-+            server_id = os.getenv("BATCH_TASK_INDEX", 0)
-+            accuracy_file = os.path.join(config.train_url, "accuracy_{}.json".format(server_id))
-+            mox.file.write(accuracy_file, str(self.best_res))
-+            ranksize_file = os.path.join(config.train_url, "ranksize.json")
-+            if mox.file.exists(ranksize_file) == False:
-+                mox.file.write(ranksize_file, str(get_device_num()))
 diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
---- origin/src/model_utils/config.py	2022-03-22 16:11:47.790000000 +0800
-+++ code/src/model_utils/config.py	2022-03-22 16:11:47.810000000 +0800
+--- origin/src/model_utils/config.py	2022-07-11 17:36:33.370000000 +0800
++++ code/src/model_utils/config.py	2022-07-11 17:36:33.380000000 +0800
 @@ -120,6 +120,8 @@
      parser.add_argument("--config_path", type=str, default=os.path.join(current_dir, \
          "../../config/resnet50_cifar10_config.yaml"), help="Config file path")
@@ -36,8 +11,8 @@ diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
      args = parse_cli_to_yaml(parser=parser, cfg=default, helper=helper, choices=choices, cfg_path=path_args.config_path)
      final_config = merge(args, default)
 diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
---- origin/src/model_utils/moxing_adapter.py	2022-03-22 16:11:47.790000000 +0800
-+++ code/src/model_utils/moxing_adapter.py	2022-03-22 16:11:47.810000000 +0800
+--- origin/src/model_utils/moxing_adapter.py	2022-07-11 17:36:33.370000000 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-07-11 17:36:33.380000000 +0800
 @@ -97,6 +97,12 @@
                  config.device_id = get_device_id()
                  if not os.path.exists(config.output_path):
@@ -46,14 +21,14 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
 +                base_path = config.data_path
 +                if os.path.exists(os.path.join(base_path, "train")):
 +                    config.data_path = os.path.join(base_path, "train")
-+                if config.run_eval and os.path.exists(os.path.join(base_path, "val")):
++                if os.path.exists(os.path.join(base_path, "val")):
 +                    config.eval_dataset_path = os.path.join(os.path.join(base_path, "val"))
  
                  if pre_process:
                      pre_process()
 diff -Nur origin/train.py code/train.py
---- origin/train.py	2022-03-22 16:11:47.810000000 +0800
-+++ code/train.py	2022-03-22 16:11:47.830000000 +0800
+--- origin/train.py	2022-07-11 17:36:33.370000000 +0800
++++ code/train.py	2022-07-11 17:36:33.390000000 +0800
 @@ -17,6 +17,7 @@
  import glob
  import os
@@ -62,7 +37,25 @@ diff -Nur origin/train.py code/train.py
  
  from mindspore import context
  from mindspore import Tensor
-@@ -358,6 +359,8 @@
+@@ -296,6 +297,17 @@
+                                metrics_name="acc")
+         cb += [eval_cb]
+ 
++def run_eval_ckpt(target, model):
++    eval_dataset = create_dataset(dataset_path=config.eval_dataset_path, do_train=False,
++                                batch_size=config.batch_size, train_image_size=config.train_image_size,
++                                eval_image_size=config.eval_image_size,
++                                target=target, enable_cache=config.enable_cache,
++                                cache_session_id=config.cache_session_id)
++    eval_param_dict = {"model": model, "dataset": eval_dataset, "metrics_name": "acc"}
++    print("eval ckpt begin")
++    res = apply_eval(eval_param_dict)
++    print("eval ckpt result:{}".format(res))
++    return res
+ 
+ def set_save_ckpt_dir():
+     """set save ckpt dir"""
+@@ -358,6 +370,8 @@
          config.run_eval = False
          logger.warning("Thor optimizer not support evaluation while training.")
  
@@ -71,7 +64,7 @@ diff -Nur origin/train.py code/train.py
      # define callbacks
      time_cb = TimeMonitor(data_size=step_size)
      loss_cb = LossCallBack(config.has_trained_epoch)
-@@ -376,12 +379,82 @@
+@@ -376,12 +390,95 @@
          config.epoch_size = config.train_epoch_size
      dataset_sink_mode = (not config.parameter_server) and target != "CPU"
      config.pretrain_epoch_size = config.has_trained_epoch
@@ -91,6 +84,19 @@ diff -Nur origin/train.py code/train.py
 +        mox.file.make_dirs(result_url)
 +    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
 +    mox.file.write(throughput_file, str(throughput_rate))
++
++    best_res = run_eval_ckpt(target, model)
++    if get_rank_id() == 0:
++        import moxing as mox
++        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        accuracy_file = os.path.join(config.train_url, "accuracy_{}.json".format(server_id))
++        mox.file.write(accuracy_file, str(best_res))
++        accuracy_file1 = os.path.join(config.train_url, "accuracy.json")
++        with mox.file.File(accuracy_file1, 'w') as f:
++            f.write(str(best_res))
++        ranksize_file = os.path.join(config.train_url, "ranksize.json")
++        if mox.file.exists(ranksize_file) == False:
++            mox.file.write(ranksize_file, str(get_device_num()))
  
      if config.run_eval and config.enable_cache:
          print("Remember to shut down the cache server via \"cache_admin --stop\"")

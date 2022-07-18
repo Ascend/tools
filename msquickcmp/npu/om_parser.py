@@ -32,6 +32,7 @@ INPUT_SHAPE_RANGE = "--input_shape_range"
 LIST_LIST_INT_OBJECT = 'list_list_int'
 LIST_LIST_I_OBJECT = 'list_list_i'
 LIST_I_OBJECT = 'list_i'
+LIST_OBJECT = 'list'
 KEY_OBJECT = "key"
 VALUE_OBJECT = "value"
 SUBGRAPH_NAME = 'subgraph_name'
@@ -40,6 +41,7 @@ DTYPE_OBJECT = "dtype"
 DTYPE_MAP = {"DT_FLOAT": np.float32, "DT_FLOAT16": np.float16, "DT_DOUBLE": np.float64, "DT_INT8": np.int8,
              "DT_INT16": np.int16, "DT_INT32": np.int32, "DT_INT64": np.int64, "DT_UINT8": np.uint8,
              "DT_UINT16": np.uint16, "DT_UINT32": np.uint32, "DT_UINT64": np.uint64, "DT_BOOL": np.bool}
+OUT_NODES_NAME = "attr_model_out_nodes_name"
 # special ops
 SPECIAL_OPS_TYPE = ("Cast", "TransData")
 
@@ -132,30 +134,24 @@ class OmParser(object):
                 special_op_attr[operator.get(NAME_OBJECT)] = operator.get(INPUT_OBJECT)
         return special_op_attr
 
-    def _recursive_lookup_input(self, cur_input):
-        """
-        Filter out special operators.
-        """
-        prev_input = ""
-        op_name = self._get_prefix(cur_input)
-        while op_name in self.special_op_attr.keys():
-            # The special operator has only one input by default.
-            prev_input = self.special_op_attr[op_name][0]
-            op_name = self._get_prefix(prev_input)
-        return prev_input
-
     def get_expect_net_output_name(self):
         """
-        Get the expected output tensor corresponding to Net_output in pre-conversion network.
+        Get the expected output tensor corresponding to Net_output.
         """
         expect_net_output_name = {}
-        for operator in self._gen_operator_list():
-            if NET_OUTPUT_OBJECT == operator.get(TYPE_OBJECT) and INPUT_OBJECT in operator:
-                input_index = 0
-                for input_object in operator.get(INPUT_OBJECT):
-                    expect_input = self._recursive_lookup_input(input_object)
-                    expect_net_output_name[input_index] = expect_input
-                    input_index += 1
+        net_output_names = []
+        if ATTR_OBJECT not in self.json_object:
+            return expect_net_output_name
+        for attr in self.json_object.get(ATTR_OBJECT):
+            if not (KEY_OBJECT in attr and attr.get(KEY_OBJECT) == OUT_NODES_NAME):
+                continue
+            if not (VALUE_OBJECT in attr and LIST_OBJECT in attr.get(VALUE_OBJECT)):
+                continue
+            list_object = attr.get(VALUE_OBJECT).get(LIST_OBJECT)
+            if S_OBJECT in list_object:
+                net_output_names = list_object.get(S_OBJECT)
+        for item, output_name in enumerate(net_output_names):
+            expect_net_output_name[item] = output_name
         return expect_net_output_name
 
     @staticmethod

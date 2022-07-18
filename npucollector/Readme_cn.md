@@ -91,6 +91,8 @@
     │       └── dev-os-7
     └── host               保存host侧生成的日志数据
         ├── cann           保存cann框架生成的日志数据
+        |   └── debug
+        |   └── run
         ├── driver         保存驱动生成的日志数据
         ├── install        保存包历史安装情况的日志
         ├── screen.txt     保存打屏日志

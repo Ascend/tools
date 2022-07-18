@@ -75,7 +75,7 @@ convert_and_run_model()
             $cmd || { echo "atc run $cmd failed"; return 1; }
         fi
 
-        cmd="$PYTHON_COMMAND $CUR_PATH/../aisinfer/aisinfer.py --model $om_path --loop $LOOP_COUNT --batchsize=$batchsize --output $CACHE_PATH/$batchsize --device_id=$DEVICE_ID"
+        cmd="$PYTHON_COMMAND $CUR_PATH/../ais_infer/ais_infer.py --model $om_path --loop $LOOP_COUNT --batchsize=$batchsize --output $CACHE_PATH/$batchsize --device_id=$DEVICE_ID"
         $cmd || { echo "inference run $cmd failed"; return 1; }
     done
 }

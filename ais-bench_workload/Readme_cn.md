@@ -1,74 +1,65 @@
 # ais-bench-workload
 
 ## 介绍  
-ais-bench-workload
+
+[Tools](https://github.com/Ascend/tools.git)仓ais-bench-workload目录主要保存华为的ais-bench软件负载代码及构建代码，用于生成负载测试包对AI服务器进行性能测试。
+
+### ais-bench软件介绍
+
+ais-bench标准化性能测试软件，又称AI Server Benchmark软件，是根据AI标准（IEEE 2937及 T/CESA 1169-2021）对AI服务器进行性能测试的工具软件。
+
+ais-bench软件包括如下2个测试模式：
+
+- 网络测试场景 - 适用于正式测试场景
+
+```mermaid
+
+graph LR
+    subgraph stubs服务器-被测试者-厂商设备
+    ais-bench-stubs -- 本地拉起 --> 负载代码
+    end
+    subgraph tester服务器-测试者
+	ais-bench-tester --网络交互通信 --> ais-bench-stubs    
+    end   
+   
+```
+
+- 本地离线测试场景 - 适用于本地裸机测试场景，不需要联网
+
+```mermaid
+
+graph LR
+    subgraph stubs服务器-被测试者-厂商设备
+	ais-bench-stubs --本地拉起 --> 负载代码
+    end   
+   
+```
+
+### 构建流程介绍
+
+**构建流程介绍**
+
+负载程序包需要整合ais-bench工具和负载代码，生成包含ais-bench-stubs基准程序包和负载代码的测试包。运行在厂商设备上，进行性能测试。如下图所示：
+
+```mermaid
+graph LR
+stubs基准包 --> 负载测试包
+训练或推理modelzoo业务负载代码 --> 负载测试包
+patch文件和打点函数等适配代码  --> 负载测试包
+```
+
+
+
+
 
 ## 构建教程
-### 1. 配置本地设备构建环境，通过git clone 命令下载tools仓库代码
-```
-    git clone https://github.com/Ascend/tools.git
-```
-
-### 2. 下载ais-bench stubs测试工具  
-点击[面向人工智能基础技术及应用的检验检测基础服务平台](http://www.aipubservice.com/#/show/compliance/detail/127)网址, 通过“成果展示”->“标准符合性测试”->“人工智能服务器系统性能测试”， 进入“人工智能服务器系统性能测试”页面，在“测试工具”章节下载Stubs压缩包到本地备用。
-
-### 3. 解压stubs压缩包，将stubs二进制压缩包拷贝到build目录  
-结果如下：
-```
-tools
-├── ais-bench_workload
-    ├── build
-        ├── build.sh
-        ├── download_and_build.sh
-        ├── Ais-Benchmark-Stubs-aarch64-1.0.tar.gz
-        └── Ais-Benchmark-Stubs-x86_64-1.0.tar.gz
-```
-
-### 4. 构建测试包
-工作目录：ais-bench_workload/build  
-
-#### 4.1 构建指令
-格式：./build.sh  {$stubs_file} {mode} {secondary-folder-name} {third-folder-name} {version} {environment}  
-输出：在ais-bench_workload\output目录会生成相应程序包。  
-参数说明：  
-+ stubs_file 下载的stubs.rar中适用构建平台要求的stubs二进制压缩包。
-+ mode  执行模式。取值：train--训练模式，inference--推理模式。ais-bench_workload\src目录下一级子目录名称，不包含common。
-+ secondary-folder-name 二级子目录名称。ais-bench_workload\src目录下二级子目录名称
-+ third-folder-name 三级子目录名称。ais-bench_workload\src目录下三级子目录名称
-+ version  框架版本号。训练模式专用参数。版本取值，对应模型子目录中的适配版本信息
-+ environment 线上还是线下环境。训练模式专用参数。默认不取值为线下环境。取值为"modelarts"时，表示云上执行训练
-##### 4.1.1 训练构建指令示例  
-+ 构建mindspore框架resnet模型 r1.7版本 aarch64架构的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_resnet r1.7  
-+ 构建mindspore框架resnet模型 r1.7版本 aarch64架构 modelarts运行的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_resnet r1.7 modelarts
-+ 构建mindspore框架resnet模型 r1.7版本 x86_64架构的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-x86_64-1.0.tar.gz train huawei train_mindspore_resnet r1.7
-+ 构建mindspore框架resnet模型 r1.7版本  x86_64架构 modelarts运行的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-x86_64-1.0.tar.gz train huawei train_mindspore_resnet r1.7 modelarts
-+ 构建mindspore框架bert模型 r1.7版本 aarch64架构的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_bert r1.7
-+ 构建mindspore框架bert模型 r1.7版本 aarch64架构 modelarts运行的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-aarch64-1.0.tar.gz train huawei train_mindspore_bert r1.7 modelarts
-+ 构建mindspore框架bert模型 r1.7版本 x86_64架构的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-x86_64-1.0.tar.gz train huawei train_mindspore_bert r1.7
-+ 构建mindspore框架bert模型 r1.7版本  x86_64架构 modelarts运行的程序包  
-  ./build.sh  ./Ais-Benchmark-Stubs-x86_64-1.0.tar.gz train huawei train_mindspore_bert r1.7 modelarts
-
-##### 4.1.2 推理构建指令示例
-+ 构建vision分类classification_and_detection类型，aarch64架构的推理程序包  
-  ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference vision classification_and_detection
-+ 构建vision分类classification_and_detection类型，x86_64架构的推理程序包  
-  ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference vision classification_and_detection
-+ 构建language分类bert模型, aarch64架构的推理程序包  
-  ./build.sh ../output/Ais-Benchmark-Stubs-aarch64-1.0.tar.gz inference language bert
-+ 构建language分类bert模型, x86_64架构的推理程序包  
-  ./build.sh ../output/Ais-Benchmark-Stubs-x86_64-1.0.tar.gz inference language bert
+请参考doc/ais-bench_workload构建教程.md
 
 ## 执行
 ### 解压测试包
 tar -xzvf XXX.tar.gz  
 说明： XXX.tar.gz是构建教程步骤4构建的测试包  
+
 ### 执行配置
 训练和推理执行之前，请根据相应的指导文档"code/README.md"进行相关配置。  
 对于训练，还有"code/doc"目录的指导文档可以参考。

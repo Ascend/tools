@@ -55,7 +55,7 @@ get_git_info(){
     elif [ "$branch_args" == "r1.8" ];then
         branch="master"
         patch_file_name="r1.8"
-        commitid="7ed6af318b1a31563fce0b37f0a3cd4000c6e638"
+        commitid="b68b6bfa919465567d89bc7fdcf6d0e63967d5aa"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/bert"
     else
@@ -86,7 +86,7 @@ main(){
         make_patch || { echo "warn make patch failed"; return $ret_error; }
     elif [ "$patch_type" == "loadcode" ];then
         load_code || { echo "warn make patch failed"; return $ret_error; }
-        mkdir $CUR_PATH/doc
+        mkdir -p $CUR_PATH/doc
         mk_version_file $CUR_PATH/doc/version.txt
     else
         echo "null op"

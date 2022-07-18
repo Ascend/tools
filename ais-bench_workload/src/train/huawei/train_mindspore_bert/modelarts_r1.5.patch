@@ -1,19 +1,18 @@
-diff -Nur origin/pretrain_config_Ascend_Boost.yaml code/pretrain_config_Ascend_Boost.yaml
---- origin/pretrain_config_Ascend_Boost.yaml	2022-03-22 17:07:54.610000000 +0800
-+++ code/pretrain_config_Ascend_Boost.yaml	2022-03-22 17:07:54.640000000 +0800
-@@ -34,7 +34,7 @@
- 
- # ==============================================================================
- # pretrain related
--batch_size: 32
-+batch_size: 24
- # Available: [base, nezha, large, large_boost]
- bert_network: 'large_boost'
- loss_scale_value: 65536
 diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
---- origin/pretrain_eval.py	2022-03-22 17:07:54.610000000 +0800
-+++ code/pretrain_eval.py	2022-03-22 17:07:54.640000000 +0800
-@@ -53,6 +53,15 @@
+--- origin/pretrain_eval.py	2022-07-11 17:53:51.470000000 +0800
++++ code/pretrain_eval.py	2022-07-11 17:53:51.480000000 +0800
+@@ -33,6 +33,10 @@
+     '''
+     devid = int(os.getenv('DEVICE_ID'))
+     context.set_context(mode=context.GRAPH_MODE, device_target="Ascend", device_id=devid)
++    # for modelarts mode eval after traing, should set alone and no need set device_id
++    #context.set_context(mode=context.GRAPH_MODE, device_target="Ascend", device_id=devid)
++    from mindspore.context import ParallelMode
++    context.set_auto_parallel_context(parallel_mode=ParallelMode.STAND_ALONE)
+     dataset = create_eval_dataset(cfg.batch_size, 1, data_dir=cfg.eval_data_dir)
+     net_for_pretraining = BertPretrainEval(bert_net_cfg)
+     net_for_pretraining.set_train(False)
+@@ -53,6 +57,18 @@
      print("==============================================================")
      for _, v in res.items():
          print("Accuracy is: ", v)
@@ -23,6 +22,9 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +        server_id = os.getenv("BATCH_TASK_INDEX", 0)
 +        accuracy_file = os.path.join(cfg.train_url, "accuracy_{}.json".format(server_id))
 +        mox.file.write(accuracy_file, str(v))
++        accuracy_file1 = os.path.join(cfg.train_url, "accuracy.json")
++        with mox.file.File(accuracy_file1, 'w') as f:
++            f.write(str(v))
 +        ranksize_file = os.path.join(cfg.train_url, "ranksize.json")
 +        if mox.file.exists(ranksize_file) == False:
 +            mox.file.write(ranksize_file, str(get_device_num()))
@@ -30,8 +32,8 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
  
  
 diff -Nur origin/run_pretrain.py code/run_pretrain.py
---- origin/run_pretrain.py	2022-03-22 17:07:54.600000000 +0800
-+++ code/run_pretrain.py	2022-03-22 17:07:54.630000000 +0800
+--- origin/run_pretrain.py	2022-07-11 17:53:51.460000000 +0800
++++ code/run_pretrain.py	2022-07-11 17:53:51.480000000 +0800
 @@ -17,6 +17,7 @@
  python run_pretrain.py
  """
@@ -157,8 +159,8 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        from pretrain_eval import MLM_eval
 +        MLM_eval()
 diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
---- origin/src/model_utils/config.py	2022-03-22 17:07:54.610000000 +0800
-+++ code/src/model_utils/config.py	2022-03-22 17:07:54.640000000 +0800
+--- origin/src/model_utils/config.py	2022-07-11 17:53:51.460000000 +0800
++++ code/src/model_utils/config.py	2022-07-11 17:53:51.480000000 +0800
 @@ -196,6 +196,8 @@
      parser.add_argument("--config_path", type=get_abs_path, default="../../pretrain_config.yaml",
                          help="Config file path")
@@ -169,8 +171,8 @@ diff -Nur origin/src/model_utils/config.py code/src/model_utils/config.py
      args = parse_cli_to_yaml(parser=parser, cfg=default, helper=helper, choices=choices, cfg_path=path_args.config_path)
      final_config = merge(args, default)
 diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_adapter.py
---- origin/src/model_utils/moxing_adapter.py	2022-03-22 17:07:54.610000000 +0800
-+++ code/src/model_utils/moxing_adapter.py	2022-03-22 17:07:54.640000000 +0800
+--- origin/src/model_utils/moxing_adapter.py	2022-07-11 17:53:51.460000000 +0800
++++ code/src/model_utils/moxing_adapter.py	2022-07-11 17:53:51.480000000 +0800
 @@ -100,6 +100,16 @@
                  if not os.path.exists(config.output_path):
                      os.makedirs(config.output_path)

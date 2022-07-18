@@ -3,6 +3,8 @@ bbox_path=/extra-info/bbox
 device_stackcore_path=/extra-info/stackcore/device
 
 host_cann_log_path=/log/host/cann
+host_cann_debug_log_path=/log/host/cann/debug
+host_cann_run_log_path=/log/host/cann/run
 host_driver_log_path=/log/host/driver
 device_aicpu_path=/log/device/aicpu
 device_driver_path=/log/device/driver
@@ -36,9 +38,19 @@ running_process_once()
     if [ -d $base_path/tmp/plog/ ];then
         \cp -f $base_path/tmp/plog/* $base_path$host_cann_log_path
     fi
+    #adapter new log dir
+    if [ -d $base_path/tmp/debug/plog/ ];then
+        \cp -rf $base_path/tmp/debug/plog/* $base_path$host_cann_debug_log_path
+    fi
+    if [ -d $base_path/tmp/run/plog/ ];then
+        \cp -rf $base_path/tmp/run/plog/* $base_path$host_cann_run_log_path
+    fi
     #process device aicpu
     if [ -d $base_path/tmp/device-*/ ];then
         \cp -rf $base_path/tmp/device* $base_path$device_aicpu_path
+    fi
+    if [ -d $base_path/tmp/debug/device-*/ ];then
+        \cp -rf $base_path/tmp/debug/device* $base_path$device_aicpu_path
     fi
     #process device_msreport
     if [ "$HOME" == "/root" ];then

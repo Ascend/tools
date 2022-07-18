@@ -25,7 +25,7 @@ def get_pure_infer_data(size, pure_data_type):
     return ndata
 
 # get tensors from files list combile all files
-def get_tensor_from_files_list(files_list, device_id, size, pure_data_type):
+def get_tensor_from_files_list(files_list, device, size, pure_data_type):
     ndatalist = []
     for i, file_path in enumerate(files_list):
         logger.debug("get tensor from filepath:{} i:{} of all:{}".format(file_path, i, len(files_list)))
@@ -49,7 +49,7 @@ def get_tensor_from_files_list(files_list, device_id, size, pure_data_type):
 
     tensor = aclruntime.Tensor(ndata)
     starttime = time.time()
-    tensor.to_device(device_id)
+    tensor.to_device(device)
     endtime = time.time()
     summary.h2d_latency_list.append(float(endtime - starttime) * 1000.0)  # millisecond
     return tensor
@@ -72,14 +72,14 @@ def get_files_count_per_batch(intensors_desc, fileslist):
     return files_count_per_batch, runcount
 
 # out api 创建空数据
-def create_intensors_zerodata(intensors_desc, device_id, pure_data_type):
+def create_intensors_zerodata(intensors_desc, device, pure_data_type):
     intensors = []
     for info in intensors_desc:
         logger.debug("info shape:{} type:{} val:{} realsize:{} size:{}".format(info.shape, info.datatype, int(info.datatype), info.realsize, info.size))
         ndata = get_pure_infer_data(info.realsize, pure_data_type)
         tensor = aclruntime.Tensor(ndata)
         starttime = time.time()
-        tensor.to_device(device_id)
+        tensor.to_device(device)
         endtime = time.time()
         summary.h2d_latency_list.append(float(endtime - starttime) * 1000.0)  # millisecond
         intensors.append(tensor)
@@ -108,12 +108,12 @@ def check_and_get_fileslist(inputs_list, intensors_desc):
     return fileslist
 
 #  outapi 根据输入filelist获取tensor信息和files信息 create intensor form files list
-def create_intensors_from_infileslist(infileslist, intensors_desc, device_id, pure_data_type):
+def create_intensors_from_infileslist(infileslist, intensors_desc, device, pure_data_type):
     intensorslist = []
     for i, infiles in enumerate(infileslist):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, device_id, intensors_desc[j].realsize, pure_data_type)
+            tensor = get_tensor_from_files_list(files, device, intensors_desc[j].realsize, pure_data_type)
             intensors.append(tensor)
         intensorslist.append(intensors)
     return intensorslist
@@ -157,7 +157,7 @@ def save_tensors_to_file(outputs, output_prefix, infiles_paths, outfmt, index):
             subdata = np.array_split(ndata, files_count_perbatch)
             for j in range(files_count_perbatch):
                 sample_id = index*files_count_perbatch+j
-                file_path = os.path.join(output_prefix, "sample_id_{}_output_{}.{}".format(sample_id, i, outfmt.lower()))
+                file_path = os.path.join(output_prefix, "input{}_output_{}.{}".format(sample_id, i, outfmt.lower()))
                 summary.add_sample_id_infiles(sample_id, infiles_perbatch[j])
                 logger.debug("save func: sampleid:{} infiles:{} out_{} file:{} fmt:{}".format(sample_id, i, infiles_perbatch[j], file_path, outfmt))
                 summary.append_sample_id_outfile(sample_id, file_path)

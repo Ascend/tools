@@ -151,12 +151,20 @@ class NpuDumpData(DumpData):
         return npu_dump_data_path, npu_net_output_data_path
 
     def _convert_net_output_to_numpy(self, npu_net_output_data_path):
+        net_output_data = None
         npu_net_output_data_info = self.om_parser.get_net_output_data_info()
         for dir_path, sub_paths, files in os.walk(npu_net_output_data_path):
             for index, each_file in enumerate(sorted(files)):
                 data_type = npu_net_output_data_info.get(index)[0]
                 shape = npu_net_output_data_info.get(index)[1]
-                net_output_data = np.fromfile(os.path.join(dir_path, each_file), data_type).reshape(shape)
+                original_net_output_data = np.fromfile(os.path.join(dir_path, each_file), data_type)
+                try:
+                    net_output_data = original_net_output_data.reshape(shape)
+                except ValueError:
+                    utils.print_warn_log(
+                        "The shape of net_output data from file {} is {}.".format(
+                            each_file, shape))
+                    net_output_data = original_net_output_data
                 file_name = os.path.basename(each_file).split('.')[0]
                 numpy_file_path = os.path.join(npu_net_output_data_path, file_name)
                 utils.save_numpy_data(numpy_file_path, net_output_data)

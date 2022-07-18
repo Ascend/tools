@@ -116,7 +116,7 @@ python3 ais_infer.py --model ./resnet50_v1_dynamichw_fp32.om --input=./data/ --d
 
 #### 动态Dims场景 设置档位为1,3,224,224 本程序将获取实际模型输入组batch
 ```
-python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224 --outputSize 10000
+python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymDims actual_input_1:1,3,224,224
 ```
 
 ### 动态shape场景 atc设置为[1~8,3,200~300,200~300]，设置档位为1,3,224,224 本程序将获取实际模型输入组batch 注意动态shape的输出大小经常为0需要通过outputSize参数设置对应参数的内存大小
@@ -148,9 +148,9 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --input  | 模型需要的输入，支持bin文件和目录，若不加该参数，会自动生成都为0的数据                  |
 | --output | 推理数据输出路径                |
 | --outfmt | 输出数据的格式，NPY或者BIN      |
-| --loop   | 推理次数 [1,255]，可选参数，默认1，profiler为true时，推荐为1 |
+| --loop   | 推理次数，可选参数，默认1，profiler为true时，推荐为1 |
 | --debug  | 调试开关，可打印model的desc信息，true或者false，可选参数，默认false |
-| --device --device_id   | 指定运行设备 [0,255]，可选参数，默认0 |
+| --device | 指定运行设备 [0,255]，可选参数，默认0 |
 | --dymBatch  | 动态Batch参数，指定模型输入的实际batch，可选参数。 <br>如atc模型转换时设置 --input_shape="data:-1,600,600,3;img_info:-1,3" --dynamic_batch_size="1,2,4,8" , dymBatch参数可设置为：--dymBatch 2|
 | --dymHW  | 动态分辨率参数，指定模型输入的实际H、W，可选参数。 <br>如atc模型转换时设置 --input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1"  --dynamic_image_size="300,500;600,800" , dymHW参数可设置为：--dymHW 300,500|
 | --dymDims| 动态维度参数，指定模型输入的实际shape，可选参数。 <br>如atc模型转换时设置 --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , dymDims参数可设置为：--dymDims "data:1,600;img_info:1,600"|

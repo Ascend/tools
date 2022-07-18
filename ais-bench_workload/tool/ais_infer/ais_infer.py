@@ -45,7 +45,7 @@ def init_inference_session(args):
     if args.debug == True:
         logger.setLevel(logging.DEBUG)
         options.log_level = 1
-    session = aclruntime.InferenceSession(args.model, args.device_id, options)
+    session = aclruntime.InferenceSession(args.model, args.device, options)
 
     set_session_options(session, args)
     logger.debug("session info:{}".format(session))
@@ -63,7 +63,7 @@ def run_inference(session, inputs, outputs_names, loop=1):
 
 def warmup(session, args, intensors_desc, outputs_names):
     n_loop = 5
-    inputs = create_intensors_zerodata(intensors_desc, args.device_id, args.pure_data_type)
+    inputs = create_intensors_zerodata(intensors_desc, args.device, args.pure_data_type)
     for i in range(n_loop):
         run_inference(session, inputs, outputs_names, 1)
     summary.reset()
@@ -75,7 +75,7 @@ def infer_loop_run(session, args, intensors_desc, infileslist, outputs_names, ou
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference Processing')):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize, args.pure_data_type)
+            tensor = get_tensor_from_files_list(files, args.device, intensors_desc[j].realsize, args.pure_data_type)
             intensors.append(tensor)
         outputs = run_inference(session, intensors, outputs_names, args.loop)
         if args.output != None:
@@ -84,7 +84,7 @@ def infer_loop_run(session, args, intensors_desc, infileslist, outputs_names, ou
 # 先准备好数据 然后执行推理 然后统一写文件
 def infer_fulltensors_run(session, args, intensors_desc, infileslist, outputs_names, output_prefix):
     outtensors = []
-    intensorslist = create_intensors_from_infileslist(infileslist, intensors_desc, args.device_id, args.pure_data_type)
+    intensorslist = create_intensors_from_infileslist(infileslist, intensors_desc, args.device, args.pure_data_type)
 
     #for inputs in intensorslist:
     for inputs in tqdm(intensorslist, file=sys.stdout, desc='Inference Processing full'):
@@ -100,7 +100,7 @@ async def in_task(inque, args, intensors_desc, infileslist):
     for i, infiles in enumerate(tqdm(infileslist, file=sys.stdout, desc='Inference Processing task')):
         intensors = []
         for j, files in enumerate(infiles):
-            tensor = get_tensor_from_files_list(files, args.device_id, intensors_desc[j].realsize, args.pure_data_type)
+            tensor = get_tensor_from_files_list(files, args.device, intensors_desc[j].realsize, args.pure_data_type)
             intensors.append(tensor)
         await inque.put([intensors, infiles, i])
     await inque.put([None, None, None])
@@ -137,15 +137,25 @@ async def infer_pipeline_process_run(session, args, intensors_desc, infileslist,
         out_task(outque, output_prefix, args),
     )
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", "--om", required=True, help="the path of the om model")
     parser.add_argument("--input", "-i", default=None, help="input file or dir")
     parser.add_argument("--output", "-o", default=None, help="output")
-    parser.add_argument("--outfmt", default="BIN", choices=["NPY", "BIN"], help="Output file format (NPY or BIN)")
+    parser.add_argument("--outfmt", default="BIN", choices=["NPY", "BIN", "TXT"], help="Output file format (NPY or BIN or TXT)")
     parser.add_argument("--loop", "-r", type=int, default=1, help="the round of the PrueInfer.")
-    parser.add_argument("--debug", action="store_true", help="Debug switch,print model information")
-    parser.add_argument("--device_id", "--device", type=int, default=0, choices=range(0, 255), help="the NPU device ID to use")
+    parser.add_argument("--debug", type=str2bool, default=False, help="Debug switch,print model information")
+    parser.add_argument("--device", "--device", type=int, default=0, choices=range(0, 255), help="the NPU device ID to use")
     parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size param，such as --dymBatch 2")
     parser.add_argument("--dymHW", type=str, default=None, help="dynamic image size param, such as --dymHW \"300,500\"")
     parser.add_argument("--dymDims", type=str, default=None, help="dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"")

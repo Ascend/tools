@@ -50,7 +50,6 @@ RUN sed -i "s@/archive.ubuntu.com/@/mirrors.163.com/@g" /etc/apt/sources.list  &
 RUN  mkdir -p /opt/package
 RUN  ln -s /usr/local/python37/bin/python3 /usr/bin/python3.7.5 && ln -s /usr/local/python37/bin/pip3 /usr/bin/pip3.7.5
 
-RUN apt-get update --fix-missing -o Acquire::http::No-Cache=True
 # 安装系统依赖
 RUN apt-get install libglib2.0-dev libgl1-mesa-glx -y  && apt install vim -y
 # 安装pip3依赖。
