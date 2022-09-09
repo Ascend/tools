@@ -1,17 +1,27 @@
-import os
-import sys
-import numpy as np
 import aclruntime
+import numpy as np
 import pytest
+from test_common import TestCommonClass
+
 
 class TestClass:
-    def get_resnet_static_om_path(self, batchsize):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_bs{}.om".format(batchsize))
+    @classmethod
+    def setup_class(cls):
+        """
+        class level setup_class
+        """
+        cls.init(TestClass)
+
+    @classmethod
+    def teardown_class(cls):
+        print('\n ---class level teardown_class')
+
+    def init(self):
+        self.model_name = "resnet50"
 
     def test_args_invalid_device_id(self):
         device_id = 100
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         options = aclruntime.session_options()
         with pytest.raises(RuntimeError) as e:
             aclruntime.InferenceSession(model_path, device_id, options)
@@ -39,7 +49,7 @@ class TestClass:
 
     def test_args_ok(self):
         device_id = 0
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         options = aclruntime.session_options()
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
@@ -50,8 +60,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)

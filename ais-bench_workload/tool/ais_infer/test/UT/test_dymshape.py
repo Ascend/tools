@@ -1,16 +1,31 @@
 import os
-import sys
-import numpy as np
+
 import aclruntime
+import numpy as np
 import pytest
+from test_common import TestCommonClass
+
 
 class TestClass:
+    @classmethod
+    def setup_class(cls):
+        """
+        class level setup_class
+        """
+        cls.init(TestClass)
+
+    @classmethod
+    def teardown_class(cls):
+        print('\n ---class level teardown_class')
+
+    def init(self):
+        self.model_name = "resnet50"
+
     def get_input_tensor_name(self):
         return "actual_input_1"
 
     def get_resnet_dymshape_om_path(self):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_dymshape.om")
+        return os.path.join(TestCommonClass.base_path, self.model_name, "model", "pth_resnet50_dymshape.om")
 
     def test_infer_dynamicshape(self):
         device_id = 0
@@ -30,8 +45,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -59,8 +74,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -87,8 +102,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -113,8 +128,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
@@ -143,7 +158,6 @@ class TestClass:
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
             print("outputs:", outputs)
-
 
     def test_get_input_info(self):
         device_id = 0

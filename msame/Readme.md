@@ -3,7 +3,7 @@
 # Ascend Model Executor: msame
 ### Explain
 Applicable version: 5.0.3.alpha001 and above  
-For versions before 5.0.3.alpha001, please use [msame.zip](https://obs-book.obs.cn-east-2.myhuaweicloud.com/cjl/msame.zip)
+For versions before 5.0.3.alpha001, please use [msame.zip](https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/xuyetao/msame.zip)
 ### Overview
 
 The tool runs an offline model (.om) on the binary input data and returns the model inference result. The tool allows you to run repeated inferences on the same input data.

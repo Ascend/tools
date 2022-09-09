@@ -13,6 +13,7 @@ import numpy as np
 from common.dump_data import DumpData
 from common import utils
 from common.utils import AccuracyCompareException
+from common.dynamic_argument_bean import DynamicArgumentEnum
 
 GRAPH_OBJECT = "graph"
 OP_OBJECT = "op"
@@ -122,6 +123,13 @@ class OmParser(object):
             if NET_OUTPUT_OBJECT == operator.get(TYPE_OBJECT) and INPUT_DESC_OBJECT in operator:
                 count += len(operator.get(INPUT_DESC_OBJECT))
         return count
+
+    def get_atc_cmdline(self):
+        for attr in self.json_object.get(ATTR_OBJECT):
+            if KEY_OBJECT in attr and attr.get(KEY_OBJECT) == ATC_CMDLINE_OBJECT:
+                if VALUE_OBJECT in attr and S_OBJECT in attr.get(VALUE_OBJECT):
+                    return attr.get(VALUE_OBJECT).get(S_OBJECT)
+        return ''
 
     @staticmethod
     def _get_prefix(input_obj):
@@ -235,3 +243,11 @@ class OmParser(object):
                     item_sum *= num
                 value.append(item_sum * data_type_size)
         return value
+
+    def is_dynamic_scenario(self):
+        atc_cmd = self.get_atc_cmdline()
+        for dym_arg in DynamicArgumentEnum:
+            if dym_arg.value.atc_arg in atc_cmd:
+                return True
+        return False
+

@@ -58,6 +58,8 @@ def _generate_golden_data_model(args):
 
 
 def _correct_the_wrong_order(left_index, right_index, golden_net_output_info):
+    if left_index not in golden_net_output_info.keys() or right_index not in golden_net_output_info.keys():
+        return
     if left_index != right_index:
         tmp = golden_net_output_info[left_index]
         golden_net_output_info[left_index] = golden_net_output_info[right_index]

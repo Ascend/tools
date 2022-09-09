@@ -88,7 +88,7 @@ class NpuSubGraph(object):
             return [self.ops_list[name]]
         guess_op_list = []
         for op_detail in self.ops_list.values():
-            if name in op_detail.name():
+            if name in op_detail.name() or name == str(op_detail.name()).replace('/', '_'):
                 guess_op_list.append(op_detail)
         return guess_op_list
 
@@ -259,8 +259,8 @@ class NpuGraph(object):
 
     def list_ops(self, op_type='', op_name='', pass_name='', kernel_name=''):
         """list ops in graph"""
-        return filter(lambda op: op_type in op.type() and op_name in op.name() and pass_name in op.pass_name()
-                                 and kernel_name in op.kernel_name(), self.ops_list)
+        return filter(lambda op: op_type in op.type() and op_name in op.name() and (
+                pass_name == '' or pass_name in op.pass_name()) and kernel_name in op.kernel_name(), self.ops_list)
 
     def get_op(self, name, graph_name=None):
         """get op by name"""

@@ -87,6 +87,7 @@ OP_GRAPH_DIR = os.path.join(TMP_DIR, 'op_graph')
 DECODE_DIR = os.path.join(TMP_DIR, 'decode')
 OVERFLOW_DECODE_DIR = os.path.join(DECODE_DIR, 'overflow_decode')
 DUMP_DECODE_DIR = os.path.join(DECODE_DIR, 'dump_decode')
+PT_DUMP_DECODE_DIR = os.path.join(DECODE_DIR, 'pt')
 DUMP_CONVERT_DIR = os.path.join(DECODE_DIR, 'dump_convert')
 
 VECTOR_COMPARE_PATH = os.path.join(TMP_DIR, 'vector_compare')
@@ -102,7 +103,7 @@ OP_DEBUG_LEVEL = 4
 # DUMP CONFIG
 DUMP_GE_GRAPH_VALUE = 2
 DUMP_GRAPH_LEVEL_VALUE = 3
-DUMP_SEED = 0
+DUMP_SEED = 2022
 
 # TF_DEBUG
 TF_DEBUG_TIMEOUT = 360

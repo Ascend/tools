@@ -145,8 +145,8 @@ class PrecisionTool(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-n', '--name', dest='name', default='', help='op name')
         parser.add_argument('-g', '--graph', dest='graph', help='graph name')
-        parser.add_argument('-d', '--dump', dest='dump', action='store_true', help='show dump data info')
         parser.add_argument('-a', '--attr', dest='attr', action='store_true', help='show all attr info')
+        parser.add_argument('-c', '--check', dest='check ', action='store_true', help='check single op precision')
         parser.add_argument('-s', '--save', dest='save', type=int, default=0,
                             help='save subgraph, param gives the deep of subgraph')
         args = parser.parse_args(argv)
@@ -154,6 +154,7 @@ class PrecisionTool(object):
         npu_ops, _ = self.graph_manager.get_ops(args.name, args.graph)
         npu_op_summary, tf_op_summary = self.graph_manager.op_graph_summary(npu_ops, args.attr)
         npu_dump_summary, tf_dump_summary = self.dump_manager.op_dump_summary(npu_ops)
+        pt_dump_summary = self.dump_manager.pt_dump_summary(args.name)
         # merge graph/dump/compare info
         for debug_id, graph_summary in npu_op_summary.items():
             for graph_name, summary_detail in graph_summary.items():
@@ -164,6 +165,8 @@ class PrecisionTool(object):
                     summary_txt.append(tf_dump_summary)
                 title = "[green](%s)[/green] %s" % (debug_id, graph_name)
                 util.print_panel(Constant.NEW_LINE.join(summary_txt), title)
+        if pt_dump_summary != '':
+            util.print_panel(pt_dump_summary, args.name)
         if args.save != 0:
             self.graph_manager.save_sub_graph(npu_ops, args.save)
 

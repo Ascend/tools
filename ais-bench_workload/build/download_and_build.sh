@@ -23,7 +23,7 @@ check_file_valid()
 function try_download_stubs_packet(){
     #mkdir -p $INFER_BASE_PATH/opensource/gflags/src/
     #cmd="wget $1 --no-check-certificate -O $2"
-    cmd="curl -o $2 $1"
+    cmd="curl -k -o $2 $1"
     timeout 60 $cmd #>/dev/null 2>&1
     ret=$?
     if [ "$ret" == 0 -a -s "$2" ];then

@@ -70,7 +70,7 @@ def get_model_info():
     print(session)
 
     # 方法3 也可以直接通过get接口去获取
-    intensors_desc = session.get_outputs()
+    intensors_desc = session.get_inputs()
     for i, info in enumerate(intensors_desc):
         print("input info i:{} shape:{} type:{} val:{} realsize:{} size:{}".format(
             i, info.shape, info.datatype, int(info.datatype), info.realsize, info.size))

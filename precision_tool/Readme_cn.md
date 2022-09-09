@@ -36,12 +36,19 @@ sudo yum install graphviz
     ```python
     # 对于使用tf.random / np.random / (python) random的可以通过固定随机种子的方式固定输入
     # import tf_config.py 默认会设置上述三种random的seed，但由于import位置关系，可能不一定能作用到所有的关联代码，建议在代码确认合适位置手动嵌入
-    random.seed(cfg.DUMP_SEED)
-    tf.random.set_random_seed(cfg.DUMP_SEED)
-    np.random.seed(cfg.DUMP_SEED)
-    
-    # 此处给出一些典型示例，需要根据自己的脚本进行排查
-
+    seed =987654
+    random.seed(seed)
+    tf.random.set_random_seed(seed)
+    np.random.seed(seed)
+  
+    # RunConfig/NPURunConfig中设置tf_random_seed固定网络随机因子
+    # Estimator中tf.random设置的随机种子并不能全局生效
+    # 需要使用下面的方式进行设置
+    run_config = tf.estimator.RunConfig(tf_random_seed=1, ...)
+    run_config = NPURunConfig(tf_random_seed=1, ...)
+    ```
+ * **理论上网络中的大多数随机均能通过上面的方式固定, 一般不需要再做下面的这些操作**
+    ```python
     # 1. 参数初始化中的随机操作
     #    加载checkpoint的方式能够固定大多数初始参数
     saver.restore(sess, saver_dir)
@@ -67,10 +74,6 @@ sudo yum install graphviz
     # 4.3 Random crop
     mage_depth = tf.concat([image, depth_gt], 2)
     image_depth_cropped = tf.random_crop(image_depth, [self.params.height, self.params.width, 4])
-    
-    # 5. RunConfig/NPURunConfig中设置tf_random_seed固定网络随机因子
-    run_config = tf.estimator.RunConfig(tf_random_seed=1, ...)
-    run_config = NPURunConfig(tf_random_seed=1, ...)
   
     # 其他......
     ```
@@ -255,9 +258,13 @@ sudo yum install graphviz
     PrecisionTool > vim cli.py
     ```
 
-3. ls -n [op_name] -t [op_type]
+3. ls -n [op_name] -t [op_type] -f [fusion_pass] -k [kernel_name]
     ```shell
     # 通过[算子名]/[算子类型]查询网络里的算子，模糊匹配
+    # -n 算子节点名称
+    # -t  算子类型
+    # -f 融合类型
+    # -k kernel_name
     PrecisionTool > ls -t Mul -n mul_3 -f TbeMulti
    [Mul][TbeMultiOutputFusionPass] InceptionV3/InceptionV3/Mixed_5b/Branch_1/mul_3
    [Mul][TbeMultiOutputFusionPass] InceptionV3/InceptionV3/Mixed_5c/Branch_1/mul_3
@@ -268,7 +275,9 @@ sudo yum install graphviz
 4. ni (-n) [op_name] -s [save sub graph deep]
     ```shell
     # 通过[算子名]查询算子节点信息
-    # -d 显示相应的dump数据信息
+    # -n 指定节点名称
+    # -g graph名
+    # -a 显示attr信息
     # -s 保存一个以当前算子节点为根，深度为参数值的子图
    PrecisionTool >  ni gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual -s 3
    ╭─────────────────── [GreaterEqual]gradients/InceptionV3/InceptionV3/Mixed_7a/Branch_0/Maximum_1_grad/GreaterEqual ────────────────────╮
@@ -295,11 +304,12 @@ sudo yum install graphviz
    2021-04-27 14:39:55 (15178) -[INFO]Sub graph saved to /root/sym/inception/precision_data/dump/temp/op_graph
    ```
    
-5. pt (-n) [*.npy] (-c)
+5. pt (-n) [*.npy] 
     ```shell
     # 查看某个dump数据块的数据信息
-    # -c : save data to txt
-    PrecisionTool > pt TransData.trans_TransData_1170.327.1619347786532995.input.0.npy -c
+    # -n 可选，含义是待查看的数据文件名
+    # 默认会将数据保存成 txt
+    PrecisionTool > pt TransData.trans_TransData_1170.327.1619347786532995.input.0.npy 
    ╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
    │ Shape: (32, 8, 8, 320)                                                                                                  │
    │ Dtype: bool                                                                                                             │
@@ -314,8 +324,10 @@ sudo yum install graphviz
 6. cp (-n) [left *.npy] [right *.npy] -p [print num] -al [atol] -rl [rtol]
     ```shell
     # 对比两个tensor的数据
+    # -n 指定需要对比的两个numpy名
     # -p 指定输出的错误数据的个数及前多少个数据
     # -al/rl 指定相对误差的参数,在两个场景中用到
+    # -s 保存成txt文件，默认打开
     #   1. np.allclose(left, right, atol=al, rtol=rl)
     #   2. err_cnt += 1 if abs(data_left[i] - data_right[i]) > (al + rl * abs(data_right[i]))
     PrecisionTool > cp Add.InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.323.1619494134703053.output.0.npy InceptionV3_InceptionV3_Mixed_7a_Branch_0_add_3.0.1619492699305998.npy -p 10 -s -al 0.002 -rl 0.005

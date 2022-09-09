@@ -154,11 +154,11 @@ export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
 
 1. Obtain the original model from:
 
-   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb
+   https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb
 
 2. Obtain the .om model from:
 
-   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
+   https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
 
 **Run the commands by referring to the above guide to execute the sample. If you want to try with model input data specified, run the command for the scenario where input data is not specified to generate input data files (.bin) as the input.**
 

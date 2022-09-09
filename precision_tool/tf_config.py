@@ -16,7 +16,10 @@ def seed_everything(seed=cfg.DUMP_SEED):
     """
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
-    tf.random.set_random_seed(seed)
+    if hasattr(tf.random, 'set_seed'):
+        tf.random.set_seed(seed)
+    elif hasattr(tf.random, 'set_random_seed'):
+        tf.random.set_random_seed(seed)
     print("[PrecisionTool] Set Tensorflow random seed to %d success." % seed)
     try:
         import numpy as np
@@ -25,6 +28,12 @@ def seed_everything(seed=cfg.DUMP_SEED):
     except ImportError as err:
         np = None
         print("[PrecisionTool] No numpy module.", err)
+    try:
+        from tfdeterminism import patch
+        patch()
+        print("[PrecisionTool] patch tf determinism success.")
+    except ImportError as err:
+        print("[PrecisionTool] No tfdeterminism module. Install it by pip3 install tfdeterminism.", err)
 
 
 # set global random seed

@@ -9,13 +9,13 @@ logging.basicConfig(stream=sys.stdout, level = logging.INFO,format = '[%(levelna
 logger = logging.getLogger(__name__)
 
 # Split a List Into Even Chunks of N Elements
-def list_split(listA, n):
+def list_split(listA, n, padding_file):
     for x in range(0, len(listA), n):
         every_chunk = listA[x: n+x]
 
         if len(every_chunk) < n:
             every_chunk = every_chunk + \
-                [None for y in range(n-len(every_chunk))]
+                [padding_file for y in range(n-len(every_chunk))]
         yield every_chunk
 
 def natural_sort(l): 
@@ -40,12 +40,20 @@ def get_fileslist_from_dir(dir):
     files_list.sort()
     return natural_sort(files_list)
 
-def get_files_datasize(file_path):
+def get_file_datasize(file_path):
     if file_path.endswith(".NPY") or file_path.endswith(".npy"):
         ndata = np.load(file_path)
         return ndata.nbytes
     else:
         return os.path.getsize(file_path)
+
+def get_file_content(file_path):
+    if file_path.endswith(".NPY") or file_path.endswith(".npy"):
+        return np.load(file_path)
+    else:
+        with open(file_path, 'rb') as fd:
+            barray = fd.read()
+            return np.frombuffer(barray, dtype=np.int8)
 
 def get_ndata_fmt(ndata):
     if ndata.dtype == np.float32 or ndata.dtype == np.float16 or ndata.dtype == np.float64:

@@ -1,37 +1,31 @@
-import os
-import sys
-import numpy as np
 import aclruntime
+import numpy as np
 import pytest
+from test_common import TestCommonClass
+
 
 class TestClass:
+    @classmethod
+    def setup_class(cls):
+        """
+        class level setup_class
+        """
+        cls.init(TestClass)
+
+    @classmethod
+    def teardown_class(cls):
+        print('\n ---class level teardown_class')
+
+    def init(self):
+        self.model_name = "resnet50"
+
     def get_input_tensor_name(self):
         return "actual_input_1"
-
-    def get_resnet_static_om_path(self, batchsize):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_bs{}.om".format(batchsize))
-
-    def get_resnet_dymbatch_om_path(self):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_dymbatch.om")
-
-    def get_resnet_dymhw_om_path(self):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_dymhw.om")
-
-    def get_resnet_dymdims_om_path(self):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_dymdims.om")
-
-    def get_resnet_dymshape_om_path(self):
-        _current_dir = os.path.dirname(os.path.realpath(__file__))
-        return os.path.join(_current_dir, "../testdata/resnet50_dymshape.om")
 
     def test_infer_runcase_dict(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -41,8 +35,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -54,7 +48,7 @@ class TestClass:
     def test_infer_runcase_list(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -64,8 +58,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = [ tensor ]
+        outnames = [session.get_outputs()[0].name]
+        feeds = [tensor]
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -77,7 +71,7 @@ class TestClass:
     def test_infer_runcase_empty_outputname(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -87,8 +81,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ ]
-        feeds = [ tensor ]
+        outnames = []
+        feeds = [tensor]
 
         outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
@@ -100,7 +94,7 @@ class TestClass:
     def test_infer_runcase_none_outputname(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -111,7 +105,7 @@ class TestClass:
         tensor.to_device(device_id)
 
         outnames = None
-        feeds = [ tensor ]
+        feeds = [tensor]
 
         with pytest.raises(TypeError) as e:
             outputs = session.run(outnames, feeds)
@@ -120,7 +114,7 @@ class TestClass:
     def test_infer_runcase_split(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -130,8 +124,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         session.run_setinputs(feeds)
         session.run_execute()
@@ -145,7 +139,7 @@ class TestClass:
     def test_infer_runcase_split_list(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -155,8 +149,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = [ tensor ]
+        outnames = [session.get_outputs()[0].name]
+        feeds = [tensor]
 
         session.run_setinputs(feeds)
         session.run_execute()
@@ -170,7 +164,7 @@ class TestClass:
     def test_infer_invalid_input_size(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -180,8 +174,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
@@ -190,15 +184,15 @@ class TestClass:
     def test_infer_invalid_input_type(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
         barray = bytearray(session.get_inputs()[0].realsize)
         ndata = np.frombuffer(barray)
 
-        outnames = [ session.get_outputs()[0].name ]
-        feeds = { session.get_inputs()[0].name : ndata}
+        outnames = [session.get_outputs()[0].name]
+        feeds = {session.get_inputs()[0].name: ndata}
 
         with pytest.raises(TypeError) as e:
             outputs = session.run(outnames, feeds)
@@ -207,7 +201,7 @@ class TestClass:
     def test_infer_invalid_outname(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info
@@ -217,8 +211,8 @@ class TestClass:
         tensor = aclruntime.Tensor(ndata)
         tensor.to_device(device_id)
 
-        outnames = [ session.get_outputs()[0].name + "xxx" ]
-        feeds = { session.get_inputs()[0].name : tensor}
+        outnames = [session.get_outputs()[0].name + "xxx"]
+        feeds = {session.get_inputs()[0].name: tensor}
 
         with pytest.raises(RuntimeError) as e:
             outputs = session.run(outnames, feeds)
@@ -227,7 +221,7 @@ class TestClass:
     def test_infer_invalid_device_id(self):
         device_id = 0
         options = aclruntime.session_options()
-        model_path = self.get_resnet_static_om_path(1)
+        model_path = TestCommonClass.get_model_static_om_path(1, self.model_name)
         session = aclruntime.InferenceSession(model_path, device_id, options)
 
         # create new numpy data according inputs info

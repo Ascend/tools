@@ -236,6 +236,7 @@ class Op(object):
             net_output_with_subgraph_name = subgraph_name + '_Node_Output'
             net_output_nodes = self.npu_graph.get_op(net_output_with_subgraph_name)
             self.log.debug("Find %s net output nodes, just need one." % len(net_output_nodes))
+            self.log.info("Note: PartitionCall output nodes is the node connect to PartitionCall from inside.")
             for output_node in net_output_nodes:
                 self.output_list = output_node.inputs()
 

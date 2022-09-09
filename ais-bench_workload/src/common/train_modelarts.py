@@ -1,14 +1,19 @@
+import argparse
+import logging
 import os
 import sys
 from statistics import mean
-import logging
-import argparse
 
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),'..'))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..'))
 
-from config.modelarts_config import access_config, session_config
-from modelarts_handler import modelarts_handler,logger
 import ais_utils
+from config.modelarts_config import access_config
+from config.modelarts_config import session_config as session_config_v1
+from config.modelarts_config import session_config_v2
+from modelarts_handler_v2 import modelarts_handler as modelarts_handler_v2
+
+from modelarts_handler import logger, modelarts_handler
+
 
 def report_result(handler):
     ranksize_file_url = os.path.join(handler.output_url, 'ranksize.json')
@@ -65,6 +70,8 @@ def get_args():
     parser.add_argument("--local_code_path", help="the local path of run code")
     parser.add_argument("--single_server_mode", action="store_true", help="the local path of run code")
     parser.add_argument("--action", default="run", choices=["run", "stop"], help="action (run or stop)")
+    parser.add_argument("--modelarts_version", default="V1", choices=["V1", "V2"], help="modelarts version (V1 or V2)")
+    parser.add_argument("--job_id", default="None",  help="job id used to stop given job")
     args = parser.parse_args()
     return args
 
@@ -72,22 +79,26 @@ if __name__ == '__main__':
     args = get_args()
 
     logger.setLevel(logging.DEBUG)
+    session_config = session_config_v1 if args.modelarts_version == 'V1' else session_config_v2
 
-    handler = modelarts_handler()
+    handler = modelarts_handler() if args.modelarts_version == 'V1' else modelarts_handler_v2()
     handler.create_session(access_config)
 
     if args.action == "stop":
-        handler.stop_new_versions(session_config)
+        if args.modelarts_version == 'V1':
+            handler.stop_new_versions(session_config)
+        else:
+            handler.stop_job(args.job_id)
         sys.exit()
 
     handler.create_obs_handler(access_config)
-    
+
     # default run mode
     handler.run_job(session_config, args.local_code_path)
 
     # handler.output_url = "s3://0923/00lcm/result_dump/res/V212/"
     try:
-        if args.single_server_mode == True:
+        if args.single_server_mode:
             report_result_singlesever_mode(handler, session_config.train_instance_count)
         else:
             report_result(handler)

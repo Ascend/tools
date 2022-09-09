@@ -14,6 +14,7 @@ import numpy as np
 from common import utils
 from common.dump_data import DumpData
 from common.utils import AccuracyCompareException
+from common.dynamic_argument_bean import DynamicArgumentEnum
 from npu.om_parser import OmParser
 
 MSAME_DIR = "msame"
@@ -24,6 +25,124 @@ ACL_JSON_PATH = "out/acl.json"
 NPU_DUMP_DATA_BASE_PATH = "dump_data/npu"
 RESULT_DIR = "result"
 INPUT = "input"
+INPUT_SHAPE = "--input_shape"
+OUTPUT_SIZE = "--outputSize"
+
+
+class DynamicInput(object):
+
+    def __init__(self, om_parser, arguments):
+        self.arguments = arguments
+        self.om_parser = om_parser
+        self.atc_dynamic_arg, self.cur_dynamic_arg = self.get_dynamic_arg_from_om(om_parser)
+        self.dynamic_arg_value = self.get_arg_value(om_parser, arguments)
+
+    def add_dynamic_arg_for_msame(self, msame_cmd: list):
+        if self.is_dynamic_shape_scenario():
+            self.check_input_dynamic_arg_valid()
+            msame_cmd.append(self.cur_dynamic_arg.value.msame_arg)
+            msame_cmd.append(self.dynamic_arg_value)
+        if self.cur_dynamic_arg is DynamicArgumentEnum.DYM_SHAPE:
+            self._make_msame_cmd_for_shape_range(msame_cmd)
+
+    @staticmethod
+    def get_dynamic_arg_from_om(om_parser):
+        atc_cmd_args = om_parser.get_atc_cmdline().split(" ")
+        for atc_arg in atc_cmd_args:
+            for dym_arg in DynamicArgumentEnum:
+                if dym_arg.value.atc_arg in atc_arg:
+                    return atc_arg, dym_arg
+        return "", None
+
+    @staticmethod
+    def get_arg_value(om_parser, arguments):
+        if not om_parser.is_dynamic_scenario():
+            utils.print_info_log("The input of model is not dynamic.")
+            return ""
+        if om_parser.shape_range:
+            return getattr(arguments, DynamicArgumentEnum.DYM_SHAPE.value.msquickcmp_arg)
+        # get atc input shape from atc cmdline
+        atc_input_shape = ""
+        atc_cmd_args = om_parser.get_atc_cmdline().split(" ")
+        for atc_arg in atc_cmd_args:
+            if INPUT_SHAPE in atc_arg:
+                atc_input_shape = atc_arg.split(utils.EQUAL)[1]
+                break
+        # from atc input shape and current input shape to get input batch size
+        # if dim in shape is -1, the shape in the index of current input shape is the batch size
+        atc_input_shape_dict = utils.parse_input_shape(atc_input_shape)
+        quickcmp_input_shape_dict = utils.parse_input_shape(arguments.input_shape)
+        batch_size_set = set()
+        for op_name in atc_input_shape_dict.keys():
+            DynamicInput.append_dynamic_batch_size(atc_input_shape_dict[op_name],
+                                                   quickcmp_input_shape_dict[op_name],
+                                                   batch_size_set)
+        if len(batch_size_set) == 1:
+            for batch_size in batch_size_set:
+                return str(batch_size)
+        utils.print_error_log("Please check your input_shape arg is valid.")
+        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+
+    @staticmethod
+    def append_dynamic_batch_size(dym_shape, cur_shape, shape_set):
+        for dim in range(len(dym_shape)):
+            if dym_shape[dim] == -1:
+                shape_set.add(cur_shape[dim])
+
+    def is_dynamic_shape_scenario(self):
+        """
+        if atc cmdline contain dynamic argument
+        """
+        return self.atc_dynamic_arg != ""
+
+    def check_input_dynamic_arg_valid(self):
+        if self.cur_dynamic_arg is DynamicArgumentEnum.DYM_SHAPE:
+            return
+        # check dynamic input value is valid, "--arg=value" ,split by '='
+        dynamic_arg_values = self.atc_dynamic_arg.split(utils.EQUAL)[1]
+        if self.atc_dynamic_arg.split(utils.EQUAL)[0] == DynamicArgumentEnum.DYM_BATCH.value.atc_arg:
+            dynamic_arg_values = dynamic_arg_values.replace(utils.COMMA, utils.SEMICOLON)
+        try:
+            atc_value_list = utils.parse_arg_value(dynamic_arg_values)
+            cur_input = utils.parse_value_by_comma(self.dynamic_arg_value)
+            for value in atc_value_list:
+                if cur_input == value:
+                    return
+        except AccuracyCompareException:
+            pass
+        utils.print_error_log("Please input the valid shape, "
+                              "the valid dynamic value range are {0}".format(dynamic_arg_values))
+        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+
+    def _make_msame_cmd_for_shape_range(self, msame_cmd):
+        pattern = re.compile(r'^[0-9]+$')
+        count = self.om_parser.get_net_output_count()
+        if not self.arguments.output_size:
+            if count > 0:
+                count_list = []
+                for _ in range(count):
+                    count_list.append("90000000")
+                self.arguments.output_size = ",".join(count_list)
+        if self.arguments.output_size:
+            output_size_list = self.arguments.output_size.split(',')
+            if len(output_size_list) != count:
+                utils.print_error_log(
+                    'The output size (%d) is not equal %d in model. Please check the "--output-size" argument.'
+                    % (len(output_size_list), count))
+                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            for item in output_size_list:
+                item = item.strip()
+                match = pattern.match(item)
+                if match is None:
+                    utils.print_error_log("The size (%s) is invalid. Please check the output size."
+                                          % self.arguments.output_size)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+                if int(item) <= 0:
+                    utils.print_error_log("The size (%s) must be large than zero. Please check the output size."
+                                          % self.arguments.output_size)
+                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
+            msame_cmd.append(OUTPUT_SIZE)
+            msame_cmd.append(self.arguments.output_size)
 
 
 class NpuDumpData(DumpData):
@@ -34,6 +153,7 @@ class NpuDumpData(DumpData):
     def __init__(self, arguments, output_json_path):
         self.arguments = arguments
         self.om_parser = OmParser(output_json_path)
+        self.dynamic_input = DynamicInput(self.om_parser, self.arguments)
 
     def generate_dump_data(self):
         """
@@ -76,42 +196,6 @@ class NpuDumpData(DumpData):
         utils.execute_command(build_sh_cmd)
         utils.print_info_log("Finish to compile %s." % msame_dir)
 
-    def _make_msame_cmd_for_shape_range(self, msame_cmd):
-        pattern = re.compile(r'^[0-9]+$')
-        count = self.om_parser.get_net_output_count()
-        if self.om_parser.shape_range:
-            if not self.arguments.input_shape:
-                utils.print_error_log('In the dynamic shape scenario, the "-s" or "--input-shape" is mandatory.')
-                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-            msame_cmd.append('--dymShape')
-            msame_cmd.append('"%s"' % self.arguments.input_shape)
-            if not self.arguments.output_size:
-                if count > 0:
-                    count_list = []
-                    for _ in range(count):
-                        count_list.append("90000000")
-                    self.arguments.output_size = ",".join(count_list)
-        if self.arguments.output_size:
-            output_size_list = self.arguments.output_size.split(',')
-            if len(output_size_list) != count:
-                utils.print_error_log(
-                    'The output size (%d) is not equal %d in model. Please check the "--output-size" argument.'
-                    % (len(output_size_list), count))
-                raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-            for item in output_size_list:
-                item = item.strip()
-                match = pattern.match(item)
-                if match is None:
-                    utils.print_error_log("The size (%s) is invalid. Please check the output size."
-                                          % self.arguments.output_size)
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-                if int(item) <= 0:
-                    utils.print_error_log("The size (%s) must be large than zero. Please check the output size."
-                                          % self.arguments.output_size)
-                    raise AccuracyCompareException(utils.ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
-            msame_cmd.append('--outputSize')
-            msame_cmd.append(self.arguments.output_size)
-
     def msame_run(self, msame_dir):
         """
         Function Description:
@@ -133,7 +217,7 @@ class NpuDumpData(DumpData):
         self._write_content_to_acl_json(acl_json_path, model_name, npu_data_output_dir)
         msame_cmd = ["./" + MSAME_COMMAND_PATH, "--model", self.arguments.offline_model_path, "--input",
                      self.arguments.input_path, "--device", self.arguments.device, "--output", npu_data_output_dir]
-        self._make_msame_cmd_for_shape_range(msame_cmd)
+        self.dynamic_input.add_dynamic_arg_for_msame(msame_cmd)
         os.chdir(os.path.join(msame_dir, OUT_PATH))
         # do msame command
         utils.print_info_log("Run command line: cd %s && %s" % (os.path.join(msame_dir, OUT_PATH), " ".join(msame_cmd)))
@@ -207,6 +291,13 @@ class NpuDumpData(DumpData):
                     utils.print_error_log(
                         "The size (%d) of bin file can not match the input of the model." % bin_file_size)
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
+        elif self.dynamic_input.is_dynamic_shape_scenario():
+            for shape_size in shape_size_array:
+                for bin_size in bin_files_size_array:
+                    if bin_size < shape_size:
+                        return
+            utils.print_error_log("The size of bin file can not match the input of the model.")
+            raise AccuracyCompareException(utils.ACCURACY_COMPARISON_BIN_FILE_ERROR)
         else:
             for shape_size, bin_file_size in zip(shape_size_array, bin_files_size_array):
                 if shape_size == 0:

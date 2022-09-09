@@ -49,8 +49,12 @@ class DumpManager(object):
             tf_result = self.tf_dump.op_dump_summary(ops[Constant.DEFAULT_DEBUG_ID][0])
         return npu_result, tf_result
 
+    def pt_dump_summary(self, ir_name):
+        """Pytorch dump summary"""
+        return self.pt_dump.op_dump_summary(ir_name)
+
     def convert_npu_dump(self, name, data_format=None, dst_path=None):
-        for _, npu_dump in enumerate(self.npu_dumps):
+        for _, npu_dump in enumerate(self.npu_dumps.values()):
             npu_dump.convert_npu_dump(name, data_format, dst_path)
 
     def print_tensor(self, file_name, is_convert):

@@ -180,19 +180,26 @@ ais-bench-stubs  code  log  result  tmp
 
 **PYTHON_COMMAND**
 
-```
+```bash
 export PYTHON_COMMAND=python3.7
 ```
 
-**必须要设置为跟当前运行环境匹配的python版本。同时该版本也必须安装对应的python软件依赖。**
+必须要设置为跟当前运行环境匹配的python版本。同时该版本也必须安装对应的python软件依赖。
 
 **SINGLESERVER_MODE**
 
-**单服务器模式指运行n个设备。但是运行是各自设备进行单设备8卡进行业务训练，默认不开启。**
+单服务器模式指运行n个设备。但是运行是各自设备进行单设备8卡进行业务训练，默认不开启。
 
-**如果需要打开该模式 请增加如下命令 export SINGLESERVER_MODE=True**
+如果需要打开该模式 请增加如下命令 export SINGLESERVER_MODE=True
 
+**MODELARTS_VERSION**
 
+```bash
+#modelarts version default "V1", Optional value ["V1", "V2"]
+export MODELARTS_VERSION=V2
+```
+
+modelarts的执行版本。该环境变量不设置时默认是V1版本。需要执行modelarts V2版本时请显示声明该变量为"V2"
 
 #### modelarts_config.py   modelarts配置文件
 
@@ -244,18 +251,34 @@ benchmark.log  job3be1f0e5-job-aisbench-debug-0.log  job3be1f0e5-job-aisbench-de
 
 + 云上modelarts界面操作
   在云环境modelarts服务“训练管理”->“训练作业”界面，点击正在运行的job链接并进入。在执行job界面，点击“更多操作”按钮，激活下拉菜单，在上下文菜单中点击“停止”，即可终止运行的job。
+  
 + 本地停止方法，如下操作即可。该操作可以停止掉配置文件中job_name指示的最新一个作业版本
 
-```
+  对于modelarts V1版本：
+
+```bash
 [root@node66 ]# ls
 ais-bench-stubs  code  log  result
 [root@node66 code]# python3  ./code/common/train_modelarts.py  --action stop
 jobname:aisbench-debug jobid:3043 preversionid:13231 jobstatus:JOBSTAT_RUNNING stop status:{'is_success': True}
 ```
 
+​        对于modelarts V2版本：
+
+创建job成功后，本地屏幕会打印job相关信息，请搜索类似“create job sucess. job_id:c8e62b62-9529-4696-ba08-2969f4861a5d”，取"job_id:"后面部分，就是Job_id。
+
+```bash
+[root@node66 ]# python3  ./code/common/train_modelarts.py  --action stop --modelarts_version V2  --job_id e7052953-3107-47d5-a5fa-725f9eced6e3
+stop jobid:e7052953-3107-47d5-a5fa-725f9eced6e3 sesion:<modelarts.session.Session object at 0xffffa1f96e10>
+INFO:root:Successfully stop the job e7052953-3107-47d5-a5fa-725f9eced6e3
+job stop status: Terminated
+```
+
+
+
 ### 结果呈现和展示
 
-- 2个实例（train_instance_count为2）的bert r1.3 modelarts训练结果为例展示训练结果：
+- 2个节点（train_instance_count为2）的bert r1.3 modelarts训练结果为例展示训练结果：
 
 ```bash
 report >> throughput_list:[450.77798444604605, 450.38567065252664] average:450.58182754928634
@@ -294,8 +317,9 @@ report >> accuracy_list:[0.7138142585754395, 0.7139078378677368] average:0.71386
 [2022-7-13 13:24:51][INFO]BenchManager stop done
 ```
 
-- 2个实例（train_instance_count为2）的resnet r1.3 modelarts训练结果为例展示训练结果：
+- 2个节点（train_instance_count为2）的resnet r1.3 modelarts训练结果为例展示训练结果：
 
+```bash
 report >> throughput_list:[14147.314993295107, 14155.048461692913] average:14151.181727494011
 report >> accuracy_list:[0.7705078125, 0.7707316080729166] average:0.7706197102864583
 2022-07-12T15:29:13 -Ais-Bench-Stubs- INFO run_eval(modelarts_run.sh:32) - run_eval called
@@ -304,11 +328,11 @@ report >> accuracy_list:[0.7705078125, 0.7707316080729166] average:0.77061971028
 [2022-7-12 12:19:43][INFO]ais bench stubs begin run
 [2022-7-12 12:19:43][INFO]workpath:/home/lhb/test6/train_huawei_train_mindspore_resnet-Ais-Benchmark-Stubs-aarch64-1.0-r1.3_modelarts-single-0712 go testcase.
 [2022-7-12 12:19:43][INFO]Benchmanager::Init() enter
-2022-7-12 12:19:43][INFO]Transmit_server start listen 0.0.0.0 : 9990
-2022-7-12 12:19:43][INFO]get ConfigInfo testid:20210126-ljp0IY, Mode:training, Model:resnet50_v1.5, Divsion:close, Scenario:generic, test_object_type:single, tester_server_ip:127.0.0.1, tester_server_port:9527
+[2022-7-12 12:19:43][INFO]Transmit_server start listen 0.0.0.0 : 9990
+[2022-7-12 12:19:43][INFO]get ConfigInfo testid:20210126-ljp0IY, Mode:training, Model:resnet50_v1.5, Divsion:close, Scenario:generic, test_object_type:single, tester_server_ip:127.0.0.1, tester_server_port:9527
 [2022-7-12 12:19:43][INFO]ais bench stubs begin run
 [2022-7-12 12:19:43][INFO]workpath:/home/lhb/test6/train_huawei_train_mindspore_resnet-Ais-Benchmark-Stubs-aarch64-1.0-r1.3_modelarts-single-0712 go testcase.
-2022-7-12 12:19:43][INFO]Benchmanager::Init() enter
+[2022-7-12 12:19:43][INFO]Benchmanager::Init() enter
 [2022-7-12 12:19:43][INFO]Transmit_server start listen 0.0.0.0 : 9990
 [2022-7-12 15:29:18][INFO]train_result_info: {
    "accuracy" : "0.7706197102864583",
@@ -329,7 +353,10 @@ report >> accuracy_list:[0.7705078125, 0.7707316080729166] average:0.77061971028
 }
 
 [2022-7-12 15:29:18][INFO]Transmit_server resource is released!
-2022-7-12 15:29:21][INFO]BenchManager stop done
+[2022-7-12 15:29:21][INFO]BenchManager stop done
+```
+
+
 
 ## 附录
 

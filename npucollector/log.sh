@@ -21,6 +21,8 @@ pre_process()
     mkdir -p $base_path$device_stackcore_path
 
     mkdir -p $base_path$host_cann_log_path
+    mkdir -p $base_path$host_cann_debug_log_path
+    mkdir -p $base_path$host_cann_run_log_path
     mkdir -p $base_path$host_driver_log_path
     mkdir -p $base_path$device_aicpu_path
     mkdir -p $base_path$device_driver_path
@@ -125,7 +127,11 @@ post_process()
             for dir in `ls -l $base_path$device_msreport_path/target/slog | grep ^d | awk '{print $9}'`
             do
                 mkdir -p $base_path$device_system_path/$dir
-                for file in `find $base_path$device_msreport_path/target/slog/$dir/device-os -type f`
+                for file in `find $base_path$device_msreport_path/target/slog/$dir/debug/device-os -type f`
+                do
+                    mv $file $base_path$device_system_path/$dir
+                done
+                for file in `find $base_path$device_msreport_path/target/slog/$dir/run/device-os -type f`
                 do
                     mv $file $base_path$device_system_path/$dir
                 done
@@ -163,11 +169,14 @@ post_process()
 
     #process host message
     if [ "$HOME" == "/root" ];then
-        file=/var/log/messages
-        if [ -f $file -a -r $file ];then
-            cp $file $base_path$host_driver_log_path
+        file_others=/var/log/messages
+        file_ubuntu=/var/log/syslog
+        if [ -f $file_others -a -r $file_others ];then
+            cp $file_others $base_path$host_driver_log_path
+        elif [ -f $file_ubuntu -a -r $file_ubuntu ];then
+            cp $file_ubuntu $base_path$host_driver_log_path
         else
-            echo "[error] messages_file:$file can't reach"
+            echo "[warning] messages_file:$file can't reach"
         fi
     else
         echo "[info] user not root, skip messages log collect"

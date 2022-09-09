@@ -66,7 +66,7 @@ session_config = ed({
 
     # 使用容器类型与镜像版本
     'framework_type': 'Ascend-Powered-Engine',
-    'framework_version': 'MindSpore-1.3.0-c78-python3.7-euleros2.8-aarch64',
+    'framework_version': 'MindSpore-1.3-cann_5.0.2-python3.7-euleros2.8-aarch64',
 
     # 资源参数类型主要包括如下2个值 train_instance_type和pool_id
     # 不设置pool_id 默认是公共池 设置了就是专属资源池
@@ -88,7 +88,77 @@ session_config = ed({
     # 'nas_mount_path' : None,
 
     # 输出信息基准路径 整体路径为 train_url = out_base_url/version_name
-    "out_base_url": "/zgwtest/lcm_test/result",
+    "out_base_url": "/zgwtest/lcm_test/result/",
+    # job 描述前缀
+    "job_description_prefix": 'lcm-debug desc',
+})
+
+session_config_v2 = ed({
+    # 运行模型的传入超参
+    'parameters': [
+        # bert模型类型 默认large_acc模式 不需要修改
+        {'name': 'bert_network', 'value': 'large_acc'},
+        # 是否使能modelarts 必须设置为True，不需要修改
+        {'name': 'enable_modelarts', 'value': 'True'},
+        # 是否开启分布式，如果1卡以上的话都是True 一般不需要修改
+        {'name': 'distribute', 'value': 'true'},
+        # epoch次数 必须关注 当前默认设置为5 训练的epoch数
+        # 优先级低于train_steps，如果存在train_steps以此为准，否则以epoch_size为准
+        {'name': 'epoch_size', 'value': '5'},
+        # 训练step数 必须填写并审视 该值优先级高于train_steps数
+        {'name': 'train_steps', 'value': '12000'},
+        # 是否保存ckpt文件 默认为True 保存ckpt
+        {'name': 'enable_save_ckpt', 'value': 'true'},
+        # 不需要修改
+        {'name': 'enable_lossscale', 'value': 'true'},
+        # 不需要修改
+        {'name': 'do_shuffle', 'value': 'true'},
+        # 不需要修改
+        {'name': 'enable_data_sink', 'value': 'true'},
+        # 不需要修改
+        {'name': 'data_sink_steps', 'value': '100'},
+        # 不需要修改
+        {'name': 'accumulation_steps', 'value': '1'},
+        # 保存ckpt的step数 注意 该值必须要跟step数保存一致 这样提高性能
+        {'name': 'save_checkpoint_steps', 'value': '12000'},
+        # 保存ckpt的个数 默认为1 不需要修改
+        {'name': 'save_checkpoint_num', 'value': '1'},
+    ],
+    # 输入数据集obs目录,请按样例格式填写
+    'inputs': '/zgwtest/lcm_test/dataset/enwiki_small/',
+    # obs代码路径 程序会自动拷贝到该路径. 和boot_files一起用于复合参数 training_files
+    'code_dir': '/zgwtest/lcm_test/bert/',
+    # 启动文件 必须要在code_dir路径下，请按样例格式填写
+    'boot_file': '/zgwtest/lcm_test/bert/run_pretrain.py',
+
+    # 如下为运行相关参数
+    # job名称  如果云环境Modelarts服务训练作业job队列中没有，则会新建一个job；若和已有job同名，则会在该job中，新建测试实例.
+    'job_name': "aisbench-debug",
+
+    # 使用容器类型与镜像版本
+    'framework_type': 'Ascend-Powered-Engine',
+    'framework_version': 'mindspore_1.3.0-cann_5.0.2-py_3.7-euler_2.8.3-aarch64',
+
+    # 资源参数类型主要包括如下2个值 train_instance_type和pool_id
+    # 不设置pool_id 默认是公共池 设置了就是专属资源池
+    # 只设置pool_id 不设置train_instance_type 默认为专属资源池的默认类型
+    # train_instance_type 在程序打印中有提示的,请注意紧随“get valid train_instance_types：”之后的打印输出. 由modelarts.estimatorV2 类Estimator的接口get_train_instance_types（）查询而来。
+    # 请参见https://support.huaweicloud.com/sdkreference-modelarts/modelarts_04_0431.html 该链接指示获取方法。注意不同云环境查询的结果不同
+
+    # 专属资源池id 不是则为None
+    'pool_id' : None,
+    # 训练类型 如下为8卡 如果是专属资源池id设置，那么该类型需要设置为None
+    'train_instance_type': 'modelarts.kat1.8xlarge.public',
+    # 训练结点数
+    'train_instance_count': 1,
+
+    # 云存储路径 默认为空
+    # 'nas_type' : None,
+    # 'nas_share_addr' : None,
+    # 'nas_mount_path' : None,
+
+    # 输出信息基准路径 整体路径为 train_url = out_base_url/version_name
+    "out_base_url": "/zgwtest/lcm_test/result/",
     # job 描述前缀
     "job_description_prefix": 'lcm-debug desc',
 })

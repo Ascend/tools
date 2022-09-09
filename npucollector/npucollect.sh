@@ -100,10 +100,11 @@ export ASCEND_GLOBAL_LOG_LEVEL=1
 export ASCEND_PROCESS_LOG_PATH=$path/tmp
 export ASCEND_HOST_LOG_FILE_NUM=1000
 
-
+echo "--------start execute user command--------"
 ulimit -c unlimited
 echo $cmd > $path/log/host/user_cmd
 $cmd > $path/log/host/screen.txt 2>&1
+echo "--------end execute user command--------"
 
 for pid in ${running_pid[*]}
 do

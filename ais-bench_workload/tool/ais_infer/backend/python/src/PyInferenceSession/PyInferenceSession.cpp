@@ -24,7 +24,7 @@
 #include "Base/ErrorCode/ErrorCode.h"
 #include "Base/Log/Log.h"
 
-#include "PyTensor/PyTensor.h"
+// #include "PyTensor/PyTensor.h"
 
 namespace Base {
 PyInferenceSession::PyInferenceSession(const std::string &modelPath, const uint32_t &deviceId, std::shared_ptr<SessionOptions> options) : deviceId_(deviceId)
@@ -98,9 +98,11 @@ int PyInferenceSession::InferVector_SetInputs(std::vector<TensorBase>& feeds)
 int PyInferenceSession::Infer_Execute(int loop)
 {
     DEBUG_LOG("start to ModelInference Execute loop:%d", loop);
-    APP_ERROR ret = modelInfer_.Inference_Execute(loop);
-    if (ret != APP_ERR_OK) {
-        throw std::runtime_error(GetError(ret));
+    for (size_t t = 0; t < loop; ++t) {
+        APP_ERROR ret = modelInfer_.Inference_Execute();
+        if (ret != APP_ERR_OK) {
+            throw std::runtime_error(GetError(ret));
+        }
     }
     return APP_ERR_OK;
 }
@@ -265,6 +267,7 @@ std::shared_ptr<Base::PyInferenceSession> CreateModelInstance(const std::string 
     return std::make_shared<Base::PyInferenceSession>(modelPath, deviceId, options);
 }
 
+#ifdef COMPILE_PYTHON_MODULE
 void RegistInferenceSession(py::module &m)
 {
     using namespace pybind11::literals;
@@ -286,18 +289,16 @@ void RegistInferenceSession(py::module &m)
 
     py::class_<Base::InferSumaryInfo>(m, "sumary")
     .def(pybind11::init<>())
-    .def_readwrite("exec_time", &Base::InferSumaryInfo::execTime)
-    .def_readwrite("exec_count", &Base::InferSumaryInfo::execCount)
-    .def("__repr__", &Base::InferSumaryInfo::toString);
+    .def_readwrite("exec_time_list", &Base::InferSumaryInfo::execTimeList);
 
     auto model = py::class_<Base::PyInferenceSession, std::shared_ptr<Base::PyInferenceSession>>(m, "InferenceSession");
     model.def(py::init<std::string&, int, std::shared_ptr<Base::SessionOptions>>());
-    model.def("run", &Base::PyInferenceSession::InferVector);
-    model.def("run", &Base::PyInferenceSession::InferMap);
-    model.def("run_setinputs", &Base::PyInferenceSession::InferVector_SetInputs);
-    model.def("run_setinputs", &Base::PyInferenceSession::InferMap_SetInputs);
-    model.def("run_execute", &Base::PyInferenceSession::Infer_Execute, "loop"_a = 1);
-    model.def("run_getoutputs", &Base::PyInferenceSession::Infer_GetOutputs);
+    model.def("run", &Base::PyInferenceSession::InferVector, py::call_guard<py::gil_scoped_release>());
+    model.def("run", &Base::PyInferenceSession::InferMap, py::call_guard<py::gil_scoped_release>());
+    model.def("run_setinputs", &Base::PyInferenceSession::InferVector_SetInputs, py::call_guard<py::gil_scoped_release>());
+    model.def("run_setinputs", &Base::PyInferenceSession::InferMap_SetInputs, py::call_guard<py::gil_scoped_release>());
+    model.def("run_execute", &Base::PyInferenceSession::Infer_Execute, "loop"_a = 1, py::call_guard<py::gil_scoped_release>());
+    model.def("run_getoutputs", &Base::PyInferenceSession::Infer_GetOutputs, py::call_guard<py::gil_scoped_release>());
     model.def("__str__", &Base::PyInferenceSession::GetDesc);
     model.def("__repr__", &Base::PyInferenceSession::GetDesc);
 
@@ -317,3 +318,4 @@ void RegistInferenceSession(py::module &m)
 
     m.def("model", &CreateModelInstance, "modelPath"_a, "deviceId"_a = 0, "options"_a=py::none());
 }
+#endif

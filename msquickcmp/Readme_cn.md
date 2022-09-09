@@ -161,11 +161,11 @@ output-path/timestamp
 
 1. 原始模型获取地址
 
-   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb
+   https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.pb
 
 2. om模型获取地址
 
-   https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
+   https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/painting/AIPainting_v2.om
 
 **参考上述使用方法，执行命令运行，如果需要运行指定模型输入，可以先执行第二种用户不指定模型输入命令，用随机生成的bin文件作为输入**  
 

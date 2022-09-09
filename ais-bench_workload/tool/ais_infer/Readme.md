@@ -4,11 +4,11 @@
 
 ## Overview
 This document introduces ais-bench referencing tool, which includes front-end and back-end parts.
-The back-end is developed based on C + to realize the general referencing function.
+The back-end is developed based on C++ to realize the general referencing function.
 The front end is developed based on Python to realize the function of user interface.
 
 ## Environment Setup
-Ascend AI referencing equipment of development and operation environment should be installed.
+Ascend AI referencing equipment of development and operation environment should be installed.Python3 needs to be installed. Python2 is not supported.
 
 ## Tool Preparation
 The cann environment needs to be installed for the compilation of this referencing tool. Users can set CANN_PATH environment variable specifies the path of the installed cann version, such as export CANN_PATH=/xxx/nnae/latest/.
@@ -75,13 +75,35 @@ root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set
 
 ## Usage Examples
 
- ### Pure referencing scenario. Fake data (all 0s) is constructed and fed to the model for inference.
+ ### Pure inference scenario. Fake data (all 0s) is constructed and fed to the model for inference.
 ```
 python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
 ```
 
+### Debug mode on
+Set the debug parameter to 1, true, and true to enable debugging mode.，The setting command is as follows:
+```
+python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --debug=1
+```
+
+After the debugging mode is enabled, more printing information will be added as follows:
+- Input and output parameter information of the model
+```bash
+input:
+  #0    input_ids  (1, 384)  int32  1536  1536
+  #1    input_mask  (1, 384)  int32  1536  1536
+  #2    segment_ids  (1, 384)  int32  1536  1536
+output:
+  #0    logits:0  (1, 384, 2)  float32  3072  3072
+```
+- Detailed reasoning time-consuming information
+```
+[DEBUG] model aclExec const : 2.336000
+```
+- Specific operation information such as model input and output
 
  ### File input scenario. Input is passed into the file list, separated by commas.
+
  In this scenario, group batch will be performed according to the file input and the actual input of the model.
 
 ```
@@ -132,10 +154,18 @@ Note that the dynamic shape scene cannot obtain the shape of the tensor at prese
 python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --dymShape actual_input_1:1,3,224,224 --outputSize 10000
 ```
 
-### Profiling or dump scenarios
-```
-python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
+### Profiler or dump scenarios
+- acl_ json_path is the JSON file with the specified path, and the corresponding parameter information can be modified in this file
+- profiler is a set of acl_json configuration solidified into the program, and the generated profiling data is saved in the profiler folder of the output path
+- dump is a group of acl_json configuration solidified into the program, and the generated dump data is saved in the profiler folder of the output path
+- acl_ json_path has a higher priority than profiler and dump. when set together,  with acl_ json_path shall prevail
+- the output parameter must be used with the profiler parameter or dump parameter. It indicates the output path
+- profiler and dump can be used separately, but cannot be enabled at the same time
 
+```bash
+python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
+python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --dump
+python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --profiler
 ```
 ### Result sumary function
 For the result output, this program adds sumary JSON file prints parameter values to facilitate summary statistics.
@@ -155,8 +185,9 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | -------- | ------------------------------- |
 | --model  | Offline model.            |
 | --input  | Model input, either binary files or directories. If this option is not included, all-0s data is generated as the model input.                  |
-| --output | Inference output directory                |
-| --outfmt | Inference output format, either TXT or BIN.      |
+| --output | Inference result output path. By default, a date + time subfolder will be created to save the output results. If output_dirname is specified, inference result will be save to the subfolder of output_dirname.                |
+| --output_dirname | (Optional) Inference result output subfolder. Used with parameter output, it is invalid to use it alone. When this value is set, the output result is saved to output/output_ dirname folder.              |
+| --outfmt | Inference output format. Default BIN. can be set to "NPY", "BIN" or "TXT" |
 | --loop   | (Optional) Number of inferences. Must be in the range of \[1, 255]. Defaults to 1. When profiler is set to true, you are advised to set this option to 1. |
 | --debug  | (Optional) Debug switch for printing the model description, either true or false. Defaults to false. |
 | --device --device_id   | (Optional)Specify operating equipment. Value range is [0,255]. Default 0 |
@@ -165,7 +196,10 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --dymDims| (Optional) Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600;img_info:1,600".|
 | --dymShape| (Optional) Dynamic shape parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]" , the dymShape parameter can be set to --dymShape "input1:8,3,5,10;input2:5,3,10,10". <br>This parameter must be used with --input and --outputSize. |
 | --outputSize| (Optional)Specify the output size of the model. If there are several outputs, set several values. <br>In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate an appropriate value according to the input shape to apply for memory.<br>Example： --outputSize "10000,10000,10000".|
-| --acl_json_path | Acl json file. For profiling or dump scenarios.      |
 | --batchsize | model batch size.            |
 | --pure_data_type | (Optional)Pure inference data type。Default "zero", can be set to "zero" or "random"。<br>When set to zero, all pure reasoning data are 0; When set to random, each legend data is a random integer between [0, 255]      |
+| --profiler | (Optional)profiler switch。either true or false. Defaults to false.<br>--Output parameter must be provided. The profiler data is in the profiler folder under the directory specified by the --output parameter. Cannot be true at the same time as --dump      |
+| --dump | (Optional)dump switch。either true or false. Defaults to false.<br>--Output parameter must be provided. Dump data is in the dump folder under the directory specified by the --output parameter. Cannot be true at the same time as --profiler      |
+| --acl_json_path | Acl json file. For profiling or dump scenarios.When this parameter is set, -dump and --profiler parameters are invalid. |
+| --infer_queue_count | Maximum number of data in inference queue. Default 20 |
 | --help| Help information.                  |

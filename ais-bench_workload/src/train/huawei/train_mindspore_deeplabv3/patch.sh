@@ -30,6 +30,12 @@ get_git_info(){
         commitid="a58deaa4745a71fef902b73ed220054b6c072f24"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/cv/deeplabv3"
+    lif [ "$branch_args" == "r1.9" ];then
+        branch="master"
+        patch_file_name="r1.9"
+        commitid="adccb235dc4d0f00a8d9abd6cfcc2fc43c83570b"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/cv/deeplabv3"
     else
         echo "bad parameters : $1"
         return $ret_error

@@ -22,17 +22,16 @@
 #include <string>
 #include <memory>
 
+#ifdef COMPILE_PYTHON_MODULE
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#endif
 
 #include "Base/ModelInfer/SessionOptions.h"
 
 #include "Base/ModelInfer/ModelInferenceProcessor.h"
 #include "Base/Tensor/TensorBase/TensorBase.h"
-
-
-namespace py = pybind11;
 
 namespace Base {
 
@@ -83,6 +82,11 @@ private:
 };
 }
 
-void RegistInferenceSession(py::module &m);
+#ifdef COMPILE_PYTHON_MODULE
+    namespace py = pybind11;
+
+    void RegistInferenceSession(py::module &m);
+#endif
+
 #endif
 

@@ -78,8 +78,7 @@ ext_modules = [
 
         libraries=['ascendcl', 'acl_dvpp', 'acl_cblas'],
         language='c++',
-        define_macros = [('ENABLE_DVPP_INTERFACE', 1)],
-
+        define_macros = [('ENABLE_DVPP_INTERFACE', 1), ('COMPILE_PYTHON_MODULE', 1)],
     ),
 ]
 

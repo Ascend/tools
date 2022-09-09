@@ -1,3 +1,22 @@
+# Release 0.1.5
+## Update
+* 修复PT命令重复打屏的问题
+* 模糊匹配溢出检测算子名
+* 修复PT Dump的H5文件解析的一些问题
+
+# Release 0.1.4
+## Update
+* 完善训练随机固定场景
+
+
+# Release 0.1.3
+## Update
+* 支持解析Torch Dump的H5数据
+
+# Release 0.1.2
+## Update
+* 适配部分dump数据格式
+
 # Release 0.1.1
 ## Features
 * 新增NpuPrintLossScaleCallBack，用于TF2.x下打印scale值

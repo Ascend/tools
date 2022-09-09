@@ -122,15 +122,7 @@ struct ModelDesc {
 };
 
 struct InferSumaryInfo {
-    float execTime = 0.0;           // 推理实际执行总时间
-    uint64_t execCount = 0;         // 推理实际执行总次数
-
-    std::string toString()
-    {
-        std::string sumaryStr = "\n";
-        sumaryStr += "exec_time:" + std::to_string(execTime) + " exec_count:" + std::to_string(execCount) + "\n";
-        return sumaryStr;
-    };
+    std::vector<float> execTimeList;
 };
 
 class ModelInferenceProcessor {
@@ -181,7 +173,7 @@ public:
 
     APP_ERROR Inference_SetInputs(const std::vector<TensorBase>& feeds);
     APP_ERROR Inference_SetInputs(const std::map<std::string, TensorBase>& feeds);
-    APP_ERROR Inference_Execute(int loop);
+    APP_ERROR Inference_Execute();
     APP_ERROR Inference_GetOutputs(std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors);
 
 private:

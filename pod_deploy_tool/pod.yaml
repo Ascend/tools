@@ -1,0 +1,65 @@
+metadata:
+    name: nginx-a0875298-da97-4870-8503-dd3bff923479
+spec:
+    containers:
+    -   env:
+        - name: port
+          value: '3000'
+        image: nginx:1.0
+        imagePullPolicy: IfNotPresent
+        name: container-0
+        ports:
+        -   hostPort: 3000
+            containerPort: 3000
+            protocol: TCP
+            hostIP: 127.0.0.1
+        -   hostPort: 3001
+            containerPort: 3001
+            protocol: TCP
+            hostIP: 127.0.0.1
+        resources:
+            limits:
+                cpu: '1'
+                huawei.com/davinci-mini: '0'
+                memory: 1024Mi
+            requests:
+                cpu: '1'
+                huawei.com/davinci-mini: '0'
+                memory: 1024Mi
+        securityContext:
+            privileged: false
+            runAsGroup: 1001
+            runAsUser: 1001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        -   mountPath: /etc/localtime
+            name: localtime
+            readOnly: true
+        -   mountPath: /home/mmc/data
+            name: mmc-data
+            readOnly: false
+    dnsPolicy: ClusterFirst
+    hostNetwork: false
+    restartPolicy: OnFailure
+    schedulerName: default-scheduler
+    serviceAccountName: default
+    tolerations:
+    -   effect: NoExecute
+        key: node.kubernetes.io/unreachable
+        operator: Exists
+    -   effect: NoExecute
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+    -   effect: NoExecute
+        key: node.kubernetes.io/network-unavailable
+        operator: Exists
+    volumes:
+    -   hostPath:
+            path: /etc/localtime
+            type: ''
+        name: localtime
+    -   hostPath:
+            path: /home/mmc/data
+            type: ''
+        name: mmc-data

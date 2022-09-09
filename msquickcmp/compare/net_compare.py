@@ -180,7 +180,7 @@ class NetCompare(object):
             if line[npu_dump_index] != "Node_Output":
                 writer.writerow(line)
             else:
-                new_content = [line[0], "Node_Output", "NaN", "NaN",
+                new_content = [line[0], "NaN", "Node_Output", "NaN", "NaN",
                                npu_file_name, "NaN", golden_file_name, "[]"]
                 new_content.extend(result)
                 new_content.extend([""])

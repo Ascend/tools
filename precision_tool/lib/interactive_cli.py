@@ -80,6 +80,8 @@ class InteractiveCli(cmd.Cmd):
     @staticmethod
     def _parse_argv(line, insert=None):
         argv = line.split() if line != '' else []
+        if '-h' in argv:
+            return argv
         if insert is not None and len(argv) > 0 and argv[0] != insert:
             argv.insert(0, insert)
         return argv

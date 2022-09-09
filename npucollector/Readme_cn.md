@@ -31,6 +31,8 @@
     在npucollect.sh脚本开头的modules数组里，删除core的模块名，即不包括core。
 
     示例：modules=\(ge log ops environment\)
+6.  虚拟化/容器场景暂不支持收集device侧日志
+7.  graph_trace功能为预留功能，目前正在开发中，暂不支持问题分析
 
 
 ## 工具使用<a name="section171791224131610"></a>

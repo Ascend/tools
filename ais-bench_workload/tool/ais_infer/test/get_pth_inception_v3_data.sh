@@ -149,7 +149,7 @@ main()
     TESTDATA_PATH=$CUR_PATH/testdata/
     [ -d $TESTDATA_PATH ] || mkdir $TESTDATA_PATH
 
-    model_url="https://modelzoo-train-atc.obs.cn-north-4.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/InceptionV3/inceptionv3.onnx"
+    model_url="https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/003_Atc_Models/AE/ATC%20Model/InceptionV3/inceptionv3.onnx"
     onnx_file="$TESTDATA_PATH/pth_inceptionv3.onnx"
     if [ ! -f $onnx_file ]; then
         try_download_url $model_url $onnx_file || { echo "donwload stubs failed";return 1; }

@@ -26,9 +26,9 @@ namespace Base {
 TensorContext::TensorContext()
 {
 #ifdef COMPILE_PYTHON_MODULE
-    if (Base::Log::InitPythonModuleLog() != APP_ERR_OK) {
-        LogWarn << "Failed to initialize log." << std::endl;
-    }
+    // if (Base::Log::InitPythonModuleLog() != APP_ERR_OK) {
+    //     LogWarn << "Failed to initialize log." << std::endl;
+    // }
 #endif
     if (!DeviceManager::GetInstance()->IsInitDevices()) {
         APP_ERROR ret = DeviceManager::GetInstance()->InitDevices();

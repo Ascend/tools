@@ -47,6 +47,10 @@ Ascend tools，昇腾工具仓库。
 
 11. [ais-bench_workload](https://github.com/Ascend/tools/tree/master/ais-bench_workload)    
     **ais-bench_workload**： 该目录包含基于Ais-Bench软件的训练和推理负载程序，用于测试验证。Ais-Bench是基于AI标准针对AI服务器进行性能测试的工具软件。
+
+12. [pod_deploy_tool](https://github.com/Ascend/tools/tree/master/pod_deploy/pod_deploy_tool)  
+    **pod_deploy_tool**： 该目录包含本地部署容器工具，用于本地部署的容器，支持迁移FD。
+
 #### 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。

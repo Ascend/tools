@@ -1,0 +1,56 @@
+diff -Nur origin/eval.py code/eval.py
+--- origin/eval.py  2022-09-05 17:24:42.232000000 +0800
++++ code/eval.py    2022-09-05 17:24:42.244000000 +0800
+@@ -247,6 +247,16 @@
+     iu = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
+     print('per-class IoU', iu)
+     print('mean IoU', np.nanmean(iu))
++    ACC_DIR = os.getenv("RESULT_PATH")
++    if ACC_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(ACC_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++        print("ACC_DIR:", ACC_DIR)
++        ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
++        with open(ACC_LOG, 'w') as f:
++            f.write("{}".format(np.nanmean(iu)))
+ 
+ 
+ if __name__ == '__main__':
+diff -Nur origin/train.py code/train.py
+--- origin/train.py 2022-09-05 17:24:42.240000000 +0800
++++ code/train.py   2022-09-05 17:24:42.248000000 +0800
+@@ -201,8 +201,31 @@
+                                      keep_checkpoint_max=args.keep_checkpoint_max)
+         ckpoint_cb = ModelCheckpoint(prefix=args.model, directory=args.train_dir, config=config_ck)
+         cbs.append(ckpoint_cb)
++    model.build(dataset, sink_size=dataset.get_dataset_size(), epoch=args.train_epochs)
+ 
++    if ais_utils_is_existed:
++        start_time = ais_utils.get_datatime()
++    else:
++        start_time = time.time()
+     model.train(args.train_epochs, dataset, callbacks=cbs, dataset_sink_mode=(args.device_target != "CPU"))
++    all_data_sum = args.train_epochs * dataset.get_dataset_size() * args.batch_size
++    if ais_utils_is_existed:
++        end_time = ais_utils.get_datatime()
++        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, start_time, end_time)
++    else:
++        end_time = time.time()
++        throughput_rate = all_data_sum / (end_time - start_time)
++
++    rank_id = int(os.getenv('RANK_ID'))
++    THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++    if THROUGHPUT_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(THROUGHPUT_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++        THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++        with open(THROUGHPUT_LOG, 'w') as f:
++            f.write("{}".format(throughput_rate))
+ 
+ 
+ if __name__ == '__main__':
+
