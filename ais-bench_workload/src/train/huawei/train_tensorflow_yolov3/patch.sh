@@ -21,9 +21,9 @@ get_git_info(){
     if  [ "$branch_args" == "master" ];then
         branch="master"
         patch_file_name="master"
-        commitid="c31a8c12b4cd1a4bec9e74ba272ba9134c22e389"
-        git_url="https://github.com/Ascend/modelzoo.git"
-        modelzoo_sub_dir="modelzoo/built-in/TensorFlow/Official/cv/detection/YoloV3_ID0076_for_TensorFlow"
+        commitid="ca293a6071e44f6286e9ef3c1415c9818c1dd7af"
+        git_url="https://github.com/Ascend/ModelZoo-TensorFlow.git"
+        modelzoo_sub_dir="ModelZoo-TensorFlow/TensorFlow/built-in/cv/detection/YoloV3_ID0076_for_TensorFlow"
     else
         echo "bad parameters : $1"
         return $ret_error

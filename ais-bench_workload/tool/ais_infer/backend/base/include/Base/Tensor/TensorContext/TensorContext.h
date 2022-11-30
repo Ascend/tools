@@ -42,6 +42,7 @@ public:
     ~TensorContext();
     static std::shared_ptr<TensorContext> GetInstance();
     APP_ERROR SetContext(const uint32_t &deviceId);
+    APP_ERROR Finalize();
 private:
     bool InitDeviceFlag_ = false;
 };

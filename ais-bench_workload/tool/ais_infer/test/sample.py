@@ -1,6 +1,7 @@
 import sys
-import numpy as np
+
 import aclruntime
+import numpy as np
 
 model_path = sys.argv[1]
 
@@ -23,40 +24,14 @@ def infer_simple():
     outputs = session.run(outnames, feeds)
     print("outputs:", outputs)
 
+    outarray = []
     for out in outputs:
+        # convert acltenor to host memory
         out.to_host()
-    # sumary inference throughput
-    print(session.sumary())
-
-# 推理3个step阶段运行
-def infer_step():
-    device_id = 0
-    options = aclruntime.session_options()
-    options.log_level = 1
-    session = aclruntime.InferenceSession(model_path, device_id, options)
-
-    # create new numpy data according inputs info
-    barray = bytearray(session.get_inputs()[0].realsize)
-    ndata = np.frombuffer(barray)
-    # convert numpy to pytensors in device
-    tensor = aclruntime.Tensor(ndata)
-    tensor.to_device(device_id)
-
-    outnames = [ session.get_outputs()[0].name ]
-    feeds = { session.get_inputs()[0].name : tensor}
-
-    # infer three step function
-    session.run_setinputs(feeds)
-    session.run_execute()
-    outputs = session.run_getoutputs(outnames)
-
-    # outputs = session.run(outnames, feeds)
-    print("step outputs:", outputs)
-
-    for out in outputs:
-        out.to_host()
-    # sumary inference throughput
-    print(session.sumary())
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
 # 获取模型信息
 def get_model_info():
@@ -102,9 +77,14 @@ def infer_dynamicshape():
     outputs = session.run(outnames, feeds)
     print("outputs:", outputs)
 
+    outarray = []
     for out in outputs:
+        # convert acltenor to host memory
         out.to_host()
-    print(session.sumary())
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
 
 # 传入acl文件 执行profiling或者dump
@@ -147,24 +127,124 @@ def infer_run_simultaneous():
     outputs = session.run(outnames, feeds)
     print("outputs:", outputs)
 
+    outarray = []
     for out in outputs:
+        # convert acltenor to host memory
         out.to_host()
-    # sumary inference throughput
-    print(session.sumary())
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
     # another run
     outputs1 = session1.run(outnames1, feeds1)
     print("outputs1:", outputs1)
 
+    outarray1 = []
     for out in outputs1:
+        # convert acltenor to host memory
         out.to_host()
-    # sumary inference throughput
-    print(session1.sumary())
+        # convert acltensor to numpy array
+        outarray1.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session1.sumary().exec_time_list)))
 
+def infer_dynamic_dims():
+    device_id = 0
+    options = aclruntime.session_options()
+    session = aclruntime.InferenceSession(model_path, device_id, options)
+
+    # only need call this functon compare infer_simple
+    session.set_dynamic_dims("actual_input_1:1,3,224,224")
+
+    # create new numpy data according inputs info
+    barray = bytearray(session.get_inputs()[0].realsize)
+    ndata = np.frombuffer(barray)
+    # convert numpy to pytensors in device
+    tensor = aclruntime.Tensor(ndata)
+    tensor.to_device(device_id)
+
+    outnames = [ session.get_outputs()[0].name ]
+    feeds = { session.get_inputs()[0].name : tensor}
+
+    outputs = session.run(outnames, feeds)
+    print("outputs:", outputs)
+
+    outarray = []
+    for out in outputs:
+        # convert acltenor to host memory
+        out.to_host()
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+
+def infer_dynamics_hw():
+    device_id = 0
+    options = aclruntime.session_options()
+    session = aclruntime.InferenceSession(model_path, device_id, options)
+
+    # only need call this functon compare infer_simple
+    session.set_dynamic_hw(224,224)
+
+    # create new numpy data according inputs info
+    barray = bytearray(session.get_inputs()[0].realsize)
+    ndata = np.frombuffer(barray)
+    # convert numpy to pytensors in device
+    tensor = aclruntime.Tensor(ndata)
+    tensor.to_device(device_id)
+
+    outnames = [ session.get_outputs()[0].name ]
+    feeds = { session.get_inputs()[0].name : tensor}
+
+    outputs = session.run(outnames, feeds)
+    print("outputs:", outputs)
+
+    outarray = []
+    for out in outputs:
+        # convert acltenor to host memory
+        out.to_host()
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
+
+def infer_dynamic_batchsize():
+    device_id = 0
+    options = aclruntime.session_options()
+    session = aclruntime.InferenceSession(model_path, device_id, options)
+
+    # only need call this functon compare infer_simple
+    # dynamic_batchsize can be 1, 2, 4, 8
+    session.set_dynamic_batchsize(2)
+
+    # create new numpy data according inputs info
+    barray = bytearray(session.get_inputs()[0].realsize)
+    ndata = np.frombuffer(barray)
+    # convert numpy to pytensors in device
+    tensor = aclruntime.Tensor(ndata)
+    tensor.to_device(device_id)
+
+    outnames = [ session.get_outputs()[0].name ]
+    feeds = { session.get_inputs()[0].name : tensor}
+
+    outputs = session.run(outnames, feeds)
+    print("outputs:", outputs)
+
+    outarray = []
+    for out in outputs:
+        # convert acltenor to host memory
+        out.to_host()
+        # convert acltensor to numpy array
+        outarray.append(np.array(out))
+    # summary inference throughput
+    print("infer avg:{} ms".format(np.mean(session.sumary().exec_time_list)))
 
 infer_simple()
 #infer_run_simultaneous()
-#infer_step()
 #infer_dynamicshape()
+#infer_dynamic_dims()
+#infer_dynamics_hw()
+#infer_dynamic_batchsize()
 #get_model_info()
 #acljson_run()

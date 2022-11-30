@@ -99,6 +99,7 @@ class modelarts_handler():
                 self.sync_job_log(session_config)
             job_info = job_instance.get_job_info()
             if job_info['status'] == 10:
+                self.sync_job_log(session_config)
                 print("task succeeded, total time %d(s)" % (job_info['duration'] / 1000))
                 break
             func_table[job_info['status']](job_info)

@@ -10,11 +10,12 @@
 欲求详细使用方法，请点击上文链接。
 
 ## 安装
-
-当前 `ada` 仅支持在黄区安装和使用，在希望使用 `ada` 的环境上，使用 `pip` 来安装 `ada`：
+蓝区`ada`的安装方式：
 
 ```shell
-pip install -U --trusted-host 10.29.78.105 -f http://10.29.78.105:8081/pypi/ ada
+1. git clone  https://github.com/Ascend/tools.git 或者直接下载压缩包的方式，下载tools仓库代码
+2. cd tools/ada/
+3. pip install .
 ```
 
 > 注：`ada` 仅支持 `Python3`

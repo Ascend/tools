@@ -182,7 +182,7 @@ Result ModelProcess::CheckDynamicShape(std::vector<std::string> dym_shape_tmp, s
             return FAILED;       
         }
     }
-    INFO_LOG("check Dynamic Shape success");
+    DEBUG_LOG("check Dynamic Shape success");
     return SUCCESS;
 
 }
@@ -396,7 +396,7 @@ Result ModelProcess::CheckDynamicDims(vector<string> dym_dims, size_t gearCount,
         GetDimInfo(gearCount, dims);
         return FAILED;  
     }
-    INFO_LOG("check dynamic dims success");
+    DEBUG_LOG("check dynamic dims success");
     return SUCCESS;
  
 }
@@ -1071,6 +1071,98 @@ void ModelProcess::DestroyOutput(bool free_memory_flag=true)
     output_ = nullptr;
 }
 
+Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &filename)
+{
+    aclError ret;
+    aclFormat format = aclGetTensorDescFormat(desc);
+    void *devaddr = aclGetTensorDescAddress(desc);
+    size_t len = aclGetTensorDescSize(desc);
+    if (devaddr == nullptr || len == 0) {
+        WARN_LOG("exception_cb get failed addr:%p len:%zu", devaddr, len);
+        return FAILED;
+    }
+    void* hostaddr = nullptr;
+    ret = aclrtMallocHost(&hostaddr, len);
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        WARN_LOG("exception_cb MallocHost failed len:%zu ret:%d", len, ret);
+        return FAILED;
+    }
+    ret = aclrtMemcpy(hostaddr, len, devaddr, len, ACL_MEMCPY_DEVICE_TO_HOST);
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        WARN_LOG("exception_cb aclMemcpy failed ret:%d hostaddr:%p devaddr:%zu len:%zu",
+            ret, hostaddr, devaddr, len);
+        return FAILED;
+    }
+    INFO_LOG("exception_cb format:%d hostaddr:%p devaddr:%p len:%d write to filename:%s",
+        format, hostaddr, devaddr, len, filename.c_str());
+    ofstream outFile(filename, ios::out | ios::binary);
+    outFile.write((char*)hostaddr, len);
+    return SUCCESS;
+}
+
+void callback(aclrtExceptionInfo *exceptionInfo)
+{
+    uint32_t deviceId = aclrtGetDeviceIdFromExceptionInfo(exceptionInfo);
+    if (deviceId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception deviceId failed");
+        return;
+    }
+    uint32_t streamId = aclrtGetStreamIdFromExceptionInfo(exceptionInfo);
+    if (streamId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception streamId failed");
+        return;
+    }
+    uint32_t taskId = aclrtGetTaskIdFromExceptionInfo(exceptionInfo);
+    if (taskId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception taskId failed");
+        return;
+    }
+
+    char opName[256];
+    aclTensorDesc *inputDesc = nullptr;
+    aclTensorDesc *outputDesc = nullptr;
+    size_t inputCnt = 0;
+    size_t outputCnt = 0;
+    aclError ret = aclmdlCreateAndGetOpDesc(deviceId, streamId, taskId, opName, 256, \
+                    &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+    if (ret != ACL_SUCCESS) {
+        WARN_LOG("exception_cb deviceId:%d streamId:%d taskId:%d failed:%d", deviceId, streamId, taskId, ret);
+        return;
+    }
+
+    static int index = 0;
+    INFO_LOG("exception_cb streamId:%d taskId:%d deviceId: %d opName:%s inputCnt:%d outputCnt:%d",
+        streamId, taskId, deviceId, opName, inputCnt, outputCnt);
+    for (size_t i = 0; i < inputCnt; ++i) {
+        const aclTensorDesc *desc = aclGetTensorDescByIndex(inputDesc, i);
+        std::string filename = "exception_cb_index_" + std::to_string(index) + \
+            + "_input_" + std::to_string(i) + ".bin";
+        if (SaveTensorMemoryToFile(desc, filename) != SUCCESS) {
+            WARN_LOG("exception_cb input_%d save failed", i);
+            break;
+        }
+    }
+    for (size_t i = 0; i < outputCnt; ++i) {
+        const aclTensorDesc *desc = aclGetTensorDescByIndex(outputDesc, i);
+        std::string filename = "exception_cb_index_" + std::to_string(index) + \
+            + "_output_" + std::to_string(i) + ".bin";
+        if (SaveTensorMemoryToFile(desc, filename) != SUCCESS){
+            WARN_LOG("exception_cb input_%d save failed", i);
+            break;
+        }
+    }
+    index++;
+    aclDestroyTensorDesc(inputDesc);
+    aclDestroyTensorDesc(outputDesc);
+}
+
+void ModelProcess::SetExceptionCallBack()
+{
+    aclrtSetExceptionInfoCallback(callback);
+}
+
 Result ModelProcess::Execute()
 {
     aclError ret = aclmdlExecute(modelId_, input_, output_);
@@ -1104,20 +1196,34 @@ void ModelProcess::Unload()
     INFO_LOG("unload model success, model Id is %u", modelId_);
 }
 
-Result ModelProcess::GetCurOutputShape(size_t index, std::vector<int64_t>& shape)
+Result ModelProcess::GetCurOutputShape(size_t index, bool is_dymshape, std::vector<int64_t>& shape)
 {
     aclError ret; 
     aclmdlIODims ioDims;
     int64_t tmp_dim = 1;
-    // 对于动态shape场景，通过该接口获取不到输出shape
-    ret = aclmdlGetCurOutputDims(modelDesc_, index, &ioDims);
-    if (ret != ACL_SUCCESS) {
-        // cout << aclGetRecentErrMsg() << endl;
-        DEBUG_LOG("aclmdlGetCurOutputDims get not success, maybe the modle has dynamic shape", ret);
-        return FAILED;
-    }
-    for (int i = 0; i < ioDims.dimCount; i++) {
-        shape.push_back(ioDims.dims[i]);
+    // 对于动态shape场景，通过V2接口获取，其他通过V1接口获取
+    if (is_dymshape == true) {
+        aclTensorDesc *outputDesc = aclmdlGetDatasetTensorDesc(output_, index);
+        size_t dimNums = aclGetTensorDescNumDims(outputDesc);
+         if (dimNums == ACL_UNKNOWN_RANK) {
+            return FAILED;
+         } else {
+            for (size_t i = 0; i < dimNums; ++i) {
+                int64_t dim;
+                ret = aclGetTensorDescDimV2(outputDesc, i, &dim);
+                shape.push_back(dim);
+            }
+         }
+    } else {
+        ret = aclmdlGetCurOutputDims(modelDesc_, index, &ioDims);
+        if (ret != ACL_SUCCESS) {
+            // cout << aclGetRecentErrMsg() << endl;
+            DEBUG_LOG("aclmdlGetCurOutputDims get not success, maybe the modle has dynamic shape", ret);
+            return FAILED;
+        }
+        for (int i = 0; i < ioDims.dimCount; i++) {
+            shape.push_back(ioDims.dims[i]);
+        }
     }
     return SUCCESS;
 }
@@ -1166,7 +1272,7 @@ Result ModelProcess::GetOutTensorDesc(size_t i, std::string& name, int& datatype
     return SUCCESS;
 }
 
-int ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape, float sizeRatio)
+size_t ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape)
 {
     aclDataBuffer* dataBuffer = aclmdlGetDatasetBuffer(output_, i);
     uint64_t maxBatchSize = 0;
@@ -1179,7 +1285,6 @@ int ModelProcess::GetOutTensorLen(size_t i, bool is_dymshape, float sizeRatio)
 	}
     else{
 	    len = aclGetDataBufferSizeV2(dataBuffer);
-        len = len / sizeRatio;
 	}
     return len;
 }

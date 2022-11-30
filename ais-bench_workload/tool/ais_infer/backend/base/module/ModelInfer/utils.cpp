@@ -43,6 +43,7 @@ void* Utils::ReadBinFile(std::string fileName, uint32_t& fileSize)
     if (!g_is_device) {
         ret = aclrtMallocHost(&binFileBufferData, binFileBufferLen);
         if (binFileBufferData == nullptr) {
+            cout << aclGetRecentErrMsg() << endl;
             ERROR_LOG("malloc binFileBufferData failed");
             binFile.close();
             return nullptr;
@@ -391,6 +392,45 @@ Result Utils::SplitStingGetNameDimsMulMap(std::vector<std::string> in_dym_shape_
 	        DimsMul = DimsMul * atoi(shape_tmp[j].c_str());
         }
         out_namedimsmul_map[name] = DimsMul;
+    }
+    return SUCCESS;
+}
+
+Result Utils::ReadBinFileToMemory(const std::string fileName, char *ptr, const size_t size, size_t &offset)
+{
+    std::ifstream binFile(fileName, std::ifstream::binary);
+    if (binFile.is_open() == false) {
+        ERROR_LOG("open file %s failed", fileName.c_str());
+        return FAILED;
+    }
+
+    binFile.seekg(0, binFile.end);
+    uint64_t binFileBufferLen = binFile.tellg();
+    if (binFileBufferLen == 0) {
+        ERROR_LOG("binfile is empty, filename is %s", fileName.c_str());
+        binFile.close();
+        return FAILED;
+    }
+    if (offset + binFileBufferLen > size) {
+        ERROR_LOG("offset:%zu filesize:%zu > size:%zu invalid", offset, binFileBufferLen, size);
+        return FAILED;
+    }
+
+    binFile.seekg(0, binFile.beg);
+
+    DEBUG_LOG("Readbin file:%s ptr:%p offset:%zu len:%zu\n", fileName.c_str(), ptr, offset, binFileBufferLen);
+    binFile.read(static_cast<char*>(ptr + offset), binFileBufferLen);
+    binFile.close();
+    offset += binFileBufferLen;
+    return SUCCESS;
+}
+
+Result Utils::FillFileContentToMemory(const std::string file, char* ptr, const size_t size, size_t &offset)
+{
+    auto ret = Utils::ReadBinFileToMemory(file, ptr, size, offset);
+    if (ret != SUCCESS) {
+        ERROR_LOG("ReadBinFile ToMemory failed ret:%d", ret);
+        return ret;
     }
     return SUCCESS;
 }

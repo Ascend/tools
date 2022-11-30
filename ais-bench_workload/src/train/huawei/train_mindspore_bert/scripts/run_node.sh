@@ -7,6 +7,8 @@ function get_train_cmd()
 {
     [[ $RANK_SIZE -gt 1 ]] && DISTRUTE_ENABLE="true" || DISTRUTE_ENABLE="false"
 
+    CONFIG_FILE=$WORK_PATH/code/pretrain_config_Ascend_Boost.yaml
+
     train_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/run_pretrain.py \
         --distribute=$DISTRUTE_ENABLE \
         --epoch_size=$EPOCH_SIZE \
@@ -24,7 +26,7 @@ function get_train_cmd()
         --device_id=${DEVICE_ID} \
         --device_num=${DEVICE_NUM} \
         --train_steps=${TRAIN_STEPS} \
-        --config_path=$WORK_PATH/code/pretrain_config_Ascend_Boost.yaml
+        --config_path=$CONFIG_FILE
         "
     return 0
 }

@@ -23,6 +23,15 @@ function get_train_cmd()
 
 function get_eval_cmd()
 {
+    CONFIG_FILE=$WORK_PATH/code/default_config.yaml
+    eval_run_cmd="${PYTHON_COMMAND} -u $WORK_PATH/code/eval.py \
+         --config_path=$CONFIG_FILE \
+         --device_id=0 \
+         --anno_path=/home/datasets/coco/annotations/instances_val2017.json \
+         --checkpoint_path=$WORK_PATH/code/scripts/train_parallel0/ckpt_0/faster_rcnn-20_7393.ckpt \
+         --backbone=resnet_v1.5_50 \
+         --coco_root=/home/datasets/coco \
+         --mindrecord_dir=/home/datasets/coco/mindrecord_coco_train"
     return 0
 }
 
@@ -65,6 +74,13 @@ function node_train()
 
 function node_eval()
 {
+    CHECKPOINT_PATH=`find ${WORK_PATH}/train_parallel$RANK_ID/ -name "*.ckpt" | xargs ls -t | awk 'NR==1{print}'`
+    [ -f $CHECKPOINT_PATH ] || { logger_Warn "CHECKPOINT_PATH:${CHECKPOINT_PATH} not valid path" ; return 1; }
+    RUN_PATH=$WORK_PATH/train_parallel$RANK_ID
+    cd $RUN_PATH
+    get_eval_cmd
+    echo "start eval RUN_PATH:${RUN_PATH} SERVER_ID:$SERVER_ID rank $RANK_ID device $DEVICE_ID begin cmd:${eval_run_cmd}"
+    $eval_run_cmd || { echo "run eval node error ret:$?"; return 1; }
     return 0
 }
 

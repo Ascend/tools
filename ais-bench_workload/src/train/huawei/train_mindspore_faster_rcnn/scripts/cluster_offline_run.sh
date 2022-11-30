@@ -74,5 +74,7 @@ get_result()
 
     cluster_rscp "${NODEINFO_FILE}" ${RESULT_PATH} ${RESULT_PATH}
     ${PYTHON_COMMAND} ${CODE_PATH}/common/calc_result.py ${RESULT_PATH} ${RANK_SIZE}
+
+    [ -d $BASE_PATH/result ]  && cp ${RESULT_PATH}/* -rf $BASE_PATH/result/
     logger_Info "-------------------------------- get_result end --------------------------------"
 }

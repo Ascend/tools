@@ -63,7 +63,7 @@ def get_args():
     parser.add_argument("--vocab_path", required=True, help="vocab file")
 
     parser.add_argument("--batchsize", default=1, type=int, help="max batch size in a single inference")
-    parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size paramsuch as --dymBatch 2")
+    parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size param, such as --dymBatch 2")
     parser.add_argument("--dymHW", type=str, default=None, help="dynamic image size param, such as --dymHW \"300,500\"")
     parser.add_argument("--dymDims", type=str, default=None, help="dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"")
     parser.add_argument("--dymShape", type=str, help="dynamic hape param, such as --dymShape \"data:1,600;img_info:1,600\"")

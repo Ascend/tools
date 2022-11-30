@@ -321,8 +321,13 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
             ret = processModel.Execute();
             gettimeofday(&end, NULL);
             if (ret != SUCCESS) {
-                ERROR_LOG("model execute failed");
-                return FAILED;
+                if (i != 1) {
+                    ERROR_LOG("model execute failed");
+                    continue;
+                }else{
+                    ERROR_LOG("model execute failed");
+                    return FAILED;
+                }
             }
 
             float time_cost = 1000 * (end.tv_sec - begin.tv_sec) + (end.tv_usec - begin.tv_usec) / 1000.000;

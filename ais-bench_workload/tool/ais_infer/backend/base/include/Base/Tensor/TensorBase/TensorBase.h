@@ -60,6 +60,8 @@ static std::map<int, std::string> TensorDataTypeStr = {
 
 std::string GetTensorDataTypeDesc(TensorDataType type);
 
+MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId);
+
 class TensorBuffer;
 class TensorShape;
 class TensorBase {

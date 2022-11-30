@@ -263,6 +263,7 @@ APP_ERROR TensorBase::ToHost()
         LogError << "TensorBuffer::TensorBufferMalloc failed. ret=" << ret << std::endl;
         return ret;
     }
+
     ret = TensorBuffer::TensorBufferCopy(host, *buffer_);
     if (ret != APP_ERR_OK) {
         LogError << "TensorBuffer::TensorBufferCopy failed. ret=" << ret << std::endl;
@@ -497,5 +498,23 @@ std::string TensorBase::GetDesc()
     return "<Tensor>\nshape:\t(" + shapeStr + \
         ")\ndtype:\t" + GetTensorDataTypeDesc(GetDataType()) + \
         "\ndevice:\t" + std::to_string(GetDeviceId());
+}
+
+MemoryData CopyMemory2DeviceMemory(void *ptr, uint64_t size, int32_t deviceId)
+{
+    MemoryData src(ptr, size, MemoryData::MemoryType::MEMORY_HOST, -1);
+
+    Base::MemoryData dst(size, MemoryData::MemoryType::MEMORY_DEVICE, deviceId);
+    auto ret = MemoryHelper::MxbsMalloc(dst);
+    if (ret != APP_ERR_OK) {
+        ERROR_LOG("MemoryHelper::MxbsMalloc failed device size:%d ret:%d", size, ret);
+        return ret;
+    }
+    ret = MemoryHelper::MxbsMemcpy(dst, src, dst.size);
+    if (ret != APP_ERR_OK) {
+        LogError << "MemoryHelper::MxbsMemcpy failed. ret=" << ret << std::endl;
+        return ret;
+    }
+    return dst;
 }
 }

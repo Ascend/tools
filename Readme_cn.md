@@ -48,8 +48,14 @@ Ascend tools，昇腾工具仓库。
 11. [ais-bench_workload](https://github.com/Ascend/tools/tree/master/ais-bench_workload)    
     **ais-bench_workload**： 该目录包含基于Ais-Bench软件的训练和推理负载程序，用于测试验证。Ais-Bench是基于AI标准针对AI服务器进行性能测试的工具软件。
 
-12. [pod_deploy_tool](https://github.com/Ascend/tools/tree/master/pod_deploy/pod_deploy_tool)  
-    **pod_deploy_tool**： 该目录包含本地部署容器工具，用于本地部署的容器，支持迁移FD。
+12. [intelligent_edge_tools](https://github.com/Ascend/tools/tree/master/intelligent_edge_tools)  
+    **intelligent_edge_tools**： 该目录包含智能边缘工具集。
+    
+13. [auto-optimizer](https://github.com/Ascend/tools/tree/master/auto-optimizer)  
+    **auto-optimizer**： 提供基于ONNX的改图、自动优化及端到端推理流程。
+    
+13. [saved_model2om](https://github.com/Ascend/tools/tree/master/saved_model2om)  
+    **TensorFlow1.15 saved_model模型转om模型工具**：输入TensorFlow存储的saved_model模型，转换为pb模型，再转换为om模型
 
 #### 贡献
 

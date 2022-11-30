@@ -69,6 +69,11 @@ class Overflow(object):
     def _json_summary(self, json_txt, debug_file):
         res = []
         detail = {'task_id': -1}
+        if 'magic' in json_txt:
+            # version 2
+            detail = json_txt['acc_list']['data']
+            res.append(' - [AccType:%s][Status:%s][TaskId:%s]' % (
+                json_txt['acc_list'], detail['status'], detail['task_id']))
         if 'AI Core' in json_txt and json_txt['AI Core']['status'] > 0:
             detail = json_txt['AI Core']
             res.append(' - [AI Core][Status:%s][TaskId:%s] %s' % (
@@ -81,7 +86,12 @@ class Overflow(object):
             detail = json_txt['L2 Atomic Add']
             res.append(' - [L2 Atomic Add][Status:%s][TaskId:%s] %s' % (
                 detail['status'], detail['task_id'], self._decode_l2_atomic_add_status(detail['status'])))
-        dump_file_info = self._find_dump_files_by_task_id(detail['task_id'], debug_file.dir_path)
+        if str(detail['task_id']) == '-1':
+            detail['task_id'] = debug_file.task_id
+        if str(detail['stream_id']) == '-1':
+            detail['stream_id'] = debug_file.stream_id
+        dump_file_info = self._find_dump_files_by_task_id(detail['task_id'], detail['stream_id'],
+                                                          debug_file.dir_path)
         res.append(' - First overflow file timestamp [%s] -' % debug_file.timestamp)
         if dump_file_info is None:
             self.log.warning("Can not find any dump file for debug file: %s, op task id: %s", debug_file.file_name,
@@ -120,12 +130,12 @@ class Overflow(object):
         return decode_files
 
     @staticmethod
-    def _find_dump_files_by_task_id(task_id, search_dir):
+    def _find_dump_files_by_task_id(task_id, stream_id, search_dir):
         dump_files = util.list_npu_dump_files(search_dir)
         dump_file_list = [item for item in dump_files.values() if item.op_type != 'Opdebug']
         dump_file_list = sorted(dump_file_list, key=lambda x: x.timestamp)
         for dump_file in dump_file_list:
-            if dump_file.task_id == int(task_id):
+            if dump_file.task_id == int(task_id) and dump_file.stream_id == int(stream_id):
                 return dump_file
         return None
 

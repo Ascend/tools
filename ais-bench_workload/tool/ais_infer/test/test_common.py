@@ -1,8 +1,10 @@
+import filecmp
 import math
 import os
 import random
 import shutil
 import sys
+from fileinput import filename
 
 import aclruntime
 import numpy as np
@@ -10,8 +12,11 @@ import numpy as np
 
 class TestCommonClass:
     default_device_id = 0
+    EPSILON = 1e-6
+    epsilon = 1e-6
     cmd_prefix = sys.executable + " " + os.path.join(os.path.dirname(os.path.realpath(__file__)), "../ais_infer.py")
     base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../test/testdata")
+    msame_bin_path = os.getenv('MSAME_BIN_PATH')
 
     @staticmethod
     def get_cmd_prefix():
@@ -27,22 +32,26 @@ class TestCommonClass:
         return os.path.join(_current_dir, "../test/testdata")
 
     @staticmethod
-    def create_inputs_file(input_path, size):
+    def create_inputs_file(input_path, size, pure_data_type=random):
         file_path = os.path.join(input_path, "{}.bin".format(size))
-        lst = [random.randrange(0, 256) for _ in range(size)]
+        if pure_data_type == "zero":
+            lst = [0 for _ in range(size)]
+        else:
+            lst = [random.randrange(0, 256) for _ in range(size)]
         barray = bytearray(lst)
         ndata = np.frombuffer(barray, dtype=np.uint8)
         ndata.tofile(file_path)
         return file_path
 
     @classmethod
-    def get_inputs_path(cls, size, input_path, input_file_num):
+    def get_inputs_path(cls, size, input_path, input_file_num, pure_data_type=random):
         """generate input files
         folder structure as follows.
-        test/testdata/resnet50/input
-                        |_ 196608           # size
-                            |- 196608.bin   # base_size_file
-                            |_ 5            # input_file_num
+        input_path
+                |_ 196608           # size_path
+                    |- 196608.bin   # base_size_file
+                    |_ 5            # input_file_num_folder_path
+
         """
         size_path = os.path.join(input_path,  str(size))
         if not os.path.exists(size_path):
@@ -50,28 +59,30 @@ class TestCommonClass:
 
         base_size_file_path = os.path.join(size_path, "{}.bin".format(size))
         if not os.path.exists(base_size_file_path):
-            cls.create_inputs_file(size_path, size)
+            cls.create_inputs_file(size_path, size, pure_data_type)
 
-        size_folder_path = os.path.join(input_path, str(input_file_num))
+        input_file_num_folder_path = os.path.join(size_path, str(input_file_num))
 
-        if os.path.exists(size_folder_path):
-            if len(os.listdir(size_folder_path)) == input_file_num:
-                return size_folder_path
+        if os.path.exists(input_file_num_folder_path):
+            if len(os.listdir(input_file_num_folder_path)) == input_file_num:
+                return input_file_num_folder_path
             else:
-                shutil.rmtree(size_folder_path)
+                shutil.rmtree(input_file_num_folder_path)
 
-        # create soft link to base_size_file
-        os.mkdir(size_folder_path)
+        if not os.path.exists(input_file_num_folder_path):
+            os.makedirs(input_file_num_folder_path)
+
         strs = []
+        # create soft link to base_size_file
         for i in range(input_file_num):
             file_name = "{}-{}.bin".format(size, i)
-            file_path = os.path.join(size_folder_path, file_name)
+            file_path = os.path.join(input_file_num_folder_path, file_name)
             strs.append("ln -s {} {}".format(base_size_file_path, file_path))
 
         cmd = ';'.join(strs)
         os.system(cmd)
 
-        return size_folder_path
+        return input_file_num_folder_path
 
     @classmethod
     def get_model_static_om_path(cls, batchsize, modelname):
@@ -96,10 +107,11 @@ class TestCommonClass:
             return 0
 
         try:
-            cmd = "cat {} |grep 'aclExec const' | wc -l".format(log_path)
+            cmd = "cat {} |grep 'cost :' | wc -l".format(log_path)
             outval = os.popen(cmd).read()
         except Exception as e:
             raise Exception("grep action raises raise an exception: {}".format(e))
             return 0
 
         return int(outval.replace('\n', ''))
+

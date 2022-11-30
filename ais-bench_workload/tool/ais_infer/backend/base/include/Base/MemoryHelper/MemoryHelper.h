@@ -16,6 +16,7 @@
 
 #ifndef MEMORY_HELPER_H
 #define MEMORY_HELPER_H
+#include <vector>
 #include "Base/ErrorCode/ErrorCode.h"
 
 namespace Base {
@@ -63,5 +64,17 @@ private:
     static bool IsDeviceToDevice(const MemoryData& dest, const MemoryData& src);
     static bool IsHostToDevice(const MemoryData& dest, const MemoryData& src);
 };
+
+struct MemorySummary {
+    std::vector<float> H2DTimeList;
+    std::vector<float> D2HTimeList;
+    void Reset(){
+        H2DTimeList.clear();
+        D2HTimeList.clear();
+    }
+};
+
+struct MemorySummary* GetMemorySummaryPtr();
+
 }  // namespace Base
 #endif

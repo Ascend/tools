@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
         return FAILED;
     }
 
-    INFO_LOG("Execute sample success");
+    INFO_LOG("pid: %d Execute sample success", getpid());
 
     return SUCCESS;
 }

@@ -98,6 +98,10 @@ public:
     static int ScanFiles(std::vector<std::string> &fileList, std::string inputDirectory);
 
     static int ToInt(std::string &str);
+
+    static Result ReadBinFileToMemory(const std::string fileName,  char *ptr, const size_t size, size_t &offset);
+    static Result FillFileContentToMemory(const std::string file, char* ptr,const size_t size, size_t &offset);
+
 };
 
 #endif

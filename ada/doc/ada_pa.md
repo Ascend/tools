@@ -62,7 +62,12 @@ profiling开启的过程中，GE会一直在内存中缓存profiling数据。 �
 
 ## 解析profiling
 
-保存好上一步打印的标准输出内容后，可以使用 `ada-pa` 命令解析：
+### profiling解析能力
+
+保存好上一步打印的标准输出内容后，可以使用 `ada-pa` 命令解析。`ada-pa`内置多种解析器，有通用解析器，可以对profiling数据做一般的解析和呈现；
+也有适用于PyTorch场景的增强解析器，这一类解析器可以根据PyTorch场景的执行特点，做数据分析并优化呈现。
+
+通过如下命令做`通用解析`：
 
 ```shell
 $ ada-pa /path/to/out_file.txt
@@ -70,19 +75,54 @@ Dump to <result-type> file /path/to/out_file_<result-type>_i.json
 Dump to ...
 ```
 
-完成解析后，结果文件会默认写到与源文件同目录下。解析结果文件的命名规则为：`file_name_<result-type>_<index>.<ext>`，其中：
+通过如下命令**同时**做`通用解析`和`PyTorch场景的单算子解析`（是的，通用解析总是有用的，因此即使选定了特定场景，通用解析也会打开）：
+
+```shell
+$ ada-pa /path/to/out_file.txt --reporter=single-op
+Dump to <result-type> file /path/to/out_file_<result-type>_i.json
+Dump to ...
+```
+
+完成解析后，结果文件会默认写到与源文件同目录下。也可以通过`-o`选项指定结果文件的目录。
+更多 `ada-pa` 的功能请通过 `ada-pa -h` 查看，此处不过多赘述：
+
+```bash
+$ ada-pa -h
+usage: ada-pa [-h] [-o OUTPUT] [--reporter REPORTER] input_file
+
+Ascend Debugging Assistant - Profiling Analysis
+
+positional arguments:
+  input_file            input file path
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        output file path
+  --reporter REPORTER   Specify one or more reporters, current available reporters: single-op. By default basic reporters will be used.
+```
+
+解析结果文件的命名规则为：`file_name_<result-type>_<index>.<ext>`，其中：
 
 * result-type：结果类型，当前支持tracing与summary两种，后续可能添加新的结果类型
 * index：第几次dump的结果，对应脚本中的第几次`with`语句，从0开始
 * ext：后缀名，不同类型的结果可能后缀不同，不做赘述
 
-解析出的tracing文件可以在`chrome://tracing`中打开，效果图如下所示：
+### 通用解析结果
 
-![](res/ada_pa_tracing.PNG)    TODO: 补一张图
+通用解析会输出三类文件：trace、statistics、summary
 
-summary文件可以使用excel打开，效果如下所示：
+#### trace文件
 
-![](res/ada_pa_summary.PNG)    TODO: 补一张图
+trace文件名为`file_name_trace_<index>.json`，解析出的tracing文件可以在`chrome://tracing`中打开，效果图如下所示：
+
+![](res/ada_pa_tracing.png)
+
+#### summary文件
+
+trace文件名为`file_name_summary_<index>.csv`，summary文件可以使用excel打开，效果如下所示：
+
+![](res/ada_pa_summary.png)
 
 表头中几个字段的含义为：
 
@@ -90,14 +130,36 @@ summary文件可以使用excel打开，效果如下所示：
 * count：该事件发生了多少次
 * avg(us)：该事件的平均耗时，用us表达
 * total(us)：该事件的总耗时，用us表达
-* w-percent：该事件耗时加权平均后的占比，计算公式为该事件的total耗时除以`OpExecute`事件的total耗时
+* w-percent：该事件耗时加权平均后的占比，计算公式为该事件的total耗时除以`OpExecute`或`Execute`事件的total耗时
+
+#### statistics文件
 
 op statistic文件可以使用excel打开，效果如下所示：
 
-![](res/ada_pa_op_stat.PNG)    TODO: 补一张图
+![](res/ada_pa_op_stat.png)
 
 表头中几个字段的含义为：
 
 * name: node name
 * event: 事件类型
 * duration(us): 耗时，用us表达
+
+### 单算子场景解析结果
+
+使能单算子场景后，会按照单算子的下发类型，分类统计每一种下发类型的summary信息，并将其汇总为`file_name_single_op_summary_<index>.csv`。
+在这个文件中，会统计本次执行过程中，每一类下发的个数及时间占比，如下图所示：
+
+![](res/ada_pa_single_op_summary.png)
+
+单算子的下发类型中，当前支持解析如下几类：
+
+* aicore_single_op: AICORE单算子类型，即只有一次KernelLaunch
+* aicore_atomic_clean: 需要atomic clean的AICORE单算子
+* aicpu_single_op: AICPU单算子下发
+* aicore_type3: AICORE的第三类算子
+* aicpu_type3: AICPU的第三类算子
+* subgraph: 子图下发，所谓子图下发，是指该单算子实际下发流程是执行一张子图，子图内包含多个结点。例如前后插入transdata等。
+* others: 未识别的分类
+
+上述分类，每一类都会产生一个summary文件，文件名的规则为：`file_name_<分类>_summary_<index>.csv`，
+summary文件格式与字段含义与[summary文件](#summary文件)一致。

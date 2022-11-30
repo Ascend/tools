@@ -56,6 +56,7 @@ class modelarts_handler():
 
             phase = job_info['status']['phase']
             if phase == "Completed":
+                self.sync_job_log(self.session_config)
                 logger.info("task succeeded, total time %d(s)" % (job_info['status']['duration'] / 1000))
                 break
             elif phase in ['Failed', 'Abnormal', 'Terminated']:

@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <time.h>
 #include <vector>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define INFO_LOG(fmt, args...) fprintf(stdout, "[INFO] " fmt "\n", ##args)
 #define DEBUG_LOG(fmt, args...) fprintf(stdout, "[DEBUG] " fmt "\n", ##args)

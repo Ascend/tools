@@ -77,13 +77,13 @@ root@root:/home/aclruntime-aarch64# source  /usr/local/Ascend/ascend-toolkit/set
 
  ### Pure inference scenario. Fake data (all 0s) is constructed and fed to the model for inference.
 ```
-python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
+python3 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --outfmt BIN --loop 5
 ```
 
 ### Debug mode on
 Set the debug parameter to 1, true, and true to enable debugging mode.，The setting command is as follows:
 ```
-python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --debug=1
+python3 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --debug=1
 ```
 
 After the debugging mode is enabled, more printing information will be added as follows:
@@ -98,7 +98,7 @@ output:
 ```
 - Detailed reasoning time-consuming information
 ```
-[DEBUG] model aclExec const : 2.336000
+[DEBUG] model aclExec cost : 2.336000
 ```
 - Specific operation information such as model input and output
 
@@ -107,20 +107,20 @@ output:
  In this scenario, group batch will be performed according to the file input and the actual input of the model.
 
 ```
-python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
+python3 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin"
 
 ```
 
 Note that for dynamic grading or dynamic shape scenes, the group batch operation will be judged according to the actual size and input size of the actual model.
 ```
-python3.7.5 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
+python3 ais_infer.py --model ./resnet50_v1_dynamicbatchsize_fp32.om --input "./1.bin,./2.bin,./3.bin,./4.bin,./5.bin" --dymBatch 2
 ```
 
  ### Folder input scenario. Input is passed into the folder list, separated by commas.
  This scenario will be grouped according to file input and model input. Batch is obtained by comparing the model input size with the file input size.
 
 ```
-python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./"
+python3 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --input "./"
 
 ```
 
@@ -163,12 +163,12 @@ python3 ais_infer.py --model resnet50_v1_dynamicshape_fp32.om --input=./data/ --
 - profiler and dump can be used separately, but cannot be enabled at the same time
 
 ```bash
-python3.7.5 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
-python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --dump
-python3.7.5 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --profiler
+python3 ais_infer.py --model ./resnet50_v1_bs1_fp32.om --acl_json_path ./acl.json
+python3 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --dump
+python3 ais_infer.py  --model /home/model/resnet50_v1.om --output ./ --profiler
 ```
-### Result sumary function
-For the result output, this program adds sumary JSON file prints parameter values to facilitate summary statistics.
+### Result summary function
+For the result output, this program adds summary JSON file prints parameter values to facilitate summary statistics.
 The specific results are as follows:
 NPU_compute_time: total referencing call time
 H2D_latency: delay time from host to device during referencing
@@ -177,7 +177,7 @@ throughput: throughput. Calculation formula：1000 * batchsize/npu_compute_time.
 
 
 Print as follows:
-sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258, 'mean': 2.5239520602756076, 'median': 2.529621124267578, 'percentile(99%)': 2.585916519165039}, 'H2D_latency': {'min': 0.5118846893310547, 'max': 1.0373592376708984, 'mean': 0.6650818718804253, 'median': 0.6296634674072266, 'percentile(99%)': 1.0063838958740234}, 'D2H_latency': {'min': 0.027894973754882812, 'max': 0.05745887756347656, 'mean': 0.04508760240342882, 'median': 0.04744529724121094, 'percentile(99%)': 0.05671501159667969}, 'throughput': 396.2040387925606}
+summary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258, 'mean': 2.5239520602756076, 'median': 2.529621124267578, 'percentile(99%)': 2.585916519165039}, 'H2D_latency': {'min': 0.5118846893310547, 'max': 1.0373592376708984, 'mean': 0.6650818718804253, 'median': 0.6296634674072266, 'percentile(99%)': 1.0063838958740234}, 'D2H_latency': {'min': 0.027894973754882812, 'max': 0.05745887756347656, 'mean': 0.04508760240342882, 'median': 0.04744529724121094, 'percentile(99%)': 0.05671501159667969}, 'throughput': 396.2040387925606}
 
 ## Command Line Options
 
@@ -195,11 +195,12 @@ sumary:{'NPU_compute_time': {'min': 2.4385452270507812, 'max': 2.587556838989258
 | --dymHW  | (Optional) Dynamic image size parameter， specifies the actual image size of the model input. <br>If ATC model conversion settings --input_shape="data:8,3,-1,-1;img_info:8,4,-1,-1"  --dynamic_image_size="300,500;600,800" , the dymBatch parameter can be set to --dymHW 300,500.|
 | --dymDims| (Optional) Dynamic dimension parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape="data:1,-1;img_info:1,-1" --dynamic_dims="224,224;600,600" , the dymDims parameter can be set to --dymDims "data:1,600;img_info:1,600".|
 | --dymShape| (Optional) Dynamic shape parameter， specifies the actual shape of the model input. <br>If ATC model conversion settings --input_shape_range="input1:\[8\~20,3,5,-1\];input2:\[5,3\~9,10,-1\]" , the dymShape parameter can be set to --dymShape "input1:8,3,5,10;input2:5,3,10,10". <br>This parameter must be used with --input and --outputSize. |
+| --auto_set_dymshape_mode| (Optional)Automatically set shape mode, default false。<br>For the dynamic shape model, automatically set the shape parameters according to the information of the input file<br> --auto_set_dymshape_mode true"|
 | --outputSize| (Optional)Specify the output size of the model. If there are several outputs, set several values. <br>In the dynamic shape scenario, the output size of the acquired model may be 0. The user needs to estimate an appropriate value according to the input shape to apply for memory.<br>Example： --outputSize "10000,10000,10000".|
 | --batchsize | model batch size.            |
 | --pure_data_type | (Optional)Pure inference data type。Default "zero", can be set to "zero" or "random"。<br>When set to zero, all pure reasoning data are 0; When set to random, each legend data is a random integer between [0, 255]      |
 | --profiler | (Optional)profiler switch。either true or false. Defaults to false.<br>--Output parameter must be provided. The profiler data is in the profiler folder under the directory specified by the --output parameter. Cannot be true at the same time as --dump      |
 | --dump | (Optional)dump switch。either true or false. Defaults to false.<br>--Output parameter must be provided. Dump data is in the dump folder under the directory specified by the --output parameter. Cannot be true at the same time as --profiler      |
 | --acl_json_path | Acl json file. For profiling or dump scenarios.When this parameter is set, -dump and --profiler parameters are invalid. |
-| --infer_queue_count | Maximum number of data in inference queue. Default 20 |
+| --output_batchsize_axis | The batchsize axis of the output tensor，default 0. When saving the output result file, the cutting inference result is based on which axis. For example, if the batchsize is 2, it means that two input files are grouped to batch inference, and the batch dimension of the output result is on which axis. The default value is 0 axis, and 2 copies are cut according to 0 axis, but the output batch of some models is 1 axis, so this value should be set to 1. |
 | --help| Help information.                  |

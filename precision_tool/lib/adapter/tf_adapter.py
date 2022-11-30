@@ -130,6 +130,12 @@ class TfAdapter(object):
         elif self._is_fusion_switch(action):
             custom_op.parameter_map['fusion_switch_file'].s = tf.compat.as_bytes(FUSION_SWITCH_FILE)
             print("[PrecisionTool] Set fusion switch file: ", FUSION_SWITCH_FILE)
+        if self._is_prof(action):
+            custom_op.parameter_map["profiling_mode"].b = True
+            custom_op.parameter_map["profiling_options"].s = tf.compat.as_bytes('{"output":"%s",\
+                "storage_limit": "1000MB","training_trace":"on","l2":"on","hccl":"on","task_trace":"on",\
+                    "aicpu":"on","fp_point":"", "bp_point":"","aic_metrics":"PipeUtilization","msproftx":"on"}' % 
+                    cfg.PROFILING_DIR) 
         return custom_op
 
     def _init(self):
@@ -137,6 +143,7 @@ class TfAdapter(object):
         util.create_dir(cfg.NPU_OVERFLOW_DUMP_DIR)
         util.create_dir(cfg.DEFAULT_NPU_DUMP_DIR)
         util.create_dir(cfg.DEFAULT_NPU_GRAPH_DIR)
+        util.create_dir(cfg.PROFILING_DIR)
         self._set_dump_graph_flags()
 
     @staticmethod
@@ -171,4 +178,8 @@ class TfAdapter(object):
     @staticmethod
     def _is_fusion_switch(action):
         return ('fusion_switch' in action) if action is not None else False
+
+    @staticmethod
+    def _is_prof(action):
+        return ('prof' in action) if action is not None else False
 

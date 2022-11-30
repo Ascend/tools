@@ -59,6 +59,7 @@ NPU_DIR = os.path.join(DATA_ROOT_DIR, 'npu')
 DEFAULT_NPU_DIR = os.path.join(NPU_DIR, 'debug_0')
 DEFAULT_NPU_DUMP_DIR = os.path.join(DEFAULT_NPU_DIR, 'dump')
 DEFAULT_NPU_GRAPH_DIR = os.path.join(DEFAULT_NPU_DIR, 'graph')
+PROFILING_DIR = os.path.join(DEFAULT_NPU_DIR, 'prof')
 DEFAULT_OP_DEBUG_DIR = DEFAULT_NPU_DIR
 
 # npu overflow dir

@@ -14,6 +14,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "../../../out")
 set(CMAKE_CXX_FLAGS_DEBUG "-fPIC -O0 -g -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-fPIC -O2 -Wall")
 
+if (DEFINED ENV{CANN_PATH})
+    set(ENV{DDK_PATH} $ENV{CANN_PATH})
+    set(ENV{NPU_HOST_LIB} $ENV{CANN_PATH}/runtime/lib64/stub)
+    message("CANN_PATH: $ENV{CANN_PATH} set DDK_PATH: $ENV{DDK_PATH} NPU_HOST_LIB: $ENV{NPU_HOST_LIB}")
+endif()
+
 set(INC_PATH $ENV{DDK_PATH})
 
 if (NOT DEFINED ENV{DDK_PATH})
@@ -26,7 +32,7 @@ endif()
 set(LIB_PATH $ENV{NPU_HOST_LIB})
 
 if (NOT DEFINED ENV{NPU_HOST_LIB})
-    set(LIB_PATH "/usr/local/Ascend/acllib/lib64/stub/")
+    set(LIB_PATH "/usr/local/Ascend/runtime/lib64/stub/")
     message(STATUS "set default LIB_PATH: ${LIB_PATH}")
 else ()
     message(STATUS "env LIB_PATH: ${LIB_PATH}")
@@ -34,7 +40,7 @@ endif()
 
 # Header path
 include_directories(
-    ${INC_PATH}/acllib/include/
+    ${INC_PATH}/runtime/include/
     ../inc/
 )
 

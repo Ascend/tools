@@ -57,14 +57,14 @@ convert_dymbatch_om()
 
 main()
 {
-    SOC_VERSION="Ascend310"
-    PYTHON_COMMAND="python3.7"
-    TESTDATA_PATH=$CUR_PATH/testdata/
-    [ -d $TESTDATA_PATH ] || mkdir $TESTDATA_PATH
-    [ -d $TESTDATA_PATH/tmp ] || mkdir $TESTDATA_PATH/tmp/
+    SOC_VERSION=${1:-"Ascend310P3"}
+    PYTHON_COMMAND=${2:-"python3"}
+    TESTDATA_PATH=$CUR_PATH/testdata/bert/model
+    [ -d $TESTDATA_PATH ] || mkdir -p $TESTDATA_PATH
+    [ -d $TESTDATA_PATH/tmp ] || mkdir -p $TESTDATA_PATH/tmp/
 
     model_url="https://ascend-repo-modelzoo.obs.myhuaweicloud.com/model/ATC%20BERT_BASE_SQuAD1.1%28FP16%29%20from%20Tensorflow-Ascend310/zh/1.1/ATC%20BERT_BASE_SQuAD1.1%28FP16%29%20from%20Tensorflow-Ascend310.zip"
-    bert_pb_file="$TESTDATA_PATH/bert.pb"
+    bert_pb_file="$TESTDATA_PATH/pth_bert.pb"
     if [ ! -f $bert_pb_file ]; then
         try_download_url $model_url $TESTDATA_PATH/tmp/a.zip || { echo "donwload stubs failed";return 1; }
         unzip $TESTDATA_PATH/tmp/a.zip -d $TESTDATA_PATH/tmp/
@@ -77,9 +77,9 @@ main()
     mask_name="input_mask"
     seg_name="segment_ids"
 
-    staticbatch="1 2 4 8"
+    staticbatch="1 2 4 8 16"
     convert_staticbatch_om $bert_pb_file $input_tensor_name $SOC_VERSION "${staticbatch[*]}" || { echo "convert static om failed";return 1; }
-    dymbatch="1,2,4,8"
+    dymbatch="1,2,4,8,16"
     convert_dymbatch_om $bert_pb_file $input_tensor_name $SOC_VERSION $dymbatch || { echo "convert dymbatch om failed";return 1; }
 }
 

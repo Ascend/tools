@@ -14,6 +14,7 @@ from common import utils
 from common.utils import AccuracyCompareException
 
 DTYPE_MAP = {
+    tf.float16: np.float16,
     tf.float32: np.float32,
     tf.float64: np.float64,
     tf.int64: np.int64,

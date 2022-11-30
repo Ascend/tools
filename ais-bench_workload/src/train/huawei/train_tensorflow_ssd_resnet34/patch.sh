@@ -21,9 +21,9 @@ get_git_info(){
     if  [ "$branch_args" == "master" ];then
         branch="master"
         patch_file_name="master"
-        commitid="c632aabcdcd4ecc4ed482402b9f92cedaf92c998"
-        git_url="https://github.com/Ascend/modelzoo.git"
-        modelzoo_sub_dir="modelzoo/built-in/TensorFlow/Official/cv/detection/SSD-Resnet34_ID0048_for_TensorFlow"
+        commitid="ca293a6071e44f6286e9ef3c1415c9818c1dd7af"
+        git_url="https://github.com/Ascend/ModelZoo-TensorFlow.git"
+        modelzoo_sub_dir="ModelZoo-TensorFlow/TensorFlow/built-in/cv/detection/SSD-Resnet34_ID0048_for_TensorFlow"
     else
         echo "bad parameters : $1"
         return $ret_error

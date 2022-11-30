@@ -40,16 +40,22 @@ TensorContext::TensorContext()
     }
 }
 
-TensorContext::~TensorContext()
+APP_ERROR TensorContext::Finalize()
 {
     if (InitDeviceFlag_) {
         APP_ERROR ret = DeviceManager::GetInstance()->DestroyDevices();
         if (ret != APP_ERR_OK) {
             LogError << "DeviceManager DestroyDevices failed. ret=" << ret << std::endl;
-            return;
+            return ret;
         }
         InitDeviceFlag_ = false;
     }
+    return APP_ERR_OK;
+}
+
+TensorContext::~TensorContext()
+{
+    Finalize();
 }
 
 APP_ERROR TensorContext::SetContext(const uint32_t &deviceId)

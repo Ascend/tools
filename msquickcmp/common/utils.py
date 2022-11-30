@@ -8,11 +8,14 @@ HuaWei Technologies Co.,Ltd. All Rights Reserved © 2021
 """
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
 import enum
 import numpy as np
+
+from common.dynamic_argument_bean import DynamicArgumentEnum
 
 ACCURACY_COMPARISON_INVALID_PARAM_ERROR = 1
 ACCURACY_COMPARISON_INVALID_DATA_ERROR = 2
@@ -32,12 +35,15 @@ ACCURACY_COMPARISON_NOT_SUPPORT_ERROR = 15
 ACCURACY_COMPARISON_NET_OUTPUT_ERROR = 16
 ACCURACY_COMPARISON_INVALID_DEVICE_ERROR = 17
 MODEL_TYPE = ['.onnx', '.pb', '.om']
-DIM_PATTERN = "^[^,][0-9,]*$"
+DIM_PATTERN = r"^(-?[0-9]+)(,-?[0-9]+)*"
 MAX_DEVICE_ID = 255
 SEMICOLON = ";"
 COLON = ":"
 EQUAL = "="
 COMMA = ","
+DOT = "."
+ASCEND_BATCH_FIELD = "ascend_mbatch_batch_"
+BATCH_SCENARIO_OP_NAME = "{0}_ascend_mbatch_batch_{1}"
 
 
 class AccuracyCompareException(Exception):
@@ -291,7 +297,7 @@ def _check_colon_exist(input_shape):
 def _check_shape_number(input_shape_value):
     dim_pattern = re.compile(DIM_PATTERN)
     match = dim_pattern.match(input_shape_value)
-    if match is None:
+    if match.group() is not input_shape_value:
         print_error_log(get_shape_not_match_message(InputShapeError.VALUE_TYPE_NOT_MATCH, input_shape_value))
         raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
 
@@ -362,24 +368,6 @@ def parse_arg_value(values):
     return value_list
 
 
-def parse_input_shape(input_shape_str):
-    """
-    parse input shape with op name to map, like "Input:2,224,224,3"
-    param:
-    input_shape_str : str
-    return:
-    input_shape_map: dict
-    """
-    if not input_shape_str or input_shape_str == "":
-        return {}
-    input_shape_map = {}
-    for input_op_shape in input_shape_str.split(SEMICOLON):
-        op_name = input_op_shape.split(COLON)[0]
-        op_shape = parse_value_by_comma(input_op_shape.split(COLON)[1])
-        input_shape_map[op_name] = op_shape
-    return input_shape_map
-
-
 def parse_value_by_comma(value):
     """
     parse value by comma, like '1,2,4,8'
@@ -394,3 +382,43 @@ def parse_value_by_comma(value):
             print_error_log("please check your input shape.")
             raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
     return value_list
+
+
+def get_batch_index(dump_data_path):
+    for _, _, files in os.walk(dump_data_path):
+        for file_name in files:
+            if ASCEND_BATCH_FIELD in file_name:
+                return get_batch_index_from_name(file_name)
+    return ""
+
+
+def handle_ground_truth_files(om_parser, npu_dump_data_path, golden_dump_data_path):
+    _, scenario = om_parser.get_dynamic_scenario_info()
+    if scenario in [DynamicArgumentEnum.DYM_BATCH, DynamicArgumentEnum.DYM_DIMS]:
+        batch_index = get_batch_index(npu_dump_data_path)
+        for root, _, files in os.walk(golden_dump_data_path):
+            for file_name in files:
+                first_dot_index = file_name.find(DOT)
+                current_op_name = BATCH_SCENARIO_OP_NAME.format(file_name[:first_dot_index], batch_index)
+                dst_file_name = current_op_name + file_name[first_dot_index:]
+                shutil.copy(os.path.join(root, file_name), os.path.join(root, dst_file_name))
+
+
+def get_batch_index_from_name(name):
+    batch_index = ""
+    last_batch_field_index = name.rfind(ASCEND_BATCH_FIELD)
+    pos = last_batch_field_index + len(ASCEND_BATCH_FIELD)
+    while pos < len(name) and name[pos].isdigit():
+        batch_index += name[pos]
+        pos += 1
+    return batch_index
+
+
+def get_data_len_by_shape(shape):
+    data_len = 1
+    for item in shape:
+        if item is -1:
+            print_error_log("please check your input shape, one dim in shape is -1.")
+            return -1
+        data_len = data_len * item
+    return data_len

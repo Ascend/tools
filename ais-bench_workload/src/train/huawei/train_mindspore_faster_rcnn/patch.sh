@@ -24,6 +24,12 @@ get_git_info(){
         commitid="abc34438588942642e45e7cf1e516134952a2f86"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/cv/faster_rcnn"
+    elif [ "$branch_args" == "r1.9" ];then
+        branch="master"
+        patch_file_name="r1.9"
+        commitid="85ecbf257f70f7a5ff45640229c529a1c3690e97"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/cv/faster_rcnn"
     else
         echo "bad parameters : $1"
         return $ret_error
@@ -53,7 +59,7 @@ main(){
         make_patch || { echo "warn make patch failed"; return $ret_error; }
     elif [ "$patch_type" == "loadcode" ];then
         load_code || { echo "warn make patch failed"; return $ret_error; }
-        mkdir-p $CUR_PATH/doc
+        mkdir -p $CUR_PATH/doc
         mk_version_file $CUR_PATH/doc/version.txt
     else
         echo "null op"

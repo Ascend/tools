@@ -1,2 +1,3 @@
 numpy
 tqdm
+#git+https://github.com/Ascend/tools.git@develop#egg=aclruntime&subdirectory=ais-bench_workload/tool/ais_infer/backend

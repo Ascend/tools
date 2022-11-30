@@ -99,14 +99,14 @@ convert_dymdim_om()
 
 main()
 {
-    SOC_VERSION="Ascend310"
-    PYTHON_COMMAND="python3.7"
-    TESTDATA_PATH=$CUR_PATH/testdata/
-    [ -d $TESTDATA_PATH ] || mkdir $TESTDATA_PATH
-    [ -d $TESTDATA_PATH/tmp ] || mkdir $TESTDATA_PATH/tmp/
+    SOC_VERSION=${1:-"Ascend310P3"}
+    PYTHON_COMMAND=${2:-"python3"}
+    TESTDATA_PATH=$CUR_PATH/testdata/yolov3/model
+    [ -d $TESTDATA_PATH ] || mkdir -p $TESTDATA_PATH
+    [ -d $TESTDATA_PATH/tmp ] || mkdir -p $TESTDATA_PATH/tmp/
 
     model_url="https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/turing/resourcecenter/model/ATC%20Yolov3%20from%20Pytorch%20Ascend310/zh/1.1/ATC_Yolov3_from_Pytorch_Ascend310.zip"
-    yolo_onnx_file="$TESTDATA_PATH/yolov3.onnx"
+    yolo_onnx_file="$TESTDATA_PATH/pth_yolov3.onnx"
     if [ ! -f $yolo_onnx_file ]; then
         try_download_url $model_url $TESTDATA_PATH/tmp/a.zip || { echo "donwload stubs failed";return 1; }
         unzip $TESTDATA_PATH/tmp/a.zip -d $TESTDATA_PATH/tmp/
@@ -118,9 +118,9 @@ main()
     input_tensor_name="images"
     #out_nodes="Reshape_219:0;Reshape_203:0;Reshape_187:0"
 
-    staticbatch="1 2 4 8"
+    staticbatch="1 2 4 8 16"
     convert_staticbatch_om $yolo_onnx_file $SOC_VERSION "${staticbatch[*]}" $input_tensor_name || { echo "convert static om failed";return 1; }
-    dymbatch="1,2,4,8"
+    dymbatch="1,2,4,8,16"
     convert_dymbatch_om $yolo_onnx_file $SOC_VERSION $dymbatch $input_tensor_name || { echo "convert dymbatch om failed";return 1; }
     dymhw="224,224;448,448"
     convert_dymhw_om $yolo_onnx_file $SOC_VERSION $dymhw $input_tensor_name || { echo "convert dymhw om failed";return 1; }

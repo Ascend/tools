@@ -6,7 +6,7 @@ from pybind11 import get_cmake_dir
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 # The main interface is through Pybind11Extension.
 # * You can add cxx_std=11/14/17, and then build_ext can be removed.
@@ -25,8 +25,8 @@ def get_cann_path():
     atlas_nnae_path = "/usr/local/Ascend/nnae/latest/"
     atlas_toolkit_path = "/usr/local/Ascend/ascend-toolkit/latest/"
     hisi_fwk_path = "/usr/local/Ascend/"
-    check_file_path = "acllib/lib64/stub/libascendcl.so"
-    if os.path.exists(set_env_path+check_file_path):
+    check_file_path = "runtime/lib64/stub/libascendcl.so"
+    if os.path.exists(os.path.join(set_env_path,check_file_path)):
         cann_base_path = set_env_path
     elif os.path.exists(atlas_nnae_path+check_file_path):
         cann_base_path = atlas_nnae_path
@@ -69,10 +69,10 @@ ext_modules = [
             'python/include/',
             'base/include/',
             'base/include/Base/ModelInfer/',
-            cann_base_path + '/acllib/include',
+            cann_base_path + '/runtime/include',
         ],
         #library_dirs=['output/lib/',],
-        library_dirs=[ cann_base_path + '/acllib/lib64/stub/',],
+        library_dirs=[ cann_base_path + '/runtime/lib64/stub/',],
         
         extra_compile_args = ['--std=c++11', '-g3'],
 
@@ -85,8 +85,8 @@ ext_modules = [
 setup(
     name = "aclruntime",
     version=__version__,
-    author="lcm",
-    author_email="aclruntime@gmail.com",
+    author="ais_infer",
+    author_email="aclruntime",
     url="https://xxxxx",
     description="A test project using pybind11 and aclruntime",
     long_description="",

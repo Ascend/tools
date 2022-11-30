@@ -1,0 +1,71 @@
+diff -Nur origin/eval.py code/eval.py
+--- origin/eval.py	2022-09-21 10:05:25.304000000 +0800
++++ code/eval.py	2022-09-21 10:05:25.312000000 +0800
+@@ -123,8 +123,18 @@
+     eval_types = ["bbox"]
+     result_files = results2json(dataset_coco, outputs, "./results.pkl")
+ 
+-    coco_eval(config, result_files, eval_types, dataset_coco,
++    result = coco_eval(config, result_files, eval_types, dataset_coco,
+               single_result=False, plot_detect_result=True)
++    ACC_DIR = os.getenv("RESULT_PATH")
++    if ACC_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(ACC_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++        print("ACC_DIR:", ACC_DIR)
++        ACC_LOG = os.path.join(ACC_DIR, "eval_acc.log")
++        with open(ACC_LOG, 'w') as f:
++            f.write("{}".format(result))
+     print("\nEvaluation done!")
+ 
+ 
+diff -Nur origin/train.py code/train.py
+--- origin/train.py	2022-09-21 10:05:25.308000000 +0800
++++ code/train.py	2022-09-21 10:05:25.312000000 +0800
+@@ -35,6 +35,12 @@
+ from src.model_utils.config import config
+ from src.model_utils.moxing_adapter import moxing_wrapper
+ from src.model_utils.device_adapter import get_device_id
++try:
++   import ais_utils
++except ImportError:
++   ais_utils_is_existed = False
++else:
++   ais_utils_is_existed = True
+ 
+ 
+ def train_fasterrcnn_():
+@@ -225,8 +231,31 @@
+         cb += [eval_cb]
+ 
+     model = Model(net)
++    model.build(dataset, sink_size=dataset_size, epoch=config.epoch_size)
++
++    if ais_utils_is_existed:
++        start_time = ais_utils.get_datatime()
++    else:
++        start_time = time.time()
+     model.train(config.epoch_size, dataset, callbacks=cb)
++    all_data_sum = config.epoch_size * dataset.get_dataset_size() * config.batch_size
++    if ais_utils_is_existed:
++        end_time = ais_utils.get_datatime()
++        throughput_rate = ais_utils.calc_throughput_rate(all_data_sum, start_time, end_time)
++    else:
++        end_time = time.time()
++        throughput_rate = all_data_sum / (end_time - start_time)
+ 
++    rank_id = int(os.getenv('RANK_ID'))
++    THROUGHPUT_DIR = os.getenv("RESULT_PATH")
++    if THROUGHPUT_DIR is None:
++        print("Warning: The environment variable 'RESULT_PATH' is not set. ")
++    elif not os.path.isdir(THROUGHPUT_DIR):
++        print("Warning: The environment variable 'RESULT_PATH' is not a valid directory. ")
++    else:
++        THROUGHPUT_LOG = os.path.join(THROUGHPUT_DIR, "throughput_rank_{}".format(rank_id))
++        with open(THROUGHPUT_LOG, 'w') as f:
++            f.write("{}".format(throughput_rate))
+ 
+ if __name__ == '__main__':
+     set_seed(1)

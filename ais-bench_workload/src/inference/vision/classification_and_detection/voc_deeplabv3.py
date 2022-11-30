@@ -15,7 +15,7 @@ from yolo.yolo_caffe_preprocess import process
 
 class VOC(dataset.DataSet):
     def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416],
-                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True):
+                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True, tag=None):
         super(VOC, self).__init__(cache_path)
         self.image_list = []
         self.output_dir = "processed_data"
@@ -23,7 +23,10 @@ class VOC(dataset.DataSet):
             os.mkdir(self.output_dir)
         self.name_index_map = {}
         self.dataset_path = dataset_path
-
+        if tag is None:
+            self.tag = "deeplab"
+        else:
+            self.tag = tag
         self.seg_trainval_txt = os.path.join(self.dataset_path,"ImageSets/Segmentation/val.txt")
         with open(self.seg_trainval_txt,"r") as f:
             lines = f.readlines()

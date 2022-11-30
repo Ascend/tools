@@ -46,9 +46,9 @@ ext_modules = [
             './backend/built-in/inc',
             './backend/custom',
             './backend/custom/inc',
-            '/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023//acllib/include/',
+            '/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023/runtime/include/',
         ],
-        library_dirs=['/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023//acllib/lib64/',],
+        library_dirs=['/home/HwHiAiUser/Ascend/ascend-toolkit/20.10.0.B023/runtime/lib64/',],
         libraries=['ascendcl',],
         language='c++'
     ),

@@ -26,6 +26,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+namespace py = pybind11;
 #endif
 
 #include "Base/ModelInfer/SessionOptions.h"
@@ -44,6 +45,8 @@ public:
     
     std::vector<TensorBase> InferMap(std::vector<std::string>& output_names, std::map<std::string, TensorBase>& feeds);
     std::vector<TensorBase> InferVector(std::vector<std::string>& output_names, std::vector<TensorBase>& feeds);
+
+    std::vector<TensorBase> InferBaseTensorVector(std::vector<std::string>& output_names, std::vector<Base::BaseTensor>& feeds);
 
     std::vector<std::vector<uint64_t>> GetDynamicHW();
     std::vector<int64_t> GetDynamicBatch();
@@ -67,26 +70,25 @@ public:
     int SetDynamicShape(std::string dymshapeStr);
     int SetCustomOutTensorsSize(std::vector<int> customOutSize);
 
-    int InferVector_SetInputs(std::vector<TensorBase>& feeds);
-    int InferMap_SetInputs(std::map<std::string, TensorBase>& feeds);
-    int Infer_Execute(int loop);
-    std::vector<TensorBase> Infer_GetOutputs(std::vector<std::string>& output_names);
+    TensorBase CreateTensorFromFilesList(Base::TensorDesc &dstTensorDesc, std::vector<std::string>& filesList);
+
+    int Finalize();
 
     Base::ModelInferenceProcessor modelInfer_ = {};
 
 private:
     void Init(const std::string &modelPath, std::shared_ptr<SessionOptions> options);
+    int Destroy();
+
 private:
     uint32_t deviceId_ = 0;
     Base::ModelDesc modelDesc_ = {};
+    bool InitFlag_ = false;
 };
 }
 
 #ifdef COMPILE_PYTHON_MODULE
-    namespace py = pybind11;
-
     void RegistInferenceSession(py::module &m);
 #endif
 
 #endif
-

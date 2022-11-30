@@ -41,6 +41,20 @@ struct BaseTensor {
     std::vector<int64_t> shape;
     size_t size;
     size_t len;
+
+    BaseTensor() = default;
+
+    BaseTensor(int64_t buf, int64_t size)
+    {
+        this->buf = (void*)buf;
+        this->size = (size_t)size;
+    }
+
+    BaseTensor(void* buf, size_t size)
+    {
+        this->buf = buf;
+        this->size = size;
+    }
 };
 
 struct TensorDesc
@@ -151,6 +165,8 @@ public:
 
     APP_ERROR Inference(const std::map<std::string, TensorBase>& feeds, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
 
+    APP_ERROR Inference(const std::vector<BaseTensor>& feeds, std::vector<std::string> &outputNames, std::vector<TensorBase>& outputTensors);
+
     APP_ERROR ModelInference_Inner(std::vector<BaseTensor> &inputs, std::vector<std::string> outputNames, std::vector<TensorBase>& outputTensors);
 
     /**
@@ -170,12 +186,6 @@ public:
     APP_ERROR SetDynamicDims(std::string dymdimsStr);
     APP_ERROR SetDynamicShape(std::string dymshapeStr);
     APP_ERROR SetCustomOutTensorsSize(std::vector<int> customOutSize);
-
-    APP_ERROR Inference_SetInputs(const std::vector<TensorBase>& feeds);
-    APP_ERROR Inference_SetInputs(const std::map<std::string, TensorBase>& feeds);
-    APP_ERROR Inference_Execute();
-    APP_ERROR Inference_GetOutputs(std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors);
-
 private:
 
     APP_ERROR SetDynamicInfo();
@@ -190,7 +200,12 @@ private:
 
     APP_ERROR GetModelDescInfo();
     APP_ERROR DestroyInferCacheData();
+
     APP_ERROR SetInputsData(std::vector<BaseTensor> &inputs);
+    APP_ERROR Execute();
+    APP_ERROR GetOutputs(std::vector<std::string> outputNames, std::vector<TensorBase> &outputTensors);
+
+    APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<BaseTensor>& feeds, std::vector<BaseTensor> &inputs);
     APP_ERROR CheckInVectorAndFillBaseTensor(const std::vector<TensorBase>& feeds, std::vector<BaseTensor> &inputs);
     APP_ERROR CheckInMapAndFillBaseTensor(const std::map<std::string, TensorBase>& feeds, std::vector<BaseTensor> &inputs);
 
@@ -198,7 +213,7 @@ private:
     ModelDesc modelDesc_;
 
     InferSumaryInfo sumaryInfo_ = {};
-    ModelProcess processModel;
+    std::shared_ptr<ModelProcess> processModel;
     DynamicInfo dynamicInfo_ = {};
 
     size_t dynamicIndex_ = -1;

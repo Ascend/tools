@@ -2,7 +2,7 @@
 
 
 class Constant(object):
-    VERSION = "0.1.5"
+    VERSION = "0.1.7"
     NEW_LINE = "\n"
     TAB_LINE = "\t"
     DEFAULT_DEBUG_ID = "debug_0"
@@ -17,4 +17,3 @@ class Constant(object):
 
     class Pattern(object):
         GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'
-

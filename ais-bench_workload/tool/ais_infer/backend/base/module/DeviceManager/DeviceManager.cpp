@@ -63,13 +63,17 @@ APP_ERROR DeviceManager::InitDevices(std::string configFilePath)
     APP_ERROR ret = aclInit(aclJsonPath_.c_str());
     if (ret != APP_ERR_OK) {
         initCounter_ = 0;
-        LogError << "Failed to initialize all devices: " << GetAppErrCodeInfo(ret) << ".\n";
+        cout << aclGetRecentErrMsg() << endl;
+        ERROR_LOG("acl init failed");
         return ret;
     }
+    INFO_LOG("acl init success");
+
     ret = aclrtGetDeviceCount(&deviceCount_);
     if (ret != APP_ERR_OK) {
         initCounter_ = 0;
         aclFinalize();
+        cout << aclGetRecentErrMsg() << endl;
         LogError << "Failed to get all devices count: " << GetAppErrCodeInfo(ret) << ".\n";
         return ret;
     }
@@ -89,23 +93,31 @@ APP_ERROR DeviceManager::DestroyDevices()
     }
     initCounter_--;
     if (initCounter_ == 0) {
-        LogDebug << "DestroyDevices begin";
         for (auto item : contexts_) {
-            LogDebug << "destory device:" << item.first << std::endl;
             APP_ERROR ret = aclrtDestroyContext(item.second.get());
             if (ret != APP_ERR_OK) {
-                LogError << "aclrtDestroyContext failed. ret=" << ret << std::endl;
+                cout << aclGetRecentErrMsg() << endl;
+                ERROR_LOG("destroy context failed");
                 return ret;
             }
-            LogDebug << "aclrtDestroyContext successfully!" << std::endl;
+            INFO_LOG("end to destroy context");
+
+            ret = aclrtResetDevice(item.first);
+            if (ret != ACL_SUCCESS) {
+                cout << aclGetRecentErrMsg() << endl;
+                ERROR_LOG("reset device failed");
+            }
+            INFO_LOG("end to reset device is %d", item.first);
         }
+
         contexts_.clear();
         APP_ERROR ret = aclFinalize();
         if (ret != APP_ERR_OK) {
-            LogError << "Failed to release all devices: " << GetAppErrCodeInfo(ret) << "." << std::endl;
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("finalize acl failed");
             return ret;
         }
-        LogDebug << "DestroyDevices successfully" << std::endl;
+        INFO_LOG("end to finalize acl");
         return APP_ERR_OK;
     }
     if (initCounter_ > 0) {
@@ -137,6 +149,7 @@ APP_ERROR DeviceManager::GetCurrentDevice(DeviceContext& device)
     aclrtContext currentContext = nullptr;
     APP_ERROR ret = aclrtGetCurrentContext(&currentContext);
     if (ret != APP_ERR_OK) {
+        cout << aclGetRecentErrMsg() << endl;
         LogError << "aclrtGetCurrentContext failed. ret=" << ret << std::endl;
         return ret;
     }
@@ -167,10 +180,20 @@ APP_ERROR DeviceManager::SetDevice(DeviceContext device)
     std::lock_guard<std::mutex> lock(mtx_);
     auto deviceId = device.devId;
     if (contexts_.find(device.devId) == contexts_.end()) {
-        aclrtContext newContext = nullptr;
-        APP_ERROR ret = aclrtCreateContext(&newContext, device.devId);
+        // open device
+        APP_ERROR ret = aclrtSetDevice(device.devId);
         if (ret != APP_ERR_OK) {
-            LogError << "aclrtCreateContext failed. ret=" << ret << std::endl;
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("acl open device %d failed", device.devId);
+            return ret;
+        }
+        INFO_LOG("open device %d success", device.devId);
+
+        aclrtContext newContext = nullptr;
+        ret = aclrtCreateContext(&newContext, device.devId);
+        if (ret != APP_ERR_OK) {
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("acl create context failed");
             return ret;
         }
         std::shared_ptr<void> context(newContext, [] (void *c) {});
@@ -178,7 +201,8 @@ APP_ERROR DeviceManager::SetDevice(DeviceContext device)
     } else {
         APP_ERROR ret = aclrtSetCurrentContext(contexts_[deviceId].get());
         if (ret != APP_ERR_OK) {
-            LogError << "aclrtSetCurrentContext failed. ret=" << ret << std::endl;
+            cout << aclGetRecentErrMsg() << endl;
+            ERROR_LOG("acl set curcontext failed");
             return ret;
         }
     }

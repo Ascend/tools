@@ -127,9 +127,7 @@ class TestClass:
         outnames = [session.get_outputs()[0].name]
         feeds = {session.get_inputs()[0].name: tensor}
 
-        session.run_setinputs(feeds)
-        session.run_execute()
-        outputs = session.run_getoutputs(outnames)
+        outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
 
         for out in outputs:
@@ -152,9 +150,7 @@ class TestClass:
         outnames = [session.get_outputs()[0].name]
         feeds = [tensor]
 
-        session.run_setinputs(feeds)
-        session.run_execute()
-        outputs = session.run_getoutputs(outnames)
+        outputs = session.run(outnames, feeds)
         print("outputs:", outputs)
 
         for out in outputs:

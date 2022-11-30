@@ -112,6 +112,8 @@ def main():
         npu_dump = NpuDumpData(args, output_json_path)
         npu_dump_data_path, npu_net_output_data_path = npu_dump.generate_dump_data()
         expect_net_output_node = npu_dump.get_expect_output_name()
+        # if it's dynamic batch scenario, golden data files should be renamed
+        utils.handle_ground_truth_files(npu_dump.om_parser, npu_dump_data_path, golden_dump_data_path)
         # compare the entire network
         net_compare = NetCompare(npu_dump_data_path, golden_dump_data_path, output_json_path, args)
         net_compare.accuracy_network_compare()

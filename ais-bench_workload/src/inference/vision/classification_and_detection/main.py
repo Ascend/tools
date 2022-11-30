@@ -20,25 +20,25 @@ log = logging.getLogger("main")
 SUPPORTED_DATASETS = {
     "imagenet":
         (imagenet.Imagenet, utils.preprocess_img, imagenet.PostProcessCommon(offset=-1),
-        {"image_size": [224, 224]}),
+         {"image_size": [224, 224]}),
     "imagenet-resnet50":
         (imagenet_set.ImagenetSet, None, imagenet_set.PostProcess(offset=0),
-        {"image_size": [224, 224]}),
+         {"image_size": [224, 224]}),
     "imagenet-resnet101":
         (imagenet_set.ImagenetSet, None, imagenet_set.PostProcess(offset=0),
-        {"image_size": [224, 224]}),
+         {"image_size": [224, 224]}),
     "imagenet-inceptionv3":
         (imagenet_set.ImagenetSet, None, imagenet_set.PostProcess(offset=0),
-        {"image_size": [299, 299]}),
+         {"image_size": [299, 299]}),
     "imagenet-acl-vgg16":
         (imagenet.Imagenet, utils.preprocess_img, imagenet.PostProcessArgMax(offset=0),
-        {"image_size": [224, 224]}),
+         {"image_size": [224, 224]}),
     "coco-416-tf-yolov3":
         (coco.Coco, utils.pre_process_coco_tf_yolov3, coco.PostProcessCocoTf(),
-        {"image_size": [416, 416, 3], "use_label_map": True}),
+         {"image_size": [416, 416, 3], "use_label_map": True}),
     "coco-416-tf-yolov3-featuremap":
         (coco.Coco, utils.pre_process_coco_tf_yolov3, coco.PostProcessCocoTf_featuremap(),
-        {"image_size": [416, 416, 3], "use_label_map": True}),
+         {"image_size": [416, 416, 3], "use_label_map": True}),
     "voc2012-yolov3":
         (voc.VOC, None, voc.PostProcessCommon(), {"image_size": [416, 416, 3]}),
     "voc2012-deeplabv3":
@@ -102,20 +102,24 @@ SUPPORTED_PROFILES = {
     },
     "yolov3-caffe_voc2012": {
         "dataset_name": "voc2012-yolov3",
+        "tag": "yolo",
         "backend": "acl",
     },
     "deeplabv3-tf_voc2012": {
         "dataset_name": "voc2012-deeplabv3",
+        "tag": "deeplab",
         "backend": "acl",
     },
 
 }
+
 
 def check_positive(value):
     ivalue = int(value)
     if ivalue <= 0:
         raise argparse.ArgumentTypeError("%s is an invalid positive int value" % value)
     return ivalue
+
 
 def get_args():
     """Parse commandline."""
@@ -128,17 +132,16 @@ def get_args():
     parser.add_argument("--debug", action="store_true", help="debug, turn traces on")
     parser.add_argument("--device_id", type=int, default=0, help="specify the device_id to use for infering")
     parser.add_argument("--query_arrival_mode",
-        choices=["continuous", "periodic", "poison_distribute", "offline", "mixed"],
-        default="offline", help="query_arrival_mode")
+                        choices=["continuous", "periodic", "poison_distribute", "offline", "mixed"],
+                        default="offline", help="query_arrival_mode")
     parser.add_argument("--maxloadsamples_count", type=check_positive, default=None, help="dataset items to use")
     parser.add_argument('--count', type=check_positive, default=None,  help="positive integer, select dataset items count, default full data.")
     parser.add_argument("--dataset_list", help="path to the dataset list")
 
     parser.add_argument("--batchsize", default=1, type=int, help="max batch size in a single inference")
-    
+
     parser.add_argument("--dymBatch", type=int, default=0, help="dynamic batch size params  such as --dymBatch 2")
-    
-    
+
     parser.add_argument("--dymHW", type=str, default=None, help="dynamic image size param, such as --dymHW \"300,500\"")
     parser.add_argument("--dymDims", type=str, default=None, help="dynamic dims param, such as --dymDims \"data:1,600;img_info:1,600\"")
     parser.add_argument("--dymShape", type=str, help="dynamic hape param, such as --dymShape \"data:1,600;img_info:1,600\"")
@@ -155,6 +158,7 @@ def get_args():
             setattr(args, k, v)
     return args
 
+
 if __name__ == "__main__":
     args = get_args()
     print("begin args:", args)
@@ -162,14 +166,14 @@ if __name__ == "__main__":
     # dataset to use
     wanted_dataset, preproc, postproc, kwargs = SUPPORTED_DATASETS[args.dataset_name]
     datasets = wanted_dataset(dataset_path=args.dataset_path,
-                        image_list=args.dataset_list,
-                        data_format=args.data_format,
-                        pre_process=preproc,
-                        cache_path=args.cache_path,
-                        count=args.count,
-                        normalize=args.normalize,
-                        tag=args.tag,
-                        **kwargs)
+                              image_list=args.dataset_list,
+                              data_format=args.data_format,
+                              pre_process=preproc,
+                              cache_path=args.cache_path,
+                              count=args.count,
+                              normalize=args.normalize,
+                              tag=args.tag,
+                              **kwargs)
 
     # find backend
     backend = create_backend_instance(args.backend, args)

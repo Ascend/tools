@@ -12,7 +12,7 @@ from yolo.yolo_caffe_preprocess import process
 
 class VOC(dataset.DataSet):
     def __init__(self, dataset_path, image_list=None, name="None", image_size=[416, 416],
-                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True):
+                    data_format="NHWC", pre_process=None, count=None, cache_path=None, normalize=True, tag=None):
         super(VOC, self).__init__(cache_path)
         self.dataset_path = dataset_path
 
@@ -25,7 +25,10 @@ class VOC(dataset.DataSet):
 
         self.image_list = []
         self.image_size = []
-
+        if tag is None:
+            self.tag = "yolo"
+        else:
+            self.tag = tag
         # write voc_name file
         CLASSES = ('aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
                 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',

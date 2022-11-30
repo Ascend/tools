@@ -69,7 +69,9 @@ class OmParser(object):
 
     def _gen_operator_list(self):
         for graph in self.json_object.get(GRAPH_OBJECT):
-            if graph.get(NAME_OBJECT) in self.subgraph_name:
+            _, scenario = self.get_dynamic_scenario_info()
+            if graph.get(NAME_OBJECT) in self.subgraph_name and \
+                    scenario not in [DynamicArgumentEnum.DYM_BATCH, DynamicArgumentEnum.DYM_DIMS]:
                 continue
             for operator in graph.get(OP_OBJECT):
                 yield operator
@@ -176,13 +178,26 @@ class OmParser(object):
                 input_index += 1
         return net_output_info
 
-    def get_net_output_data_info(self):
+    def get_net_output_data_info(self, dump_data_path):
         """
         get_net_output_data_info
         """
+        net_output_list = []
         for operator in self._gen_operator_list():
             if NET_OUTPUT_OBJECT == operator.get(TYPE_OBJECT):
-                return self._parse_net_output_node_attr(operator)
+                net_output_list.append(operator)
+        if len(net_output_list) == 1:
+            return self._parse_net_output_node_attr(net_output_list[0])
+        # if it's dynamic batch scenario, the net output node should be identified by batch index
+        _, scenario = self.get_dynamic_scenario_info()
+        if scenario in [DynamicArgumentEnum.DYM_BATCH, DynamicArgumentEnum.DYM_DIMS]:
+            cur_batch_index = utils.get_batch_index(dump_data_path)
+            for operator in net_output_list:
+                batch_index_in_operator = utils.get_batch_index_from_name(operator.get(NAME_OBJECT))
+                if cur_batch_index == batch_index_in_operator:
+                    return self._parse_net_output_node_attr(operator)
+        utils.print_error_log("get npu output node info failed.")
+        raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
 
     def _is_input_shape_range(self):
         if ATTR_OBJECT not in self.json_object:
@@ -244,10 +259,9 @@ class OmParser(object):
                 value.append(item_sum * data_type_size)
         return value
 
-    def is_dynamic_scenario(self):
+    def get_dynamic_scenario_info(self):
         atc_cmd = self.get_atc_cmdline()
         for dym_arg in DynamicArgumentEnum:
             if dym_arg.value.atc_arg in atc_cmd:
-                return True
-        return False
-
+                return True, dym_arg
+        return False, None

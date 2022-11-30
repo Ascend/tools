@@ -10,8 +10,26 @@ QueryArrivalMode_map = {
     "mixed": loadgen.QueryArrivalMode.MIXED_MODE
 }
 
+
+class LoadgenInterface():
+    def __init__(self):
+        pass
+
+    def send_response(self, query_samples):
+        response = []
+        for i in range(len(query_samples)):
+            response.append(loadgen.QuerySampleResponse(query_samples[i].id, query_samples[i].index))
+        # 注意该函数必须要调用，否则测试会运行失败，需要告知loadgen已经处理好的样本的情况
+        loadgen.NotifyQuerySamplesComplete(response)
+
+
 def run_loadgen(datasets, backend, postproc, args):
-    if args.maxloadsamples_count == None:
+    run_loadgen_base(datasets, backend.predict_proc_func, postproc.post_proc_func, args)
+    backend.sumary()
+
+
+def run_loadgen_base(datasets, predict_proc, post_proc, args):
+    if args.maxloadsamples_count is None:
         maxloadsamples_count = datasets.get_samples_count
     else:
         maxloadsamples_count = args.maxloadsamples_count
@@ -33,8 +51,8 @@ def run_loadgen(datasets, backend, postproc, args):
     # 创建SUT设备
     params = loadgen.SUTParams()
     params.preProcessCb = datasets.pre_proc_func
-    params.predictProcessCb = backend.predict_proc_func
-    params.postProcessCb = postproc.post_proc_func
+    params.predictProcessCb = predict_proc
+    params.postProcessCb = post_proc
     params.flushQueries = datasets.flush_queries
     sut = loadgen.CreateSUT(params)
 
@@ -61,8 +79,6 @@ def run_loadgen(datasets, backend, postproc, args):
 
     # start test 启动测试
     loadgen.StartTest(sut, qsl, settings)
-
-    backend.sumary()
 
     # 销毁句柄
     loadgen.DestroyQSL(qsl)

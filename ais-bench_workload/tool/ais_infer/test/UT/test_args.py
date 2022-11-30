@@ -68,5 +68,5 @@ class TestClass:
 
         for out in outputs:
             out.to_host()
-        # sumary inference throughput
+        # summary inference throughput
         print(session.sumary())

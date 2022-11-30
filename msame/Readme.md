@@ -34,10 +34,10 @@ Set up an operating and development environment powered by Ascend AI Processor.
 **Set up the development environment and operating environment in advance, either on the same server or on separate servers.** 
 You can tweak the source code as needed in this step.
 
-Set environment variables. The following is an example only. Replace **/home/HwHiAiUser/Ascend/ascend-toolkit/latest** with the actual ACLlib installation path.
+Set environment variables. The following is an example only. Replace **/home/HwHiAiUser/Ascend/ascend-toolkit/latest** with the actual runtime installation path.
 
 **export DDK\_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest**
-**export NPU\_HOST\_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub**
+**export NPU\_HOST\_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/runtime/lib64/stub**
 
 Go to the **msame** directory:
 

@@ -51,7 +51,7 @@ cd $HOME/AscendProjects/tools/msquickcmp/
 ```
 export install_path=/home/HwHiAiUser/Ascend/ascend-toolkit/latest
 export DDK_PATH=${install_path}
-export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
+export NPU_HOST_LIB=${install_path}/runtime/lib64/stub
 ```
 
 3. 配置ATC工具环境变量
@@ -59,9 +59,9 @@ export NPU_HOST_LIB=${install_path}/acllib/lib64/stub
   （如下环境变量中${install_path}以软件包使用默认安装路径为例进行说明）
 
   ```
-  export PATH=/usr/local/python3.7.5/bin:${install_path}/atc/ccec_compiler/bin:${install_path}/atc/bin:$PATH
-  export PYTHONPATH=${install_path}/atc/python/site-packages:$PYTHONPATH
-  export LD_LIBRARY_PATH=${install_path}/atc/lib64:${install_path}/acllib/lib64:$LD_LIBRARY_PATH
+  export PATH=/usr/local/python3.7.5/bin:${install_path}/compiler/ccec_compiler/bin:${install_path}/compiler/bin:$PATH
+  export PYTHONPATH=${install_path}/compiler/python/site-packages:$PYTHONPATH
+  export LD_LIBRARY_PATH=${install_path}/compiler/lib64:${install_path}/runtime/lib64:$LD_LIBRARY_PATH
   export ASCEND_OPP_PATH=${install_path}/opp
   ```
 

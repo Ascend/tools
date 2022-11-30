@@ -18,6 +18,7 @@
 #include "acl/acl.h"
 #include "acl/ops/acl_dvpp.h"
 #include "Base/Log/Log.h"
+#include <sys/time.h>
 
 namespace Base {
 using MemeoryDataFreeFuncPointer = APP_ERROR (*)(void*);
@@ -34,21 +35,41 @@ APP_ERROR FreeFuncCFree(void* ptr)
     return APP_ERR_OK;
 }
 
+static MemorySummary g_MemorySummary;
+
+struct MemorySummary* GetMemorySummaryPtr()
+{
+    return &g_MemorySummary;
+}
+
 APP_ERROR MemoryHelper::Malloc(MemoryData& data)
 {
     APP_ERROR ret = APP_ERR_OK;
+    if (data.size == 0) {
+        data.ptrData = nullptr;
+        return APP_ERR_OK;
+    }
     switch (data.type) {
         case MemoryData::MEMORY_HOST:
             ret = aclrtMallocHost(&(data.ptrData), data.size);
             data.free = aclrtFreeHost;
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_DEVICE:
             ret = aclrtMalloc(&(data.ptrData), data.size, ACL_MEM_MALLOC_HUGE_FIRST);
             data.free = aclrtFree;
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_DVPP:
             ret = acldvppMalloc(&(data.ptrData), data.size);
             data.free = acldvppFree;
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
             data.ptrData = malloc(data.size);
@@ -83,6 +104,9 @@ APP_ERROR MemoryHelper::Malloc(MemoryData& data)
 
 APP_ERROR MemoryHelper::Free(MemoryData& data)
 {
+    if (data.size == 0 && data.ptrData == nullptr) {
+        return APP_ERR_OK;
+    }
     if (data.ptrData == nullptr) {
         LogError << GetError(APP_ERR_COMM_INVALID_POINTER)
                  << "Free failed, ptrData is nullptr.";
@@ -93,12 +117,21 @@ APP_ERROR MemoryHelper::Free(MemoryData& data)
     switch (data.type) {
         case MemoryData::MEMORY_HOST:
             ret = aclrtFreeHost(data.ptrData);
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_DEVICE:
             ret = aclrtFree(data.ptrData);
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_DVPP:
             ret = acldvppFree(data.ptrData);
+            if (ret != APP_ERR_OK) {
+                cout << aclGetRecentErrMsg() << endl;
+            }
             break;
         case MemoryData::MEMORY_HOST_MALLOC:
             free(data.ptrData);
@@ -131,6 +164,7 @@ APP_ERROR MemoryHelper::Memset(MemoryData& data, int32_t value, size_t count)
     }
     APP_ERROR ret = aclrtMemset(data.ptrData, data.size, value, count);
     if (ret != APP_ERR_OK) {
+        cout << aclGetRecentErrMsg() << endl;
         LogError << GetError(ret) << "Memset ptrData failed.";
     }
     return ret;
@@ -144,16 +178,28 @@ APP_ERROR MemoryHelper::Memcpy(MemoryData& dest, const MemoryData& src, size_t c
         return APP_ERR_COMM_INVALID_POINTER;
     }
     APP_ERROR ret = APP_ERR_OK;
+    struct timeval start = { 0 };
+    struct timeval end = { 0 };
+    float costTime;
     if (IsDeviceToHost(dest, src)) {
+        gettimeofday(&start, nullptr);
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_DEVICE_TO_HOST);
+        gettimeofday(&end, nullptr);
+        costTime = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+        g_MemorySummary.D2HTimeList.push_back(costTime);
     } else if (IsHostToHost(dest, src)) {
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_HOST_TO_HOST);
     } else if (IsDeviceToDevice(dest, src)) {
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_DEVICE_TO_DEVICE);
     } else if (IsHostToDevice(dest, src)) {
+        gettimeofday(&start, nullptr);
         ret = aclrtMemcpy(dest.ptrData, dest.size, src.ptrData, count, ACL_MEMCPY_HOST_TO_DEVICE);
+        gettimeofday(&end, nullptr);
+        costTime = 1000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000.000;
+        g_MemorySummary.H2DTimeList.push_back(costTime);
     }
     if (ret != APP_ERR_OK) {
+        cout << aclGetRecentErrMsg() << endl;
         LogError << GetError(ret) << "Memcpy ptrData failed.";
         return APP_ERR_ACL_BAD_COPY;
     }

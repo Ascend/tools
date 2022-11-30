@@ -11,7 +11,8 @@ import os
 from common import utils
 from common.utils import AccuracyCompareException
 
-ATC_FILE_PATH = "atc/bin/atc"
+ATC_FILE_PATH = "compiler/bin/atc"
+OLD_ATC_FILE_PATH = "atc/bin/atc"
 
 
 class AtcUtils(object):
@@ -37,7 +38,7 @@ class AtcUtils(object):
                 self.arguments.offline_model_path))
             raise AccuracyCompareException(utils.ACCURACY_COMPARISON_MODEL_TYPE_ERROR)
         utils.check_file_or_directory_path((os.path.realpath(self.arguments.cann_path)), True)
-        atc_command_file_path = os.path.join(self.arguments.cann_path, ATC_FILE_PATH)
+        atc_command_file_path = self.get_atc_path()
         utils.check_file_or_directory_path(atc_command_file_path)
         output_json_path = os.path.join(self.arguments.out_path, "model", model_name + ".json")
         # do the atc command to convert om to json
@@ -48,3 +49,10 @@ class AtcUtils(object):
         utils.execute_command(atc_cmd)
         utils.print_info_log("Complete model conversion to json %s." % output_json_path)
         return output_json_path
+
+    def get_atc_path(self):
+        atc_command_file_path = os.path.join(self.arguments.cann_path, ATC_FILE_PATH)
+        if os.path.exists(atc_command_file_path):
+            return atc_command_file_path
+        else:
+            return os.path.join(self.arguments.cann_path, OLD_ATC_FILE_PATH)

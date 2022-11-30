@@ -53,5 +53,5 @@ Ascend tools
 10. [tfdbg_ascend](./tfdbg_ascend)    
    **Tensorflow2.x dump tool**：This tool provides the data dump capability when Tensorflow2.x is running on the CPU/GPU platform.
 
-11. [pod_deploy_tool](https://github.com/Ascend/tools/tree/master/pod_deploy/pod_deploy_tool)  
-   **pod_deploy_tool**: This directory contains the local deployment container tool, which is used for locally deployed containers and supports the migration of FD.
+11. [intelligent_edge_tools](https://github.com/Ascend/tools/tree/master/intelligent_edge_tools)  
+   **pod_deploy_tool**: This directory contains the tools which apply to intelligent edge equipment.

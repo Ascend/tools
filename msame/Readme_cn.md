@@ -32,10 +32,12 @@
 **环境要求：已安装开发运行环境。**   
  
 设置环境变量  
-(如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的ACLlib安装包的实际安装路径。) 
+(如下为设置环境变量的示例，请将/home/HwHiAiUser/Ascend/ascend-toolkit/latest替换为Ascend 的runtime安装包的实际安装路径。) 
  
 **export DDK_PATH=/home/HwHiAiUser/Ascend/ascend-toolkit/latest**  
-**export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/acllib/lib64/stub**
+**export NPU_HOST_LIB=/home/HwHiAiUser/Ascend/ascend-toolkit/latest/runtime/lib64/stub**
+
+**注意**，在配置{NPU_HOST_LIB}环境变量时，需使用的"runtime/lib64/stub"目录下*.so库，确保在编译基于AscendCL接口的应用程序时，不依赖其他组件(例如Driver)的*.so库，编译成功后，运行应用程序时，系统回根据LD_LIBRARY_PATH环境变量查找，"Ascend-cann-toolkit安装目录/runtime/lib64"目录下的*.so库，同时会自动链接到所依赖的其他组件的*.so库。
 
 进入msame目录
 ```

@@ -44,4 +44,6 @@ ais-bench标准化性能测试软件,又称AI Server Benchmark软件，是根据
 | *resnet50_onnx*                     | *[ModelZoo-PyTorch_Resnet50_Pytorch_Infer_link](https://github.com/Ascend/ModelZoo-PyTorch/tree/master/ACL_PyTorch/built-in/cv/Resnet50_Pytorch_Infer)* |      |
 | *resnet101_onnx*                    | *[ModelZoo-PyTorch_Resnet101_Pytorch_Infer](https://github.com/Ascend/ModelZoo-PyTorch/tree/master/ACL_PyTorch/built-in/cv/Resnet101_Pytorch_Infer)* |      |
 | *inceptionv3_onnx*                  | *[ModelZoo-PyTorch_InceptionV3_for_Pytorch](https://github.com/Ascend/ModelZoo-PyTorch/tree/master/ACL_PyTorch/built-in/cv/InceptionV3_for_Pytorch)* |      |
+| *yolov3-caffe_voc2012*                  | *[yolov3_for_caffe](https://cowtransfer.com/s/6630ab0d898649)* |      |
+| *deeplabv3-tf_voc2012*                  | *[ModelZoo-TensorFlow_deepLabv3_for_tf](https://github.com/Ascend/ModelZoo-TensorFlow/tree/master/ACL_TensorFlow/built-in/cv/DeepLabv3_for_ACL)* |      |
 |                                     |                                                              |      |

@@ -139,17 +139,12 @@ session_config_v2 = ed({
     'framework_type': 'Ascend-Powered-Engine',
     'framework_version': 'mindspore_1.3.0-cann_5.0.2-py_3.7-euler_2.8.3-aarch64',
 
-    # 资源参数类型主要包括如下2个值 train_instance_type和pool_id
-    # 不设置pool_id 默认是公共池 设置了就是专属资源池
-    # 只设置pool_id 不设置train_instance_type 默认为专属资源池的默认类型
-    # train_instance_type 在程序打印中有提示的,请注意紧随“get valid train_instance_types：”之后的打印输出. 由modelarts.estimatorV2 类Estimator的接口get_train_instance_types（）查询而来。
-    # 请参见https://support.huaweicloud.com/sdkreference-modelarts/modelarts_04_0431.html 该链接指示获取方法。注意不同云环境查询的结果不同
-
-    # 专属资源池id 不是则为None
+    # pool_id不设置或者设置为None， 默认是公共资源池。 设置了就表示是专属资源池。在ModelArts管理控制台，单击左侧“专属资源池”，在专属资源池列表中可以查看专属资源池ID，类似poolc90f063b
     'pool_id' : None,
-    # 训练类型 如下为8卡 如果是专属资源池id设置，那么该类型需要设置为None
-    'train_instance_type': 'modelarts.kat1.8xlarge.public',
-    # 训练结点数
+    # 训练类型，默认8卡。train_instance_type 在程序打印中有提示的,请注意紧随“get valid train_instance_types：”之后的打印输出. 由modelarts.estimatorV2 类Estimator的接口get_train_instance_types（）查询而来。
+    # 请参见https://support.huaweicloud.com/sdkreference-modelarts/modelarts_04_0431.html 该链接指示获取方法。注意不同云环境查询的结果不同
+    'train_instance_type': 'modelarts.kat1.8xlarge',
+    # 训练节点数
     'train_instance_count': 1,
 
     # 云存储路径 默认为空

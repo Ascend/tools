@@ -24,6 +24,12 @@ get_git_info(){
         commitid="5a4ff4e3dc9bcb46dbb71b6b16fbadbb68c5e8dc"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/recommend/wide_and_deep"
+    elif  [ "$branch_args" == "r1.9" ];then
+        branch="master"
+        patch_file_name="r1.9"
+        commitid="948fe927641651e7a36103b96e96d8e86b4a5255"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/recommend/wide_and_deep"
     else
         echo "bad parameters : $1"
         return $ret_error
