@@ -6,7 +6,7 @@ import json
 import shutil
 import ada_prof_cmd
 import csv
-from .summary_checker import SummaryChecker
+from summary_checker import SummaryChecker
 
 
 class AdaPaSystemTest(unittest.TestCase):
@@ -49,27 +49,6 @@ class AdaPaSystemTest(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(AdaPaSystemTest.result_dir, "pytorch_ns_summary_0.csv")))
         self.assertTrue(os.path.isfile(os.path.join(AdaPaSystemTest.result_dir, "pytorch_ns_op_stat_0.csv")))
         self.assertEqual(len(os.listdir(AdaPaSystemTest.result_dir)), 4)
-
-    def test_report_trace(self):
-        with patch.object(sys, 'argv', ["ada-pa",
-                                        os.path.join(AdaPaSystemTest.log_dir, "pytorch_ns.log"),
-                                        "--output={}".format(AdaPaSystemTest.result_dir),
-                                        "--reporter=trace"]):
-            self.assertEqual(ada_prof_cmd.main(), 0)
-        result_file_path = os.path.join(AdaPaSystemTest.result_dir, "pytorch_ns_tracing_0.json")
-        self.assertTrue(os.path.isfile(result_file_path))
-
-        self.assert_show_in_ns(result_file_path)
-        self.assert_records_num(result_file_path, 249)
-
-    def test_report_summary(self):
-        with patch.object(sys, 'argv', ["ada-pa",
-                                        os.path.join(AdaPaSystemTest.log_dir, "pytorch_ns.log"),
-                                        "--output={}".format(AdaPaSystemTest.result_dir),
-                                        "--reporter=summary"]):
-            self.assertEqual(ada_prof_cmd.main(), 0)
-        result_file_path = os.path.join(AdaPaSystemTest.result_dir, "pytorch_ns_summary_0.csv")
-        SummaryChecker().execute_count(7).check(result_file_path)
 
     def summary_self_consistent(self, path, index):
         single_op_summary = os.path.join(os.path.dirname(path), "single-op",

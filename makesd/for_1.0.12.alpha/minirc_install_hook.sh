@@ -30,7 +30,7 @@ if [ ! -f /home/HwHiAiUser/${nnrt_package_file} ]; then
 exit 0
 fi
 
-echo y | /home/HwHiAiUser/${nnrt_package_file} --install --chip=Ascend310-minirc
+echo y | /home/HwHiAiUser/${nnrt_package_file} --install
 if [ \$? -eq 0 ]; then
 echo \"install ${nnrt_package_file} success\"
 rm -f /home/HwHiAiUser/${nnrt_package_file}

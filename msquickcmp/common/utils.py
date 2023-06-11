@@ -45,7 +45,6 @@ DOT = "."
 ASCEND_BATCH_FIELD = "ascend_mbatch_batch_"
 BATCH_SCENARIO_OP_NAME = "{0}_ascend_mbatch_batch_{1}"
 
-
 class AccuracyCompareException(Exception):
     """
     Class for Accuracy Compare Exception
@@ -277,7 +276,7 @@ def parse_input_shape(input_shape):
     tensor_list = input_shape.split(';')
     for tensor in tensor_list:
         _check_colon_exist(input_shape)
-        tensor_shape_list = tensor.split(':')
+        tensor_shape_list = tensor.rsplit(':', maxsplit=1)
         if len(tensor_shape_list) == 2:
             shape = tensor_shape_list[1]
             input_shapes[tensor_shape_list[0]] = shape.split(',')
@@ -297,7 +296,7 @@ def _check_colon_exist(input_shape):
 def _check_shape_number(input_shape_value):
     dim_pattern = re.compile(DIM_PATTERN)
     match = dim_pattern.match(input_shape_value)
-    if match.group() is not input_shape_value:
+    if not match or match.group() is not input_shape_value:
         print_error_log(get_shape_not_match_message(InputShapeError.VALUE_TYPE_NOT_MATCH, input_shape_value))
         raise AccuracyCompareException(ACCURACY_COMPARISON_INVALID_PARAM_ERROR)
 

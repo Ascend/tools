@@ -55,3 +55,6 @@ Ascend tools
 
 11. [intelligent_edge_tools](https://github.com/Ascend/tools/tree/master/intelligent_edge_tools)  
    **pod_deploy_tool**: This directory contains the tools which apply to intelligent edge equipment.
+
+12. [mindxedge_whitebox](https://github.com/Ascend/tools/tree/master/mindxedge_whitebox)  
+   **mindxedge_whitebox install tool**: This directory contains the tools which is whitebox installation of the Atlas 500 edge equipment.

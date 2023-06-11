@@ -1,226 +1,46 @@
-from platform import node
-import time
-from abc import abstractmethod
-
-import re
-
+#!/usr/bin/env python
+# coding=utf-8
+"""
+Function:
+This file mainly involves the common function.
+Copyright Information:
+Huawei Technologies Co., Ltd. All Rights Reserved © 2020
+"""
 from ms_interface import utils
 from ms_interface.constant import Constant
 
 
-class LogParser:
-    def __init__(self, collect_applog_path: str, collect_slog_path=None):
-        self.collect_compile_path = None
+class HostLogParser:
+    def __init__(self, collect_plog_path: str):
         self.ai_core_error_list = []
         self.kernel_name_list = []
         self.node_name_list = []
-        self.collect_applog_path = collect_applog_path
-        self.collect_slog_path = collect_slog_path
+        self.collect_plog_path = collect_plog_path
 
-    @abstractmethod
-    def get_op_info(self: any) -> tuple:
-        """
-        _get_op_info
-        """
-
-
-class DeviceLogParser(LogParser):
-    def _get_node_and_kernel_name_execute_command(self: any) -> any:
-        grep_cmd = ['grep', 'PrintErrorInfo:.*?aicore kernel execute failed',
-                    '-inrE', self.collect_applog_path]
-        status, data = utils.execute_command(grep_cmd)
-        if status != 0:
-            utils.print_error_log("Failed to execute command: %s." % " ".join(grep_cmd))
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        return data
-
-    @staticmethod
-    def _get_the_latest_aicerr_form_ret(ret: list, err_time: any) -> int:
-        max_i = -1
-        max_time_obj = None
-        for i, (time_str, _, _) in enumerate(ret):
-            time_obj = utils.strplogtime(time_str)
-            # 都找最迟的会找到同一个，加个条件时间要早于AICERROR时间，
-            # 前提host、device时间同步。否则去掉and前的条件。
-            if err_time >= time_obj and (
-                    max_time_obj is None or time_obj > max_time_obj):
-                max_time_obj = time_obj
-                max_i = i
-        if max_i == -1:
-            for i, (time_str, _, _) in enumerate(ret):
-                time_obj = utils.strplogtime(time_str)
-                if max_time_obj is None or time_obj > max_time_obj:
-                    max_time_obj = time_obj
-                    max_i = i
-        if max_i == -1:
-            utils.print_error_log("Failed to get node and kernel name.")
+    def _get_node_and_kernel_name(self: any) -> list:
+        # 获取kernel_name
+        kernel_name_cmd = ['grep', '\[AIC_INFO\] dev_func:', '-inrE', self.collect_plog_path]
+        kernel_name_regexp = r".+?dev_func:([a-zA-Z0-9_]{0,})"
+        kernel_name_ret = utils.get_inquire_result(kernel_name_cmd, kernel_name_regexp)
+        if not kernel_name_ret:
+            utils.print_error_log("Failed to get kernel name.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
-        return max_i
+        kernel_name_list = kernel_name_ret[0].split('__')
+        kernel_name = kernel_name_list[0]
 
-    def _get_node_and_kernel_name(self: any, dev_id: any, task_id: any,
-                                  stream_id: any, err_time: any) -> tuple:
-        data = self._get_node_and_kernel_name_execute_command()
-        regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device_id=\d+\s*,\s*stream_id=" \
-                 r"%s\s*.+?\s*task_id=%s\s*,\s*fault kernel_name=" \
-                 r"[-\d_]{0,}(\S+?),\s*func_name=(\S+)__kernel\d+" % (
-                     stream_id, task_id)
-        ret = re.findall(regexp, data, re.M | re.S)
-        if len(ret) == 0:
-            utils.print_warn_log(
-                "There is no node name and kernel name for dev id(%s) "
-                "task id(%s) stream id(%s) in plog."
-                % (dev_id, task_id, stream_id))
-            return '', ''
-
-        if len(ret) > 1:
-            max_i = self._get_the_latest_aicerr_form_ret(ret, err_time)
-            return ret[max_i][1:]
-        return ret[0][1:]
-
-    def get_op_info(self: any) -> tuple:
-        grep_cmd = ['grep', '<exception_print>TIME.*4060006', '-nr', '-A',
-                    '120', self.collect_slog_path]
-        status, data = utils.execute_command(grep_cmd)
-        if status != 0:
-            utils.print_error_log("Failed to execute command: %s." % " ".join(grep_cmd))
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        ret = re.findall(Constant.EXCEPTION_PATTERN, data, re.M | re.S)
-        if len(ret) == 0:
-            utils.print_info_log("No AIC_ERROR found.")
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        for device_aic_err in ret:
-            if len(device_aic_err) != Constant.AIC_ERROR_TUPLE_LEN:
-                utils.print_info_log("The AIC_ERROR is not complete.")
-                raise utils.AicErrException(
-                    Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-            log_time = device_aic_err[0]
-            dev_id = device_aic_err[1]
-            stream_id = device_aic_err[2]
-            task_id = device_aic_err[3]
-            err_time = utils.strplogtime(log_time)
-            node_name, kernel_name = self._get_node_and_kernel_name(
-                dev_id, task_id, stream_id, err_time)
-            if node_name == '' and kernel_name == '':
-                continue
-            self.ai_core_error_list.append(device_aic_err)
-            self.node_name_list.append(node_name)
-            self.kernel_name_list.append(kernel_name)
-        if len(self.ai_core_error_list) == 0:
-            utils.print_error_log(
-                "The AIC_ERROR of device does not match the host.")
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        return self.ai_core_error_list, self.node_name_list, self.kernel_name_list
-
-
-class HostLogParser(LogParser):
-    def _get_node_and_kernel_name_execute_command(self: any) -> any:
-        grep_cmd = ['grep', 'PrintErrorInfo:.*?aicore kernel execute failed',
-                    '-inrE', self.collect_applog_path]
-        status, data = utils.execute_command(grep_cmd)
-        if status != 0:
-            utils.print_error_log("Failed to execute command: %s." % " ".join(grep_cmd))
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        return data
-
-    @staticmethod
-    def _get_the_latest_aicerr_form_ret(ret: list, err_time: any) -> int:
-        max_i = -1
-        max_time_obj = None
-        for i, (time_str, _, _, _, _) in enumerate(ret):
-            time_obj = utils.strplogtime(time_str)
-            # 都找最迟的会找到同一个，加个条件时间要早于AICERROR时间，
-            # 前提host、device时间同步。否则去掉and前的条件。
-            if err_time >= time_obj and (
-                    max_time_obj is None or time_obj > max_time_obj):
-                max_time_obj = time_obj
-                max_i = i
-        if max_i == -1:
-            for i, (time_str, _, _, _, _) in enumerate(ret):
-                time_obj = utils.strplogtime(time_str)
-                if max_time_obj is None or time_obj > max_time_obj:
-                    max_time_obj = time_obj
-                    max_i = i
-        if max_i == -1:
-            utils.print_error_log("Failed to get node and kernel name.")
+        # 获取node_name、stream_id、task_id
+        node_name_cmd = ['grep', '\[AIC_INFO\] node_name:', '-inrE', self.collect_plog_path]
+        regexp = r".+?node_name:(.*?),.*stream_id:(\d+)\s*.+?\s*task_id:(\d+)\s*"
+        result = utils.get_inquire_result(node_name_cmd, regexp)
+        if not result:
+            utils.print_error_log("Failed to get node name, stream id and task id.")
             raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
-        return max_i
-
-    def _get_node_and_kernel_name(self: any, dev_id: any, err_time: any) -> tuple:
-        data = self._get_node_and_kernel_name_execute_command()
-        regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device_id=\d+\s*,\s*stream_id=" \
-                 r"(\d+)\s*.+?\s*task_id=(\d+)\s*,.*?fault kernel_name=" \
-                 r"[-\d_]{0,}(\S+?),\s*func_name=(\S+),"
-        ret = re.findall(regexp, data, re.M | re.S)
-        if len(ret) == 0:
-            utils.print_error_log(
-                "There is no node name and kernel name for dev id(%s) in plog."
-                % dev_id)
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-
-        if len(ret) > 1:
-            max_i = self._get_the_latest_aicerr_form_ret(ret, err_time)
-            result = ret[max_i][1:]
-        result = ret[0][1:]
-
-        kernel_name_list = result[3].split('_')
-        if "" in kernel_name_list:
-            kernel_name_list.remove("")
-        kernel_name_list = kernel_name_list[:-1]
-        kernel_name = '_'.join(kernel_name_list)
-
-        node_name = self._get_node_name_by_kernel_name(kernel_name)
-        result_list = list(result)
-        result_list[2] =  node_name
+        result_list = [''] * 4
+        result_list[0] = result[0][1]
+        result_list[1] = result[0][2]
+        result_list[2] = result[0][0]
         result_list[3] = kernel_name
         return result_list
-
-    def _get_node_name_by_kernel_name(self: any, kernel_name: any) -> str:
-        """
-        get node name by kernel name
-        :param kernel_name:
-        :return:  node_name  
-        """
-        node_name = ''
-        aic_info_cmd = ['grep', '-r',  '-C', '7',  "\[AIC_INFO\] dev_func:{}".format(kernel_name),
-                        self.collect_applog_path]
-        _, aic_info = utils.execute_command(aic_info_cmd)
-        aic_info_dev_func_regex = r"\[AIC_INFO\]\snode_name:(.*?),"
-        aic_info_dev_func_ret = re.findall(aic_info_dev_func_regex, aic_info)
-        if len(aic_info_dev_func_ret) == 0:
-            utils.print_warn_log("Failed to get node name by kernel name.")
-            return node_name
-        node_name = aic_info_dev_func_ret[0]
-        return node_name
-
-
-    def _get_air_error_execute_command(self):
-        grep_cmd = ['grep', 'PrintCoreErrorInfo:.*?there is an aicore error',
-                    '-inrE', self.collect_applog_path]
-        status, data = utils.execute_command(grep_cmd)
-        if status != 0:
-            utils.print_error_log("Failed to execute command: %s.Maybe rts break when report Core log to host." %
-                                  " ".join(grep_cmd))
-            raise utils.AicErrException(Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
-        return data
-
-    @staticmethod
-    def _get_aicerror_args(data):
-        regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\((\d+)\),.*?core id is (\d+),\s+error code = (\S+)," \
-                 r".*?pc start:\s(\S+),\scurrent:\s(\S+),\svec error info:\s(\S+),\smte error info:\s(\S+)," \
-                 r"\sifu error info:\s(\S+),\sccu error info:\s(\S+),\scube error info:\s(\S+)," \
-                 r"\sbiu error info:\s(\S+),\saic error mask:\s(\S+),\spara base:\s(\S+)."
-        ret = re.findall(regexp, data, re.M | re.S)
-        if len(ret) == 0:
-            utils.print_warn_log(
-                "aic error info does not match in  plog \"aicore kernel execute failed\"")
-            return None
-        return ret
 
     @staticmethod
     def _get_extra_info(aic_error):
@@ -239,18 +59,47 @@ class HostLogParser(LogParser):
         result += "VEC_ERR_INFO={}\n".format(aic_error[6])
         return result
 
+    
+    def _get_v300_error_code(self: any) -> list:
+        cmd = ['grep', 'The extend info: errcode:', '-nr', self.collect_plog_path]
+        regexp = r"\(([0-9xa-eA-E]+),\s*([0-9xa-eA-E]+),\s*([0-9xa-eA-E]+)\)"
+        ret = utils.get_inquire_result(cmd, regexp)
+        new_codes = []
+        for _, (code0, code1, code2) in enumerate(ret):
+            code0_int = utils.get_hexstr_value(code0)
+            code1_int = utils.get_hexstr_value(code1)
+            code1_int = code1_int << 64
+            code2_int = utils.get_hexstr_value(code2) 
+            code2_int = (((code2_int >> 32) << 17) & (code2_int & 0x1FFFF)) << 128
+            new_code = code0_int | code1_int | code2_int
+            new_codes.append(hex(new_code))
+        return new_codes
+
+
     def get_op_info(self: any) -> tuple:
-        data = self._get_air_error_execute_command()
-        ret = self._get_aicerror_args(data)
-        for aic_err in ret:
-            log_time = aic_err[0]
-            dev_id = aic_err[1]
-            err_time = utils.strplogtime(log_time)
-            stream_id, task_id, node_name, kernel_name = self._get_node_and_kernel_name(
-                dev_id, err_time)
+        aicore_err_cmd = ['grep', 'there is an aicore error|there is an .*aivec.* error exception', '-inrE', 
+                          self.collect_plog_path]
+        aicore_err_regexp = r"(\d+-\d+-\d+-\d+:\d+:\d+\.\d+\.\d+).+?device\(([a-zA-Z0-9\s,:]{1,})\),\s" \
+                            r"[a-zA-Z0-9\s,]{1,},\score id is (\d+),\s+error code = (\S+),.*?pc start:\s(\S+)," \
+                            r"\scurrent:\s(\S+),\svec error info:\s(\S+),\smte error info:\s(\S+)," \
+                            r"\sifu error info:\s(\S+),\sccu error info:\s(\S+),\scube error info:\s(\S+)," \
+                            r"\sbiu error info:\s(\S+),\saic error mask:\s(\S+),\spara base:\s(\S+)."
+        aic_err_ret = utils.get_inquire_result(aicore_err_cmd, aicore_err_regexp)
+        if not aic_err_ret:
+            utils.print_error_log("aic error info does not match in plog \"aicore error exception\"")
+            raise utils.AicErrException(Constant.MS_AICERR_FIND_DATA_ERROR)
+        if len(aic_err_ret) > 1:
+            utils.print_error_log("Find more than one aicore error, choose first one to analysis")
+            aic_err_ret = (aic_err_ret[0],)
+        new_codes = []
+        if aic_err_ret[0][3] == "0" or aic_err_ret[0][3] == "0x0":
+            new_codes = self._get_v300_error_code()
+        for aic_err in aic_err_ret:
+            stream_id, task_id, node_name, kernel_name = self._get_node_and_kernel_name()
+            extra_info = self._get_extra_info(aic_err)
             if node_name == '' and kernel_name == '':
                 continue
-
+            
             # 适配原开发过程中的device_aic_err
             device_aic_err = [None] * 9
             device_aic_err[0] = aic_err[0]  # err time
@@ -258,17 +107,15 @@ class HostLogParser(LogParser):
             device_aic_err[2] = stream_id  # stream id
             device_aic_err[3] = task_id  # task id
             device_aic_err[4] = aic_err[2]  # core id
-            device_aic_err[5] = aic_err[3]  # aic error code
+            if len(new_codes) > 0:
+                device_aic_err[5] = new_codes[0]  # aic error code
+            else:
+                device_aic_err[5] = aic_err[3]  # aic error code
             device_aic_err[6] = aic_err[4]  # start pc
-            device_aic_err[7] = self._get_extra_info(aic_err)  # extra_info
+            device_aic_err[7] = extra_info  # extra_info
             device_aic_err[8] = aic_err[5]  # current pc
 
             self.ai_core_error_list.append(device_aic_err)
             self.node_name_list.append(node_name)
             self.kernel_name_list.append(kernel_name)
-        if len(self.ai_core_error_list) == 0:
-            utils.print_error_log(
-                "The AIC_ERROR of device does not match the host.")
-            raise utils.AicErrException(
-                Constant.MS_AICERR_INVALID_SLOG_DATA_ERROR)
         return self.ai_core_error_list, self.node_name_list, self.kernel_name_list

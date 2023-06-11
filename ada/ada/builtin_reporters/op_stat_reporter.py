@@ -9,6 +9,7 @@ class OpStatisticReporter:
     """表格中的内容为：
     |op name|event|duration|
     """
+
     def __init__(self, pds: [ProfilingData]):
         self._pds = pds[:]
 
@@ -27,15 +28,6 @@ class OpStatisticReporter:
 
         如果对于event A、B、C三个event中，A与B，A与C都满足上述条件，且A-node_name is None，
         那么A-node_name取B和C中距离其较近的event的node-name(“较近的”这个定义就不展开了，应该是明确的吧？)
-
-        本函数的算法思路：
-        1. 按照start时间戳，对所有的event排序
-        2. 整个算法会从前向后遍历一次所有的event，不需要多次遍历
-        3. 遍历过程中，维护一个unfinished_events，表达截止到当前遍历的event为止，end > CURRENT_EVENT-start的所有遍历过的event
-        4. unfinished_events可以简单理解为一个有序list，以end时间戳排序
-        5. 遍历到一个有node_name的event时，将其加入到unfinished_events中
-        6. 遍历到一个无node_name的event时，如果unfinished_events为空，则无法判断此event的node_name
-        7. 遍历到一个无node_name的event时，如果unfinished_events不为空，则取其中第一个event的node_name
         """
         for pd in self._pds:
             threads_to_unfinished_events = defaultdict(list)
@@ -45,15 +37,18 @@ class OpStatisticReporter:
                 if event.node_name is not None:
                     unfinished_events.append(event)
                     continue
-
-                # remove all events finished
-                unfinished_events = list(filter(lambda ev: ev.end > event.start, unfinished_events))
-                if len(unfinished_events) == 0:
-                    print("WARNING: Drop a no name event {}, because can not find a top event for it".format(event))
-                    continue
-
-                unfinished_events.sort(key=lambda ev: ev.end)
-                event.node_name = unfinished_events[0].node_name
+                while len(unfinished_events) > 0:
+                    latest_event = unfinished_events[-1]
+                    if latest_event.end <= event.start:
+                        unfinished_events.pop()
+                        continue
+                    if latest_event.end < event.end:
+                        print("WARNING: Ignore event {}, time range overlapped with {}".format(event, latest_event))
+                        continue
+                    event.node_name = latest_event.node_name
+                    break
+                else:
+                    print("WARNING: Ignore a no name event {}, because can not find a top event for it".format(event))
         return self._pds
 
     def report(self, path):

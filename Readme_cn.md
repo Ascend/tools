@@ -57,6 +57,8 @@ Ascend tools，昇腾工具仓库。
 13. [saved_model2om](https://github.com/Ascend/tools/tree/master/saved_model2om)  
     **TensorFlow1.15 saved_model模型转om模型工具**：输入TensorFlow存储的saved_model模型，转换为pb模型，再转换为om模型
 
+14. [mindxedge_whitebox](https://github.com/Ascend/tools/tree/master/mindxedge_whitebox)  
+    **MindXEdge 白牌化安装工具**：支持Atlas500智能小站进行白牌化的首次安装，安装后设备将变为白牌化的设备
 #### 贡献
 
 欢迎参与贡献。更多详情，请参阅我们的[贡献者Wiki](./CONTRIBUTING.md)。

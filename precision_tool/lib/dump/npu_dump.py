@@ -102,6 +102,17 @@ class NpuDump(object):
         input_txt = ['NpuDumpInput:']
         output_txt = ['NpuDumpOutput:']
         for npu_dump_file in npu_dump_files:
+            if str(npu_dump_file.file_name).endswith(Constant.Suffix.CSV):
+                detail = util.read_csv(npu_dump_file.path)
+                input_txt.append(' -[%s]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                output_txt.append(' -[%s]%s' % (npu_dump_file.idx, npu_dump_file.file_name))
+                for item in detail:
+                    item_txt = '[Shape: %s] [Dtype: %s] [Max: %s] [Min: %s] [Mean: %s]' % (item[5], item[3], item[6], item[7], item[8])
+                    if item[0] == 'Input':
+                        input_txt.append('   └─ [green][%s][/green][yellow]%s[/yellow]' % (item[1], item_txt))
+                    elif item[0] == 'Output':
+                        output_txt.append('   └─ [green][%s][/green][yellow]%s[/yellow]' % (item[1], item_txt))
+                continue
             if npu_dump_file.type == 'input':
                 input_txt.append(' -[green][%s][/green] %s' % (npu_dump_file.idx, npu_dump_file.file_name))
                 input_txt.append('   └─ [yellow]%s[/yellow]' % util.gen_npy_info_txt(npu_dump_file.path))
@@ -123,7 +134,7 @@ class NpuDump(object):
         self.dump_files = util.list_npu_dump_files(sub_dir)
 
     def list_dump(self, dir_path, file_name):
-        """"""
+        """list dump"""
 
     @staticmethod
     def get_npu_dump_decode_files_by_name(file_name):
@@ -134,7 +145,11 @@ class NpuDump(object):
         """Get npu dump decode files by op"""
         dump_files = self.get_dump_files_by_op(op)
         result = {}
-        for dump_file in dump_files.values():
+        for dump_file_key in dump_files.keys():
+            dump_file = dump_files[dump_file_key]
+            if str(dump_file.file_name).endswith(Constant.Suffix.CSV):
+                result.update({dump_file_key: dump_file})
+                continue
             dump_decode_files = util.list_npu_dump_decode_files(self.decode_dir, dump_file.file_name)
             if len(dump_decode_files) == 0:
                 util.convert_dump_to_npy(dump_file.path, self.decode_dir)

@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0f\x64ump_data.proto\x12\x10toolkit.dumpdata\"\x95\x01\n\nOriginalOp\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x0coutput_index\x18\x02 \x01(\r\x12\x33\n\tdata_type\x18\x03 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x04 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\"\x14\n\x05Shape\x12\x0b\n\x03\x64im\x18\x01 \x03(\x04\"\xab\x02\n\x08OpOutput\x12\x33\n\tdata_type\x18\x01 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x02 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\x12&\n\x05shape\x18\x03 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x31\n\x0boriginal_op\x18\x04 \x01(\x0b\x32\x1c.toolkit.dumpdata.OriginalOp\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x0c\n\x04size\x18\x06 \x01(\x04\x12/\n\x0eoriginal_shape\x18\x07 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x12\n\nsub_format\x18\x08 \x01(\x05\"\xf7\x01\n\x07OpInput\x12\x33\n\tdata_type\x18\x01 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x02 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\x12&\n\x05shape\x18\x03 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x12\x0c\n\x04size\x18\x05 \x01(\x04\x12/\n\x0eoriginal_shape\x18\x06 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x12\n\nsub_format\x18\x07 \x01(\x05\"Y\n\x08OpBuffer\x12\x31\n\x0b\x62uffer_type\x18\x01 \x01(\x0e\x32\x1c.toolkit.dumpdata.BufferType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0c\n\x04size\x18\x03 \x01(\x04\"\xc1\x01\n\x08\x44umpData\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x11\n\tdump_time\x18\x02 \x01(\x04\x12*\n\x06output\x18\x03 \x03(\x0b\x32\x1a.toolkit.dumpdata.OpOutput\x12(\n\x05input\x18\x04 \x03(\x0b\x32\x19.toolkit.dumpdata.OpInput\x12*\n\x06\x62uffer\x18\x05 \x03(\x0b\x32\x1a.toolkit.dumpdata.OpBuffer\x12\x0f\n\x07op_name\x18\x06 \x01(\t*\xab\x03\n\x0eOutputDataType\x12\x10\n\x0c\x44T_UNDEFINED\x10\x00\x12\x0c\n\x08\x44T_FLOAT\x10\x01\x12\x0e\n\nDT_FLOAT16\x10\x02\x12\x0b\n\x07\x44T_INT8\x10\x03\x12\x0c\n\x08\x44T_UINT8\x10\x04\x12\x0c\n\x08\x44T_INT16\x10\x05\x12\r\n\tDT_UINT16\x10\x06\x12\x0c\n\x08\x44T_INT32\x10\x07\x12\x0c\n\x08\x44T_INT64\x10\x08\x12\r\n\tDT_UINT32\x10\t\x12\r\n\tDT_UINT64\x10\n\x12\x0b\n\x07\x44T_BOOL\x10\x0b\x12\r\n\tDT_DOUBLE\x10\x0c\x12\r\n\tDT_STRING\x10\r\x12\x14\n\x10\x44T_DUAL_SUB_INT8\x10\x0e\x12\x15\n\x11\x44T_DUAL_SUB_UINT8\x10\x0f\x12\x10\n\x0c\x44T_COMPLEX64\x10\x10\x12\x11\n\rDT_COMPLEX128\x10\x11\x12\x0c\n\x08\x44T_QINT8\x10\x12\x12\r\n\tDT_QINT16\x10\x13\x12\r\n\tDT_QINT32\x10\x14\x12\r\n\tDT_QUINT8\x10\x15\x12\x0e\n\nDT_QUINT16\x10\x16\x12\x0f\n\x0b\x44T_RESOURCE\x10\x17\x12\x11\n\rDT_STRING_REF\x10\x18\x12\x0b\n\x07\x44T_DUAL\x10\x19*\x82\x08\n\x0cOutputFormat\x12\x0f\n\x0b\x46ORMAT_NCHW\x10\x00\x12\x0f\n\x0b\x46ORMAT_NHWC\x10\x01\x12\r\n\tFORMAT_ND\x10\x02\x12\x12\n\x0e\x46ORMAT_NC1HWC0\x10\x03\x12\x14\n\x10\x46ORMAT_FRACTAL_Z\x10\x04\x12\x15\n\x11\x46ORMAT_NC1C0HWPAD\x10\x05\x12\x12\n\x0e\x46ORMAT_NHWC1C0\x10\x06\x12\x13\n\x0f\x46ORMAT_FSR_NCHW\x10\x07\x12\x19\n\x15\x46ORMAT_FRACTAL_DECONV\x10\x08\x12\x12\n\x0e\x46ORMAT_C1HWNC0\x10\t\x12#\n\x1f\x46ORMAT_FRACTAL_DECONV_TRANSPOSE\x10\n\x12)\n%FORMAT_FRACTAL_DECONV_SP_STRIDE_TRANS\x10\x0b\x12\x16\n\x12\x46ORMAT_NC1HWC0_C04\x10\x0c\x12\x18\n\x14\x46ORMAT_FRACTAL_Z_C04\x10\r\x12\x0f\n\x0b\x46ORMAT_CHWN\x10\x0e\x12*\n&FORMAT_FRACTAL_DECONV_SP_STRIDE8_TRANS\x10\x0f\x12\x0f\n\x0b\x46ORMAT_HWCN\x10\x10\x12\x16\n\x12\x46ORMAT_NC1KHKWHWC0\x10\x11\x12\x14\n\x10\x46ORMAT_BN_WEIGHT\x10\x12\x12\x16\n\x12\x46ORMAT_FILTER_HWCK\x10\x13\x12#\n\x1f\x46ORMAT_HASHTABLE_LOOKUP_LOOKUPS\x10\x14\x12 \n\x1c\x46ORMAT_HASHTABLE_LOOKUP_KEYS\x10\x15\x12!\n\x1d\x46ORMAT_HASHTABLE_LOOKUP_VALUE\x10\x16\x12\"\n\x1e\x46ORMAT_HASHTABLE_LOOKUP_OUTPUT\x10\x17\x12 \n\x1c\x46ORMAT_HASHTABLE_LOOKUP_HITS\x10\x18\x12\x14\n\x10\x46ORMAT_C1HWNCoC0\x10\x19\x12\r\n\tFORMAT_MD\x10\x1a\x12\x10\n\x0c\x46ORMAT_NDHWC\x10\x1b\x12\x15\n\x11\x46ORMAT_FRACTAL_ZZ\x10\x1c\x12\x15\n\x11\x46ORMAT_FRACTAL_NZ\x10\x1d\x12\x10\n\x0c\x46ORMAT_NCDHW\x10\x1e\x12\x10\n\x0c\x46ORMAT_DHWCN\x10\x1f\x12\x13\n\x0f\x46ORMAT_NDC1HWC0\x10 \x12\x17\n\x13\x46ORMAT_FRACTAL_Z_3D\x10!\x12\r\n\tFORMAT_CN\x10\"\x12\r\n\tFORMAT_NC\x10#\x12\x10\n\x0c\x46ORMAT_DHWNC\x10$\x12!\n\x1d\x46ORMAT_FRACTAL_Z_3D_TRANSPOSE\x10%\x12\x1a\n\x16\x46ORMAT_FRACTAL_ZN_LSTM\x10&\x12\x16\n\x12\x46ORMAT_FRACTAL_Z_G\x10\'\x12\x13\n\x0f\x46ORMAT_RESERVED\x10(\x12\x0f\n\nFORMAT_MAX\x10\xff\x01*\x14\n\nBufferType\x12\x06\n\x02L1\x10\x00\x62\x06proto3'
+  serialized_pb=b'\n\x0f\x64ump_data.proto\x12\x10toolkit.dumpdata\"\x95\x01\n\nOriginalOp\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x0coutput_index\x18\x02 \x01(\r\x12\x33\n\tdata_type\x18\x03 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x04 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\"\x14\n\x05Shape\x12\x0b\n\x03\x64im\x18\x01 \x03(\x04\".\n\x08\x44imRange\x12\x11\n\tdim_start\x18\x01 \x01(\x04\x12\x0f\n\x07\x64im_end\x18\x02 \x01(\x04\"\xfb\x02\n\x08OpOutput\x12\x33\n\tdata_type\x18\x01 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x02 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\x12&\n\x05shape\x18\x03 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x31\n\x0boriginal_op\x18\x04 \x01(\x0b\x32\x1c.toolkit.dumpdata.OriginalOp\x12\x0c\n\x04\x64\x61ta\x18\x05 \x01(\x0c\x12\x0c\n\x04size\x18\x06 \x01(\x04\x12/\n\x0eoriginal_shape\x18\x07 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x12\n\nsub_format\x18\x08 \x01(\x05\x12\x0f\n\x07\x61\x64\x64ress\x18\t \x01(\x04\x12-\n\tdim_range\x18\n \x03(\x0b\x32\x1a.toolkit.dumpdata.DimRange\x12\x0e\n\x06offset\x18\x0b \x01(\x04\"\x98\x02\n\x07OpInput\x12\x33\n\tdata_type\x18\x01 \x01(\x0e\x32 .toolkit.dumpdata.OutputDataType\x12.\n\x06\x66ormat\x18\x02 \x01(\x0e\x32\x1e.toolkit.dumpdata.OutputFormat\x12&\n\x05shape\x18\x03 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x12\x0c\n\x04size\x18\x05 \x01(\x04\x12/\n\x0eoriginal_shape\x18\x06 \x01(\x0b\x32\x17.toolkit.dumpdata.Shape\x12\x12\n\nsub_format\x18\x07 \x01(\x05\x12\x0f\n\x07\x61\x64\x64ress\x18\x08 \x01(\x04\x12\x0e\n\x06offset\x18\t \x01(\x04\"Y\n\x08OpBuffer\x12\x31\n\x0b\x62uffer_type\x18\x01 \x01(\x0e\x32\x1c.toolkit.dumpdata.BufferType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0c\n\x04size\x18\x03 \x01(\x04\"%\n\x06OpAttr\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"r\n\tWorkspace\x12\x33\n\x04type\x18\x01 \x01(\x0e\x32%.toolkit.dumpdata.Workspace.SpaceType\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12\x0c\n\x04size\x18\x03 \x01(\x04\"\x14\n\tSpaceType\x12\x07\n\x03LOG\x10\x00\"\x95\x02\n\x08\x44umpData\x12\x0f\n\x07version\x18\x01 \x01(\t\x12\x11\n\tdump_time\x18\x02 \x01(\x04\x12*\n\x06output\x18\x03 \x03(\x0b\x32\x1a.toolkit.dumpdata.OpOutput\x12(\n\x05input\x18\x04 \x03(\x0b\x32\x19.toolkit.dumpdata.OpInput\x12*\n\x06\x62uffer\x18\x05 \x03(\x0b\x32\x1a.toolkit.dumpdata.OpBuffer\x12\x0f\n\x07op_name\x18\x06 \x01(\t\x12&\n\x04\x61ttr\x18\x07 \x03(\x0b\x32\x18.toolkit.dumpdata.OpAttr\x12*\n\x05space\x18\x08 \x03(\x0b\x32\x1b.toolkit.dumpdata.Workspace*\xab\x03\n\x0eOutputDataType\x12\x10\n\x0c\x44T_UNDEFINED\x10\x00\x12\x0c\n\x08\x44T_FLOAT\x10\x01\x12\x0e\n\nDT_FLOAT16\x10\x02\x12\x0b\n\x07\x44T_INT8\x10\x03\x12\x0c\n\x08\x44T_UINT8\x10\x04\x12\x0c\n\x08\x44T_INT16\x10\x05\x12\r\n\tDT_UINT16\x10\x06\x12\x0c\n\x08\x44T_INT32\x10\x07\x12\x0c\n\x08\x44T_INT64\x10\x08\x12\r\n\tDT_UINT32\x10\t\x12\r\n\tDT_UINT64\x10\n\x12\x0b\n\x07\x44T_BOOL\x10\x0b\x12\r\n\tDT_DOUBLE\x10\x0c\x12\r\n\tDT_STRING\x10\r\x12\x14\n\x10\x44T_DUAL_SUB_INT8\x10\x0e\x12\x15\n\x11\x44T_DUAL_SUB_UINT8\x10\x0f\x12\x10\n\x0c\x44T_COMPLEX64\x10\x10\x12\x11\n\rDT_COMPLEX128\x10\x11\x12\x0c\n\x08\x44T_QINT8\x10\x12\x12\r\n\tDT_QINT16\x10\x13\x12\r\n\tDT_QINT32\x10\x14\x12\r\n\tDT_QUINT8\x10\x15\x12\x0e\n\nDT_QUINT16\x10\x16\x12\x0f\n\x0b\x44T_RESOURCE\x10\x17\x12\x11\n\rDT_STRING_REF\x10\x18\x12\x0b\n\x07\x44T_DUAL\x10\x19*\xf8\x08\n\x0cOutputFormat\x12\x0f\n\x0b\x46ORMAT_NCHW\x10\x00\x12\x0f\n\x0b\x46ORMAT_NHWC\x10\x01\x12\r\n\tFORMAT_ND\x10\x02\x12\x12\n\x0e\x46ORMAT_NC1HWC0\x10\x03\x12\x14\n\x10\x46ORMAT_FRACTAL_Z\x10\x04\x12\x15\n\x11\x46ORMAT_NC1C0HWPAD\x10\x05\x12\x12\n\x0e\x46ORMAT_NHWC1C0\x10\x06\x12\x13\n\x0f\x46ORMAT_FSR_NCHW\x10\x07\x12\x19\n\x15\x46ORMAT_FRACTAL_DECONV\x10\x08\x12\x12\n\x0e\x46ORMAT_C1HWNC0\x10\t\x12#\n\x1f\x46ORMAT_FRACTAL_DECONV_TRANSPOSE\x10\n\x12)\n%FORMAT_FRACTAL_DECONV_SP_STRIDE_TRANS\x10\x0b\x12\x16\n\x12\x46ORMAT_NC1HWC0_C04\x10\x0c\x12\x18\n\x14\x46ORMAT_FRACTAL_Z_C04\x10\r\x12\x0f\n\x0b\x46ORMAT_CHWN\x10\x0e\x12*\n&FORMAT_FRACTAL_DECONV_SP_STRIDE8_TRANS\x10\x0f\x12\x0f\n\x0b\x46ORMAT_HWCN\x10\x10\x12\x16\n\x12\x46ORMAT_NC1KHKWHWC0\x10\x11\x12\x14\n\x10\x46ORMAT_BN_WEIGHT\x10\x12\x12\x16\n\x12\x46ORMAT_FILTER_HWCK\x10\x13\x12#\n\x1f\x46ORMAT_HASHTABLE_LOOKUP_LOOKUPS\x10\x14\x12 \n\x1c\x46ORMAT_HASHTABLE_LOOKUP_KEYS\x10\x15\x12!\n\x1d\x46ORMAT_HASHTABLE_LOOKUP_VALUE\x10\x16\x12\"\n\x1e\x46ORMAT_HASHTABLE_LOOKUP_OUTPUT\x10\x17\x12 \n\x1c\x46ORMAT_HASHTABLE_LOOKUP_HITS\x10\x18\x12\x14\n\x10\x46ORMAT_C1HWNCoC0\x10\x19\x12\r\n\tFORMAT_MD\x10\x1a\x12\x10\n\x0c\x46ORMAT_NDHWC\x10\x1b\x12\x15\n\x11\x46ORMAT_FRACTAL_ZZ\x10\x1c\x12\x15\n\x11\x46ORMAT_FRACTAL_NZ\x10\x1d\x12\x10\n\x0c\x46ORMAT_NCDHW\x10\x1e\x12\x10\n\x0c\x46ORMAT_DHWCN\x10\x1f\x12\x13\n\x0f\x46ORMAT_NDC1HWC0\x10 \x12\x17\n\x13\x46ORMAT_FRACTAL_Z_3D\x10!\x12\r\n\tFORMAT_CN\x10\"\x12\r\n\tFORMAT_NC\x10#\x12\x10\n\x0c\x46ORMAT_DHWNC\x10$\x12!\n\x1d\x46ORMAT_FRACTAL_Z_3D_TRANSPOSE\x10%\x12\x1a\n\x16\x46ORMAT_FRACTAL_ZN_LSTM\x10&\x12\x16\n\x12\x46ORMAT_FRACTAL_Z_G\x10\'\x12\x13\n\x0f\x46ORMAT_RESERVED\x10(\x12\x0e\n\nFORMAT_ALL\x10)\x12\x0f\n\x0b\x46ORMAT_NULL\x10*\x12\x16\n\x12\x46ORMAT_ND_RNN_BIAS\x10+\x12\x19\n\x15\x46ORMAT_FRACTAL_ZN_RNN\x10,\x12\x0e\n\nFORMAT_YUV\x10-\x12\x10\n\x0c\x46ORMAT_YUV_A\x10.\x12\x0f\n\nFORMAT_MAX\x10\xff\x01*\x14\n\nBufferType\x12\x06\n\x02L1\x10\x00\x62\x06proto3'
 )
 
 _OUTPUTDATATYPE = _descriptor.EnumDescriptor(
@@ -163,8 +163,8 @@ _OUTPUTDATATYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1051,
-  serialized_end=1478,
+  serialized_start=1451,
+  serialized_end=1878,
 )
 _sym_db.RegisterEnumDescriptor(_OUTPUTDATATYPE)
 
@@ -382,15 +382,45 @@ _OUTPUTFORMAT = _descriptor.EnumDescriptor(
       type=None,
       create_key=_descriptor._internal_create_key),
     _descriptor.EnumValueDescriptor(
-      name='FORMAT_MAX', index=41, number=255,
+      name='FORMAT_ALL', index=41, number=41,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_NULL', index=42, number=42,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_ND_RNN_BIAS', index=43, number=43,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_FRACTAL_ZN_RNN', index=44, number=44,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_YUV', index=45, number=45,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_YUV_A', index=46, number=46,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='FORMAT_MAX', index=47, number=255,
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1481,
-  serialized_end=2507,
+  serialized_start=1881,
+  serialized_end=3025,
 )
 _sym_db.RegisterEnumDescriptor(_OUTPUTFORMAT)
 
@@ -410,8 +440,8 @@ _BUFFERTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=2509,
-  serialized_end=2529,
+  serialized_start=3027,
+  serialized_end=3047,
 )
 _sym_db.RegisterEnumDescriptor(_BUFFERTYPE)
 
@@ -483,9 +513,35 @@ FORMAT_FRACTAL_Z_3D_TRANSPOSE = 37
 FORMAT_FRACTAL_ZN_LSTM = 38
 FORMAT_FRACTAL_Z_G = 39
 FORMAT_RESERVED = 40
+FORMAT_ALL = 41
+FORMAT_NULL = 42
+FORMAT_ND_RNN_BIAS = 43
+FORMAT_FRACTAL_ZN_RNN = 44
+FORMAT_YUV = 45
+FORMAT_YUV_A = 46
 FORMAT_MAX = 255
 L1 = 0
 
+
+_WORKSPACE_SPACETYPE = _descriptor.EnumDescriptor(
+  name='SpaceType',
+  full_name='toolkit.dumpdata.Workspace.SpaceType',
+  filename=None,
+  file=DESCRIPTOR,
+  create_key=_descriptor._internal_create_key,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='LOG', index=0, number=0,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=1148,
+  serialized_end=1168,
+)
+_sym_db.RegisterEnumDescriptor(_WORKSPACE_SPACETYPE)
 
 
 _ORIGINALOP = _descriptor.Descriptor(
@@ -573,6 +629,45 @@ _SHAPE = _descriptor.Descriptor(
 )
 
 
+_DIMRANGE = _descriptor.Descriptor(
+  name='DimRange',
+  full_name='toolkit.dumpdata.DimRange',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='dim_start', full_name='toolkit.dumpdata.DimRange.dim_start', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='dim_end', full_name='toolkit.dumpdata.DimRange.dim_end', index=1,
+      number=2, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=211,
+  serialized_end=257,
+)
+
+
 _OPOUTPUT = _descriptor.Descriptor(
   name='OpOutput',
   full_name='toolkit.dumpdata.OpOutput',
@@ -637,6 +732,27 @@ _OPOUTPUT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='toolkit.dumpdata.OpOutput.address', index=8,
+      number=9, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='dim_range', full_name='toolkit.dumpdata.OpOutput.dim_range', index=9,
+      number=10, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='offset', full_name='toolkit.dumpdata.OpOutput.offset', index=10,
+      number=11, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -649,8 +765,8 @@ _OPOUTPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=212,
-  serialized_end=511,
+  serialized_start=260,
+  serialized_end=639,
 )
 
 
@@ -711,6 +827,20 @@ _OPINPUT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='address', full_name='toolkit.dumpdata.OpInput.address', index=7,
+      number=8, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='offset', full_name='toolkit.dumpdata.OpInput.offset', index=8,
+      number=9, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -723,8 +853,8 @@ _OPINPUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=514,
-  serialized_end=761,
+  serialized_start=642,
+  serialized_end=922,
 )
 
 
@@ -769,8 +899,94 @@ _OPBUFFER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=763,
-  serialized_end=852,
+  serialized_start=924,
+  serialized_end=1013,
+)
+
+
+_OPATTR = _descriptor.Descriptor(
+  name='OpAttr',
+  full_name='toolkit.dumpdata.OpAttr',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='toolkit.dumpdata.OpAttr.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='toolkit.dumpdata.OpAttr.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1015,
+  serialized_end=1052,
+)
+
+
+_WORKSPACE = _descriptor.Descriptor(
+  name='Workspace',
+  full_name='toolkit.dumpdata.Workspace',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='toolkit.dumpdata.Workspace.type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='data', full_name='toolkit.dumpdata.Workspace.data', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='size', full_name='toolkit.dumpdata.Workspace.size', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _WORKSPACE_SPACETYPE,
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1054,
+  serialized_end=1168,
 )
 
 
@@ -824,6 +1040,20 @@ _DUMPDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='attr', full_name='toolkit.dumpdata.DumpData.attr', index=6,
+      number=7, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='space', full_name='toolkit.dumpdata.DumpData.space', index=7,
+      number=8, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -836,8 +1066,8 @@ _DUMPDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=855,
-  serialized_end=1048,
+  serialized_start=1171,
+  serialized_end=1448,
 )
 
 _ORIGINALOP.fields_by_name['data_type'].enum_type = _OUTPUTDATATYPE
@@ -847,19 +1077,27 @@ _OPOUTPUT.fields_by_name['format'].enum_type = _OUTPUTFORMAT
 _OPOUTPUT.fields_by_name['shape'].message_type = _SHAPE
 _OPOUTPUT.fields_by_name['original_op'].message_type = _ORIGINALOP
 _OPOUTPUT.fields_by_name['original_shape'].message_type = _SHAPE
+_OPOUTPUT.fields_by_name['dim_range'].message_type = _DIMRANGE
 _OPINPUT.fields_by_name['data_type'].enum_type = _OUTPUTDATATYPE
 _OPINPUT.fields_by_name['format'].enum_type = _OUTPUTFORMAT
 _OPINPUT.fields_by_name['shape'].message_type = _SHAPE
 _OPINPUT.fields_by_name['original_shape'].message_type = _SHAPE
 _OPBUFFER.fields_by_name['buffer_type'].enum_type = _BUFFERTYPE
+_WORKSPACE.fields_by_name['type'].enum_type = _WORKSPACE_SPACETYPE
+_WORKSPACE_SPACETYPE.containing_type = _WORKSPACE
 _DUMPDATA.fields_by_name['output'].message_type = _OPOUTPUT
 _DUMPDATA.fields_by_name['input'].message_type = _OPINPUT
 _DUMPDATA.fields_by_name['buffer'].message_type = _OPBUFFER
+_DUMPDATA.fields_by_name['attr'].message_type = _OPATTR
+_DUMPDATA.fields_by_name['space'].message_type = _WORKSPACE
 DESCRIPTOR.message_types_by_name['OriginalOp'] = _ORIGINALOP
 DESCRIPTOR.message_types_by_name['Shape'] = _SHAPE
+DESCRIPTOR.message_types_by_name['DimRange'] = _DIMRANGE
 DESCRIPTOR.message_types_by_name['OpOutput'] = _OPOUTPUT
 DESCRIPTOR.message_types_by_name['OpInput'] = _OPINPUT
 DESCRIPTOR.message_types_by_name['OpBuffer'] = _OPBUFFER
+DESCRIPTOR.message_types_by_name['OpAttr'] = _OPATTR
+DESCRIPTOR.message_types_by_name['Workspace'] = _WORKSPACE
 DESCRIPTOR.message_types_by_name['DumpData'] = _DUMPDATA
 DESCRIPTOR.enum_types_by_name['OutputDataType'] = _OUTPUTDATATYPE
 DESCRIPTOR.enum_types_by_name['OutputFormat'] = _OUTPUTFORMAT
@@ -879,6 +1117,13 @@ Shape = _reflection.GeneratedProtocolMessageType('Shape', (_message.Message,), {
   # @@protoc_insertion_point(class_scope:toolkit.dumpdata.Shape)
   })
 _sym_db.RegisterMessage(Shape)
+
+DimRange = _reflection.GeneratedProtocolMessageType('DimRange', (_message.Message,), {
+  'DESCRIPTOR' : _DIMRANGE,
+  '__module__' : 'dump_data_pb2'
+  # @@protoc_insertion_point(class_scope:toolkit.dumpdata.DimRange)
+  })
+_sym_db.RegisterMessage(DimRange)
 
 OpOutput = _reflection.GeneratedProtocolMessageType('OpOutput', (_message.Message,), {
   'DESCRIPTOR' : _OPOUTPUT,
@@ -900,6 +1145,20 @@ OpBuffer = _reflection.GeneratedProtocolMessageType('OpBuffer', (_message.Messag
   # @@protoc_insertion_point(class_scope:toolkit.dumpdata.OpBuffer)
   })
 _sym_db.RegisterMessage(OpBuffer)
+
+OpAttr = _reflection.GeneratedProtocolMessageType('OpAttr', (_message.Message,), {
+  'DESCRIPTOR' : _OPATTR,
+  '__module__' : 'dump_data_pb2'
+  # @@protoc_insertion_point(class_scope:toolkit.dumpdata.OpAttr)
+  })
+_sym_db.RegisterMessage(OpAttr)
+
+Workspace = _reflection.GeneratedProtocolMessageType('Workspace', (_message.Message,), {
+  'DESCRIPTOR' : _WORKSPACE,
+  '__module__' : 'dump_data_pb2'
+  # @@protoc_insertion_point(class_scope:toolkit.dumpdata.Workspace)
+  })
+_sym_db.RegisterMessage(Workspace)
 
 DumpData = _reflection.GeneratedProtocolMessageType('DumpData', (_message.Message,), {
   'DESCRIPTOR' : _DUMPDATA,

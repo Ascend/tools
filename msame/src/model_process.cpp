@@ -1003,44 +1003,142 @@ void ModelProcess::DestroyOutput()
     (void)aclmdlDestroyDataset(output_);
     output_ = nullptr;
 }
+
+Result GetDescShape(const aclTensorDesc *desc, std::vector<int64_t>& shape)
+{
+    size_t dimNums = aclGetTensorDescNumDims(desc);
+    if (dimNums == ACL_UNKNOWN_RANK) {
+        WARN_LOG("GetDescDimsNum failed unknown rank");
+        return FAILED;
+    }
+    aclError ret;
+    for (size_t i = 0; i < dimNums; ++i) {
+        int64_t dim;
+        ret = aclGetTensorDescDimV2(desc, i, &dim);
+        if (ret != ACL_SUCCESS) {
+            WARN_LOG("GetDescDims i:%zu dimsNum:%zu failed ret:%d", i, dimNums, ret);
+            return FAILED;
+        }
+        shape.push_back(dim);
+    }
+    return SUCCESS;
+}
+
+Result GetDescShapeStr(const aclTensorDesc *desc, std::string &shapestr) {
+    std::vector<int64_t> shape;
+    Result result = GetDescShape(desc, shape);
+    if (result != SUCCESS) {
+        return FAILED;
+    }
+
+    for (int i = 0; i < shape.size(); i++) {
+        if (i == 0) {
+            shapestr +=  std::to_string(shape[i]);
+        } else {
+            shapestr += "x" + std::to_string(shape[i]);
+        }
+    }
+    return SUCCESS;
+}
+
+Result SaveTensorMemoryToFile(const aclTensorDesc *desc, std::string &prefixName)
+{
+    aclError ret;
+    aclFormat format = aclGetTensorDescFormat(desc);
+    aclDataType dtype = aclGetTensorDescType(desc);
+    std::string shapestr;
+    if (GetDescShapeStr(desc, shapestr) != SUCCESS){
+        WARN_LOG("exception_cb get shape failed continue");
+    }
+    void *devaddr = aclGetTensorDescAddress(desc);
+    size_t len = aclGetTensorDescSize(desc);
+    if (devaddr == nullptr || len == 0) {
+        WARN_LOG("exception_cb get failed addr:%p len:%zu", devaddr, len);
+        return FAILED;
+    }
+    void* hostaddr = nullptr;
+    ret = aclrtMallocHost(&hostaddr, len);
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        WARN_LOG("exception_cb MallocHost failed len:%zu ret:%d", len, ret);
+        return FAILED;
+    }
+    ret = aclrtMemcpy(hostaddr, len, devaddr, len, ACL_MEMCPY_DEVICE_TO_HOST);
+    if (ret != ACL_SUCCESS) {
+        cout << aclGetRecentErrMsg() << endl;
+        WARN_LOG("exception_cb aclMemcpy failed ret:%d hostaddr:%p devaddr:%zu len:%zu",
+            ret, hostaddr, devaddr, len);
+        return FAILED;
+    }
+    std::string fileName = prefixName + "_format_" + std::to_string(format) + "_dtype_" + std::to_string(dtype) + "_shape_" + shapestr + ".bin";
+    INFO_LOG("exception_cb hostaddr:%p devaddr:%p len:%d write to filename:%s",
+             hostaddr, devaddr, len, fileName.c_str());
+    ofstream outFile(fileName, ios::out | ios::binary);
+    outFile.write((char*)hostaddr, len);
+    return SUCCESS;
+}
+
 void callback(aclrtExceptionInfo *exceptionInfo)
 {
-    auto deviceId = aclrtGetDeviceIdFromExceptionInfo(exceptionInfo);
-    auto streamId = aclrtGetStreamIdFromExceptionInfo(exceptionInfo);
-    auto taskId = aclrtGetTaskIdFromExceptionInfo(exceptionInfo);
+    uint32_t deviceId = aclrtGetDeviceIdFromExceptionInfo(exceptionInfo);
+    if (deviceId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception deviceId failed");
+        return;
+    }
+    uint32_t streamId = aclrtGetStreamIdFromExceptionInfo(exceptionInfo);
+    if (streamId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception streamId failed");
+        return;
+    }
+    uint32_t taskId = aclrtGetTaskIdFromExceptionInfo(exceptionInfo);
+    if (taskId == 0xffffffff) {
+        WARN_LOG("exception_cb get exception taskId failed");
+        return;
+    }
 
     char opName[256];
     aclTensorDesc *inputDesc = nullptr;
     aclTensorDesc *outputDesc = nullptr;
     size_t inputCnt = 0;
     size_t outputCnt = 0;
-    aclmdlCreateAndGetOpDesc(deviceId, streamId, taskId, opName, 256, &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+    aclError ret = aclmdlCreateAndGetOpDesc(deviceId, streamId, taskId, opName, 256, \
+                    &inputDesc, &inputCnt, &outputDesc, &outputCnt);
+    if (ret != ACL_SUCCESS) {
+        WARN_LOG("exception_cb deviceId:%d streamId:%d taskId:%d failed:%d", deviceId, streamId, taskId, ret);
+        return;
+    }
+
     static int index = 0;
-    printf("lcm debug did: %d opname: %s incount:%d outcount:%d\n", deviceId, opName, inputCnt, outputCnt);
-    for (size_t i = 0;i<inputCnt;++i) {
+    INFO_LOG("exception_cb streamId:%d taskId:%d deviceId: %d opName:%s inputCnt:%d outputCnt:%d",
+        streamId, taskId, deviceId, opName, inputCnt, outputCnt);
+    for (size_t i = 0; i < inputCnt; ++i) {
         const aclTensorDesc *desc = aclGetTensorDescByIndex(inputDesc, i);
-        void *addr = aclGetTensorDescAddress(desc);
-        size_t len = aclGetTensorDescSize(desc);
-
-        void* outHostData = nullptr;
-        aclrtMallocHost(&outHostData, len);
-        aclrtMemcpy(outHostData, len, addr, len, ACL_MEMCPY_DEVICE_TO_HOST);
-
-        std::string filename = "exception_" + std::to_string(index) +"_input_" + std::to_string(i) + ".bin";
-        printf("lcm debug i: %d Cnt: %lld addr:%p haddr:%p len:%d filename:%s\n", i, inputCnt, outHostData, len, filename.c_str());
-        ofstream outFile(filename, ios::out | ios::binary);
-        outFile.write((char*)outHostData, len);
-        aclGetTensorDescFormat(desc);
+        std::string prefix_filename = "exception_cb_index_" + std::to_string(index) + \
+            "_input_" + std::to_string(i);
+        if (SaveTensorMemoryToFile(desc, prefix_filename) != SUCCESS) {
+            WARN_LOG("exception_cb input_%d save failed", i);
+            break;
+        }
+    }
+    for (size_t i = 0; i < outputCnt; ++i) {
+        const aclTensorDesc *desc = aclGetTensorDescByIndex(outputDesc, i);
+        std::string prefix_filename = "exception_cb_index_" + std::to_string(index) + \
+            "_output_" + std::to_string(i);
+        if (SaveTensorMemoryToFile(desc, prefix_filename) != SUCCESS){
+            WARN_LOG("exception_cb input_%d save failed", i);
+            break;
+        }
     }
     index++;
-    for (size_t i = 0;i<outputCnt;++i) {
-        const aclTensorDesc *desc = aclGetTensorDescByIndex(outputDesc, i);
-        aclGetTensorDescAddress(desc);
-        aclGetTensorDescFormat(desc);
-    }
     aclDestroyTensorDesc(inputDesc);
     aclDestroyTensorDesc(outputDesc);
 }
+
+void ModelProcess::SetExceptionCallBack()
+{
+    aclrtSetExceptionInfoCallback(callback);
+}
+
 Result ModelProcess::Execute()
 {
     aclrtSetExceptionInfoCallback(callback);

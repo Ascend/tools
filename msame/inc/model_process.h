@@ -190,6 +190,8 @@ public:
     */
     Result GetCurOutputDimsMul(size_t index,  std::vector<int64_t>& curOutputDimsMul);
 
+    void SetExceptionCallBack();
+
 private:
     uint32_t modelId_;
     bool loadFlag_; // model load flag

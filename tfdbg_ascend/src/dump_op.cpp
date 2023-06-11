@@ -12,6 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+#include <errno.h>
 #include <limits>
 
 #include "absl/algorithm/container.h"
@@ -95,8 +96,33 @@ void WriteTensor2Npy(tensorflow::Tensor tensor, std::string fname) {
   auto shape = tensor.shape().dim_sizes();
   int64_t num_elements = tensor.NumElements();
 
-  fp = fopen(fname.c_str(), "wb");
+  std::string realFileName = absl::StrCat(g_dumpConfig.dumpPath, fname);
+  fp = fopen(realFileName.c_str(), "wb");
+  if (fp <= 0) {
+    if (errno == ENAMETOOLONG) {
+        std::string hashValue = std::to_string(std::hash<std::string>{}(fname));
 
+        std::string mapItem = hashValue + ',' + fname + '\n';
+        std::string mappingFileName = absl::StrCat(g_dumpConfig.dumpPath, "mapping.csv");
+        FILE *fpMap = fopen(mappingFileName.c_str(), "a+");
+        if (fpMap <= 0) {
+          std::cout << "Create mapping file failed"<< std::endl;
+          return;
+        }
+        fwrite(mapItem.c_str(), sizeof(char), mapItem.length(), fpMap);
+        fclose(fpMap);
+
+        std::string newFileName = absl::StrCat(g_dumpConfig.dumpPath, hashValue);
+        fp = fopen(newFileName.c_str(), "wb");
+        if (fp <= 0) {
+          std::cout << "Create newfile failed, file name is: " << hashValue.c_str() << std::endl;
+          return;
+        }
+    } else {
+        std::cout << "Create file rawfailed, file name is: " << realFileName.c_str() <<"erron = " << errno << std::endl;
+        return;
+    }
+  }
   std::string header = AssembleNpyHeader(tensor);
 
   fseek(fp, 0, SEEK_SET);
@@ -132,8 +158,7 @@ class AscendDump : public OpKernel {
       std::string file_name = absl::StrCat(tensor_name, ".", nanos_uuid, ".npy");
       VLOG(1) << "Dump " << tensor_names_[i] << " to " << file_name;
       if (g_dumpConfig.dumpSwitch != 0) {
-        std::string real_file_name = absl::StrCat(g_dumpConfig.dumpPath, file_name);
-        WriteTensor2Npy(inputs[i], real_file_name);
+        WriteTensor2Npy(inputs[i], file_name);
       }
       VLOG(1) << tensor_names_[i] << " " << inputs[i].DebugString() << std::endl;
     }

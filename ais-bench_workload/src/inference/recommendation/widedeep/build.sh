@@ -24,8 +24,6 @@ copy_files()
     cp -rf $WORK_PATH/benchmark.sh $OUTPUT_PATH/
     cp ${WORK_PATH}/../../../common -r ${OUTPUT_PATH}/
     cp ${WORK_PATH}/../../core -r ${OUTPUT_PATH}/
-    cp ${WORK_PATH}/../../../../tool/ais_infer/ais_infer.py  ${OUTPUT_PATH}/
-    cp ${WORK_PATH}/../../../../tool/ais_infer/frontend -r ${OUTPUT_PATH}/
 }
 
 main(){

@@ -68,7 +68,7 @@ if __name__ == '__main__':
             print("[ERROR] file not exist", path_det_output2)
             break
         boxcnt = boxnum[0].astype(int)
-        if(boxcnt == 0):
+        if boxcnt == 0 or boxcnt > 1000000:
             det_results_str = ""
         else:
             j = 0

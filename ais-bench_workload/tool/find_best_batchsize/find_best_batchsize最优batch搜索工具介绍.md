@@ -3,7 +3,7 @@
 ## 介绍
 本文介绍AisBench推理工具中find_best_batchsize专项功能
 
-输入：原始模型文件，支持onnx、pb、prototx格式
+输入：原始模型文件，支持onnx、pb、prototx格式(仅在采用atc工具的模式下支持三种模型，采用aoe工具的模式只支持onnx)
 
 输出：最优的吞吐率，最优的batchsize序号
 
@@ -30,17 +30,24 @@
 ## 使用方法
 
  ### 运行指令
+ #### 1 使用atc生成om（--aoe_mode 0）
  onnx模型
 ```
-bash  ./find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx --input_shape_str actual_input_1:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 10
+bash  ./find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx --input_shape_str actual_input_1:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 10 --aoe_mode 0
 ```
 pb模型
 ```
-bash  ./find_best_batch.sh --model_path /home/lcm/tool/atc_bert_base_squad/save/model/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str "input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384" --soc_version "Ascend310" --max_batch_num 4
+bash  ./find_best_batch.sh --model_path /home/lcm/tool/atc_bert_base_squad/save/model/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str "input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384" --soc_version "Ascend310" --max_batch_num 4 --aoe_mode 0
 ```
 prototxt模型
 ```
-bash  ./find_best_batchsize.sh --model_path /home/lhb/model/resnet50.prototxt --weight_path /home/lhb/model/resnet50.caffemodel --input_shape_str data:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 4
+bash  ./find_best_batchsize.sh --model_path /home/lhb/model/resnet50.prototxt --weight_path /home/lhb/model/resnet50.caffemodel --input_shape_str data:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 4 --aoe_mode 0
+```
+ #### 2 使用aoe生成om（--aoe_mode 1）
+- 只支持onnx模型
+ onnx模型
+```
+bash  ./find_best_batchsize.sh --model_path /home/model/resnet50/resnet50.onnx --input_shape_str actual_input_1:batchsize,3,224,224 --soc_version Ascend310 --max_batch_num 10 --aoe_mode 1 --job_type 1
 ```
 
 ### 运行参数说明
@@ -55,6 +62,8 @@ bash  ./find_best_batchsize.sh --model_path /home/lhb/model/resnet50.prototxt --
 | --python_command | 搜索支持的python版本。默认取值python3.7      |
 | --loop_count   | 推理次数。可选参数。默认1000 |
 | --device_id   | 指定运行设备 [0,255]，可选参数，默认0 |
+| --aoe_mode |是否用aoe工具生成om模型，1为采用aoe，0为采用atc，默认1|
+| --job_type|aoe工具的调优方式，可取{1，2}，1对应子图调优, 2对应算子调优|
 | --help| 工具使用帮助信息                  |
 
 ### 执行结果

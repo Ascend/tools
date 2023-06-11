@@ -90,6 +90,12 @@ config.json tester服务器信息配置文件，位于性能测试软件包解�
 
 system.json 性能测试系统信息配置文件，位于性能测试软件包解压路径/code/system.json，主要填写ais-bench测试的运行环境系统信息，用于在完成性能测试后将运行环境系统信息作为测试结果的内容上报到tester服务器上。若无须上报测试结果，可不配置。
 
+#### 配置训练配置yaml文件
+对于训练模型训练参数由yaml配置文件，用户有自定义的训练参数修改需求时，用户可以修改相关的模型训练yaml文件。  
+比如B版芯片（Ascend910B）上，resnet50模型需要修改batch_size参数为240，用户可以直接修改：
++ 对于mindspore框架1.3版本，修改resnet50_imagenet2012_Acc_config.yaml
++ 对于mindspore框架1.3以上版本，修改resnet50_imagenet2012_Boost_config.yaml
+
 ### 运行测试
 
 完成配置文件配置后执行性能测试操作，本地测试命令如下：

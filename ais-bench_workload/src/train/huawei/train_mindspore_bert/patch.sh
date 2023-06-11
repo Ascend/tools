@@ -53,6 +53,12 @@ get_git_info(){
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/bert"
     elif [ "$branch_args" == "r1.8" ];then
+        branch="r1.8"
+        patch_file_name="r1.8"
+        commitid="e68e09de9e97eeccc0804bc5f43f764a7a2bdbee"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/nlp/bert"
+    elif [ "$branch_args" == "r1.8" ];then
         branch="master"
         patch_file_name="r1.8"
         commitid="b68b6bfa919465567d89bc7fdcf6d0e63967d5aa"
@@ -64,6 +70,18 @@ get_git_info(){
         commitid="5318681496ef9a37d337737325ad1b238ef75917"
         git_url="https://gitee.com/mindspore/models.git"
         modelzoo_sub_dir="models/official/nlp/bert"
+    elif [ "$branch_args" == "r1.10" ];then
+        branch="r1.10"
+        patch_file_name="r1.10"
+        commitid="8f7331e6a846e7c306dc8ac30313d9f07cf6ee98"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/nlp/bert"
+    elif [ "$branch_args" == "r2.0" ];then
+        branch="master"
+        patch_file_name="r2.0"
+        commitid="3dabda1268dc2768cc90f19a4b63066985f88da7"
+        git_url="https://gitee.com/mindspore/models.git"
+        modelzoo_sub_dir="models/official/nlp/Bert"
     else
         echo "bad parameters : $1"
         return $ret_error

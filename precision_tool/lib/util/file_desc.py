@@ -8,6 +8,7 @@ class FileDesc(object):
         self.dir_path = dir_path
         self.path = os.path.join(dir_path, file_name)
         self.timestamp = timestamp
+        self.idx = 0
         if self.timestamp == -1:
             self.timestamp = os.path.getmtime(self.path)
 

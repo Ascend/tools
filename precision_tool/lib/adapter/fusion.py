@@ -87,16 +87,21 @@ class Fusion(object):
         result_jsons = []
         with open(file_name, 'r') as f:
             txt = f.read()
-            sk = []
-            start = -1
-            for i in range(len(txt)):
-                if txt[i] == '{':
-                    sk.append('{')
-                if txt[i] == '}':
-                    sk.pop()
-                if len(sk) == 0:
-                    result_jsons.append(json.loads(txt[start+1: i+1]))
-                    start = i
+            try:
+                result_jsons = json.loads(txt)
+                if isinstance(result_jsons, dict):
+                    result_jsons = [result_jsons]
+            except ValueError:
+                sk = []
+                start = -1
+                for i in range(len(txt)):
+                    if txt[i] == '{':
+                        sk.append('{')
+                    if txt[i] == '}':
+                        sk.pop()
+                    if len(sk) == 0:
+                        result_jsons.append(json.loads(txt[start+1: i+1]))
+                        start = i
         return result_jsons
 
     @staticmethod

@@ -12,6 +12,7 @@ from lib.util.precision_tool_exception import PrecisionToolException
 from lib.util.util import util
 from lib.dump.tf_dump import TfDump
 from lib.adapter.msquickcmp_adapter import MsQuickCmpAdapter
+from lib.adapter.offline_om_adapter import OfflineOmAdapter
 from lib.config import config as cfg
 
 INTRODUCE_DOC = \
@@ -72,7 +73,10 @@ def _run_infer_adapter(output_path):
     :param output_path: msquickcmp output path
     :return: None
     """
-    adapter = MsQuickCmpAdapter(output_path)
+    if OfflineOmAdapter.validate(output_path):
+        adapter = OfflineOmAdapter(output_path)
+    else:
+        adapter = MsQuickCmpAdapter(output_path)
     adapter.run()
     _run_interactive_cli()
 

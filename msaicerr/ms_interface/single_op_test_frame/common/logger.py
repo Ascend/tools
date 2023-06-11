@@ -21,7 +21,7 @@ logger
 import sys
 import inspect
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # 'pylint: disable=too-few-public-methods
@@ -53,7 +53,7 @@ def log(level, file_name, line, msg):
     """
 
     def _get_time_str():
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+        return datetime.utcnow()
 
     print("[%s] %s [File \"%s\", line %d] %s" % (level, _get_time_str(), file_name, line, msg))
 
@@ -64,9 +64,9 @@ def log_warn(msg):
     :param msg: log msg
     :return: None
     """
-    WARN = "WARN"
+    warn = "WARN"
     caller = inspect.stack()[1]
-    log(WARN, caller.filename, caller.lineno, msg)
+    log(warn, caller.filename, caller.lineno, msg)
 
 
 def log_debug(msg):
@@ -75,11 +75,11 @@ def log_debug(msg):
     :param msg: log msg
     :return: None
     """
-    DEBUG = "DEBUG"
+    debug = "DEBUG"
     if Constant.LOG_LEVEL not in ("DEBUG",):
         return
     caller = inspect.stack()[1]
-    log(DEBUG, caller.filename, caller.lineno, msg)
+    log(debug, caller.filename, caller.lineno, msg)
 
 
 def log_info(msg):
@@ -88,11 +88,11 @@ def log_info(msg):
     :param msg: log msg
     :return: None
     """
-    INFO = "INFO"
+    info = "INFO"
     if Constant.LOG_LEVEL not in ("DEBUG", "INFO"):
         return
     caller = inspect.stack()[1]
-    log(INFO, caller.filename, caller.lineno, msg)
+    log(info, caller.filename, caller.lineno, msg)
 
 
 def log_err(msg, print_trace=False):
@@ -101,9 +101,9 @@ def log_err(msg, print_trace=False):
     :param msg: log msg
     :return: None
     """
-    ERROR = "ERROR"
+    error = "ERROR"
     caller = inspect.stack()[1]
-    log(ERROR, caller.filename, caller.lineno, msg)
+    log(error, caller.filename, caller.lineno, msg)
     if print_trace:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         trace_info = traceback.format_exception(exc_type, exc_value, exc_traceback)

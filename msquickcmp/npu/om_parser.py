@@ -8,12 +8,11 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2021
 """
 import itertools
 import json
-import numpy as np
 
-from common.dump_data import DumpData
+import numpy as np
 from common import utils
-from common.utils import AccuracyCompareException
 from common.dynamic_argument_bean import DynamicArgumentEnum
+from common.utils import AccuracyCompareException
 
 GRAPH_OBJECT = "graph"
 OP_OBJECT = "op"
@@ -68,13 +67,20 @@ class OmParser(object):
         return subgraph_name
 
     def _gen_operator_list(self):
+        _, scenario = self.get_dynamic_scenario_info()
         for graph in self.json_object.get(GRAPH_OBJECT):
-            _, scenario = self.get_dynamic_scenario_info()
             if graph.get(NAME_OBJECT) in self.subgraph_name and \
                     scenario not in [DynamicArgumentEnum.DYM_BATCH, DynamicArgumentEnum.DYM_DIMS]:
                 continue
             for operator in graph.get(OP_OBJECT):
                 yield operator
+
+    def _gen_operator_list_from_subgraph(self):
+        for graph in self.json_object.get(GRAPH_OBJECT):
+            if graph.get(NAME_OBJECT) in self.subgraph_name:
+                for operator in graph.get(OP_OBJECT):
+                    yield operator
+                return
 
     def get_shape_size(self):
         """
@@ -101,7 +107,8 @@ class OmParser(object):
                 try:
                     return json.load(input_file)
                 except Exception as load_input_file_except:
-                    print(str(load_input_file_except))
+                    utils.print_error_log('Load Json {} failed, {}'.format(
+                        json_file_path, str(load_input_file_except)))
                     raise AccuracyCompareException(utils.ACCURACY_COMPARISON_PARSER_JSON_FILE_ERROR)
         except IOError as input_file_open_except:
             utils.print_error_log('Failed to open"' + json_file_path + '", ' + str(input_file_open_except))
@@ -121,7 +128,12 @@ class OmParser(object):
         Get net output count
         """
         count = 0
-        for operator in self._gen_operator_list():
+        is_dynamic_scenario, dym_arg = self.get_dynamic_scenario_info()
+        if not is_dynamic_scenario or dym_arg is DynamicArgumentEnum.DYM_SHAPE:
+            op_iterator = self._gen_operator_list()
+        else:
+            op_iterator = self._gen_operator_list_from_subgraph()
+        for operator in op_iterator:
             if NET_OUTPUT_OBJECT == operator.get(TYPE_OBJECT) and INPUT_DESC_OBJECT in operator:
                 count += len(operator.get(INPUT_DESC_OBJECT))
         return count
@@ -172,6 +184,10 @@ class OmParser(object):
             for input_object in operator.get(INPUT_DESC_OBJECT):
                 shape = []
                 data_type = DTYPE_MAP.get(input_object.get(DTYPE_OBJECT))
+                if not input_object.get(SHAPE_OBJECT):
+                    # no shape info, assumed to be scalar
+                    net_output_info[input_index] = [data_type, [1]]
+                    continue
                 for num in input_object.get(SHAPE_OBJECT).get(DIM_OBJECT):
                     shape.append(num)
                 net_output_info[input_index] = [data_type, shape]
@@ -209,6 +225,18 @@ class OmParser(object):
                         return True
         return False
 
+    def _get_shape_list(self, list_list_int_object, shape_list):
+        if LIST_LIST_I_OBJECT in list_list_int_object:
+            for list_list_i in list_list_int_object.get(LIST_LIST_I_OBJECT):
+                if LIST_I_OBJECT in list_list_i:
+                    list_i = list_list_i.get(LIST_I_OBJECT)
+                    if -1 in list_i:
+                        self.contain_negative_1 = True
+                        return
+                    if len(list_i) != 2:
+                        continue
+                    shape_list.append(list(range(list_i[0], list_i[1] + 1)))
+
     def _get_range_shape_size_list(self, input_object):
         range_shape_size_list = []
         if ATTR_OBJECT not in input_object:
@@ -218,16 +246,9 @@ class OmParser(object):
             if KEY_OBJECT in attr and attr.get(KEY_OBJECT) == SHAPE_RANGE_OBJECT:
                 if VALUE_OBJECT in attr and attr.get(VALUE_OBJECT) and LIST_LIST_INT_OBJECT in attr.get(VALUE_OBJECT):
                     list_list_int_object = attr.get(VALUE_OBJECT).get(LIST_LIST_INT_OBJECT)
-                    if LIST_LIST_I_OBJECT in list_list_int_object:
-                        for list_list_i in list_list_int_object.get(LIST_LIST_I_OBJECT):
-                            if LIST_I_OBJECT in list_list_i:
-                                list_i = list_list_i.get(LIST_I_OBJECT)
-                                if -1 in list_i:
-                                    self.contain_negative_1 = True
-                                    return []
-                                if len(list_i) != 2:
-                                    continue
-                                shape_list.append(list(range(list_i[0], list_i[1] + 1)))
+                    self._get_shape_list(list_list_int_object, shape_list)
+                    if self.contain_negative_1:
+                        return []
         shape_list_all = list(itertools.product(*shape_list))
         for item in shape_list_all:
             item_sum = 1

@@ -8,8 +8,8 @@ Huawei Technologies Co., Ltd. All Rights Reserved © 2020
 """
 
 import re
-from typing import List
 from ms_interface import utils
+import struct
 from ms_interface.constant import Constant
 
 
@@ -17,10 +17,11 @@ class AicErrorInfo:
     """
     AI core Error info
     """
+
     def __init__(self: any) -> None:
         self.dev_id = ""
         self.core_id = ""
-        self.aic_error = ""
+        self.aic_error = ""  # err_code
         self.aicerror_bit = []  # [1,2,3...]
         self.task_id = ""
         self.stream_id = ""
@@ -28,174 +29,215 @@ class AicErrorInfo:
         self.kernel_name = ""
         self.start_pc = ""
         self.current_pc = ""
-        self.input_output_addrs = []  # [OpInputOutput]
         self.instr = ""
         self.operator = ""
         self.extra_info = ""
         self.err_time_obj = None
         self.err_time = ""
-        self.addr_overflow = []
         self.ifu_err_type = ""
         self.mte_err_type = ""
         self.args_num_in_json = None
-        self.op_addr = ""
-        self.args_addr = ""
-        self.multi_args_addr = False
         self.dump_info = ""
         self.aval_addrs = []
         self.necessary_addr = {}
-
-        self.ifu_key = "IFU_ERR_INFO"
-        self.ccu_key = "CCU_ERR_INFO"
-        self.biu_key = "BIU_ERR_INFO"
-        self.cube_key = "CUBE_ERR_INFO"
-        self.mte_key = "MTE_ERR_INFO"
-        self.vec_key = "VEC_ERR_INFO"
+        self.atomic_add_err = False
+        self.single_op_test_result = True
+        self.data_dump_result = True
+        self.atomic_clean_check = True
+        self.args_before_list = []
+        self.args_after_list = []
+        self.addr_valid = True
 
     def analyse(self: any) -> str:
         """
         AI core error analyse
         """
-        self.aicerror_bit = utils.hexstr_to_list_bin(self.aic_error)
         # 此步骤会解析出 mte_err_type ifu_err_type
         aicerror_info = self._get_aicerror_info()
-        # 组织input output
-        # input_output_addrs_str = self._get_input_output_addrs_str()
 
         addr_check_str = self._get_addr_check_str()
+        tiling_str = self._get_tiling_str()
+        single_op_test_result = "No Error" if self.single_op_test_result else "Aicore Error"
 
-        args_addr_str = self.args_addr if not self.multi_args_addr \
-            else self.args_addr + "  (multiple)"
+        analysis_result = "Analysis result: success."
+        conclusion = self._get_conclusion()
 
-        msg = """
+        msg = f"""{analysis_result}
+
+"**********************Root cause conclusion******************"
+{conclusion}
+
 ***********************1. Basic information********************
-error time   : %s
-device id    : %s
-core id      : %s
-task id      : %s
-stream id    : %s
-node name    : %s
-kernel name  : %s
-op address   : %s
-args address : %s
+error time   : {self.err_time}
+device id    : {self.dev_id}
+core id      : {self.core_id}
+task id      : {self.task_id}
+stream id    : {self.stream_id}
+node name    : {self.node_name}
+kernel name  : {self.kernel_name}
 
 ***********************2. AICERROR code***********************
-code  : %s
+error code  : {self.aic_error}
 error bits : 
-%s
+{aicerror_info}
 
 ***********************3. Instructions************************
-start   pc   : %s
-current pc   : %s
-%s
+start   pc   : {self.start_pc}
+current pc   : {self.current_pc}
+instruction  : {self.instr}
 
 ****************4. Input and output of node*******************
-%s
+{addr_check_str}
+args before excute: {self._get_args_str(self.args_before_list)}
+args after  excute: {self._get_args_str(self.args_after_list)}
 
-***********************5. Op in graph*************************
-%s
+***********************5. Dump info*************************
+{tiling_str}
+{self.dump_info}
 
-""" % (
-    self.err_time, self.dev_id, self.core_id, self.task_id,
-    self.stream_id, self.node_name, self.kernel_name, self.op_addr,
-    args_addr_str, self.aic_error, aicerror_info, self.start_pc,
-    self.current_pc, self.instr, addr_check_str, self.operator)
-        if self.dump_info != "":
-            msg += """
-***********************6. Dump info*************************
-%s
-""" % self.dump_info
+********************6. Single Op Test***********************
+{single_op_test_result}
 
-        # 0x800000 推断
-        conclusion = ""
-        if 23 in self.aicerror_bit and self.addr_overflow != []:
-            conclusion = "Access ddr address out of boundary\n" + '\n'.join(
-                self.addr_overflow)
-        elif self.current_pc == "0x0":
-            conclusion = "Memory of operator code has been overwrited " \
-                         "falsely\n"
-            if self.op_addr != "":
-                conclusion += "The memory address is %s\n" % self.op_addr
-        if conclusion != "":
-            msg = "********************Root cause conclusion****************" \
-                  "*****\n%s\n" % conclusion + msg
-        else:
-            msg = "********************Root cause conclusion****************" \
-                  "*****\n%s\n" % "Not available" + msg
+***********************7. Op in graph*************************
+{self.operator}
+
+"""
         return msg
 
+    def _get_conclusion(self: any) -> str:
+        conclusion = ""
+        if not self.atomic_clean_check:
+            conclusion = "Op need atomic clean. However, no memset or atomic_clean op launched.\n"
+        elif not self.data_dump_result:
+            conclusion = "Dump data failed in exception dump! Address of input or output is error!"
+        elif self.current_pc == "0x0":
+            conclusion = "Memory of operator code has been over write falsely\n"
+        elif self.atomic_add_err:
+            conclusion = "\"dha status 1\" found in log. It means Atomic accumulation exception, "\
+                          "please check the input data and network accuracy.\n"\
+                          "Attention please,  if multiple tasks are running on the same device at the same time, "\
+                          "false positives may be generated. You are advised to pull up only one task and collect it ."
+        elif "data invalid" in self.dump_info:
+            conclusion = "Input data is abnormal. Check the network accuracy.\n"
+        elif not self.single_op_test_result:
+            conclusion = "Single op test aicore error, please check op.\n"
+        elif not self._check_args():
+            conclusion = "The args of op is diffrerent before and after excute, args may be overwrited by other op."\
+                         "Please use oom to continue debug.\n"
+        elif not self.addr_valid:
+            conclusion = "Please check addrs. The addr of input/output is used but not alloc, "\
+                         "details in \"4. Input and output of node\"\n"
+        else:
+            conclusion = "There's no obvious known error, so I can't determine what the error is.\n"
+        return conclusion
+
+    def _check_args(self: any) -> bool:
+        for args_after in self.args_after_list:
+            for args_before in self.args_before_list:
+                if args_after == args_before:
+                    return True
+            return False
+
+    def _get_args_str(self: any, input_list: list) -> str:
+        args_str = ""
+        for args in input_list:
+            hex_str = ", ".join([hex(i) for i in args])
+            args_str += f"[{hex_str}],"
+        return f"[{args_str[:-1]}]"
+
+    def _get_tiling_str(self: any) -> str:
+        result_str = ""
+        tiling_datas = self.necessary_addr["tiling"]
+        if len(tiling_datas) < 3:
+            utils.print_info_log("Tiling data incomplete!")
+            return ""
+        tiling_data = tiling_datas[1]
+        result_str += f"tiling data: {tiling_data}\n"
+        result_str += "tiling data in int32: "
+
+        return result_str + "\n"
+
+    def _get_tiling_str(self: any) -> str:
+        result_str = ""
+        tiling_datas = self.necessary_addr["tiling"][1]
+        int32_size = struct.calcsize('i')
+        int64_size = struct.calcsize('q')
+        float16_size = struct.calcsize('e')
+
+        def parse_data(data, size, format):
+            try:
+                result = [struct.unpack(format, data[i:i + size])[0] for i in range(0, len(data), size)]
+            except Exception as e:
+                result = "Cannot decode in this dtype"
+            return result
+
+        int32_values = parse_data(tiling_datas, int32_size, 'i')
+        result_str += "tiling data in int32: "
+        result_str += f"tiling data: {int32_values}\n"
+
+        int64_values = parse_data(tiling_datas, int64_size, 'q')
+        result_str += "tiling data in int64: "
+        result_str += f"tiling data: {int64_values}\n"
+
+        float16_values = parse_data(tiling_datas, float16_size, 'e')
+        result_str += "tiling data in float16: "
+        result_str += f"tiling data: {float16_values}\n"
+
+        return result_str + "\n"
+
     def _get_addr_check_str(self: any) -> str:
-      result_str = ""
-      used_addrs = self.necessary_addr
-      ava_addr = self.aval_addrs
-      if not used_addrs:
-          input_params, output_params = [], []
-      else:
-          input_params = used_addrs.get("input_addr")
-          output_params = used_addrs.get("output_addr")
-      workspace = used_addrs.get("workspace")
-      for input_param in input_params:
-          index  = input_param.get("index")
-          if input_param.get("invalid"):
-              result_str += f"*[ERROR]input[{index}] is out of range\n"
+        result_str = ""
+        used_addrs = self.necessary_addr
 
-      for output_param in output_params:
-          index  = output_param.get("index")
-          if output_param.get("invalid"):
-              result_str += f"*[ERROR]output[{index}] is out of range\n"
-      result_str += "\n"
-      for input_param in input_params:
-          index = int(input_param.get("index"))
-          size = int(input_param.get("size"))
-          addr = int(input_param.get("addr"))
-          end_addr = addr + size
-          result_str += f"input[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
+        if not used_addrs:
+            input_params, output_params = [], []
+        else:
+            input_params = used_addrs.get("input_addr")
+            output_params = used_addrs.get("output_addr")
 
-      for output_param in output_params:
-          index = int(output_param.get("index"))
-          size = int(output_param.get("size"))
-          addr = int(output_param.get("addr"))
-          end_addr = addr + size
-          result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
+        for input_param in input_params:
+            index = input_param.get("index")
+            if not input_param.get("in_range"):
+                result_str += f"*[ERROR]input[{index}] is out of range\n"
+                self.addr_valid = False
 
-      if workspace:
-          result_str += f"workspace_bytes:{workspace}\n"
+        for output_param in output_params:
+            index = output_param.get("index")
+            if not output_param.get("in_range"):
+                result_str += f"*[ERROR]output[{index}] is out of range\n"
+                self.addr_valid = False
+        result_str += "\n"
+        for input_param in input_params:
+            index = int(input_param.get("index"))
+            size = int(input_param.get("size"))
+            if input_param.get("addr").startswith("0x"):
+                addr = int(input_param.get("addr"), 16)
+            else:
+                addr = int(input_param.get("addr"))
+            end_addr = addr + size
+            result_str += f"input[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
 
-      result_str += "\navaliable addrs:\nstart_addr            end_addr              size\n"
-      for alloc_addr in ava_addr:
-          start_addr = int(alloc_addr[0], 16)
-          size = int(alloc_addr[1])
-          end_addr = start_addr + size
-          result_str += f"{hex(start_addr)}        {hex(end_addr)}        {hex(size)}\n"
-      
-      return result_str
+        for output_param in output_params:
+            index = int(output_param.get("index"))
+            size = int(output_param.get("size"))
+            if output_param.get("addr").startswith("0x"):
+                addr = int(output_param.get("addr"), 16)
+            else:
+                addr = int(output_param.get("addr"))
+            end_addr = addr + size
+            result_str += f"output[{index}] addr: {hex(addr)} end_addr:{hex(end_addr)} size: {hex(size)}\n"
+        
+        fault_arg_indexes = used_addrs.get("fault_arg_index")
+        need_check_args = used_addrs.get("need_check_args")
+        if fault_arg_indexes:
+            for arg_index in fault_arg_indexes:
+              result_str += f"arg[{arg_index}][0x{need_check_args[arg_index]:X}] need be checked \n"
 
-    def _get_input_output_addrs_str(self: any) -> str:
-        input_output_addrs_str_list = []
-        for i in self.input_output_addrs:
-            has_nan_inf_str = "NaN/INF" if i.has_nan_inf else ""
-            size_str = "size: %d" % i.size if i.size != 0 else ""
-            actual_addr_str = " new addr: %s" % i.actual_addr \
-                if i.actual_addr != "" else ""
-            overflow_str = "OVERFLOW" if i.overflow else ""
-            each_input_output_addrs_str = "%s  addr: %s  %s  %s  %s  %s\n" % (
-                i.name, i.addr, size_str, actual_addr_str, overflow_str,
-                has_nan_inf_str)
-            input_output_addrs_str_list.append(each_input_output_addrs_str)
-        input_output_addrs_str = "".join(input_output_addrs_str_list)
-        if self.args_num_in_json is not None and self.input_output_addrs != [] \
-                and len(self.input_output_addrs) != self.args_num_in_json:
-            input_output_addrs_str += "\nWARNING: kernel args amount is " \
-                                      "not equal to input/output amount"
-        input_output_addrs_str = input_output_addrs_str.strip("\n")
-        input_output_addrs_str += self._format_aval_addrs(self.aval_addrs)
-        return input_output_addrs_str
-    
-    def _format_aval_addrs(self, addr_list:List) -> str:
-        ret = "\navaliable addrs:\nstart_addr        size\n"
-        for addr_range in addr_list:
-            ret += str(addr_range[0]) + "    " + str(addr_range[1]) + "\n"
-        return ret
+        workspace = used_addrs.get("workspace")
+        if workspace:
+            result_str += f"workspace_bytes:{workspace}\n"
+
+        return result_str
 
     def _get_aicerror_info(self: any) -> str:
         aicerror_info_list = []
@@ -207,23 +249,18 @@ current pc   : %s
                 continue
             handled_err_type.append(err_type)
             if err_type == "vec":
-                aicerror_info_list.append("\nVEC_ERR_INFO: "
-                                          + self._analyse_vec_errinfo())
+                aicerror_info_list.append("\nVEC_ERR_INFO: " + self._analyse_vec_errinfo())
             elif err_type == "ifu":
-                aicerror_info_list.append("\nIFU_ERR_INFO: "
-                                          + self._analyse_ifu_errinfo())
+                aicerror_info_list.append("\nIFU_ERR_INFO: " + self._analyse_ifu_errinfo())
             elif err_type == "mte":
-                aicerror_info_list.append("\nMTE_ERR_INFO: "
-                                          + self._analyse_mte_errinfo(i))
+                aicerror_info_list.append("\nMTE_ERR_INFO: " + self._analyse_mte_errinfo(i))
             elif err_type == "cube":
-                aicerror_info_list.append("\nCUBE_ERR_INFO: "
-                                          + self._analyse_cube_errinfo())
+                aicerror_info_list.append("\nCUBE_ERR_INFO: " + self._analyse_cube_errinfo())
             elif err_type == "ccu":
-                aicerror_info_list.append("\nCCU_ERR_INFO: "
-                                          + self._analyse_ccu_errinfo())
+                aicerror_info_list.append("\nCCU_ERR_INFO: " + self._analyse_ccu_errinfo())
             elif err_type == "biu":
-                aicerror_info_list.append("\nBIU_ERR_INFO: "
-                                          + self._analyse_biu_errinfo())
+                aicerror_info_list.append("\nBIU_ERR_INFO: " + self._analyse_biu_errinfo())
+            aicerror_info_list.append(f"\n{aicerr_info}")
             aicerror_info_list.append("\n\n")
         aicerror_info = "".join(aicerror_info_list).strip("\n")
         return aicerror_info
@@ -234,11 +271,18 @@ current pc   : %s
         find extra pc
         """
         ret = utils.hexstr_to_list_bin(self.aic_error)
+        if not ret:
+            ret = [0]
+        self.aicerror_bit = ret
         extra_err_key = ""
-        key_map = {"vec": self.vec_key,
-                   "mte": self.mte_key,
-                   "cube": self.cube_key,
-                   "ccu": self.ccu_key}
+        key_map = {
+            "vec": Constant.VEC_KEY,
+            "mte": Constant.MTE_KEY,
+            "cube": Constant.CUBE_KEY,
+            "ccu": Constant.CCU_KEY,
+            "biu": Constant.BIU_KEY,
+            "ifu": Constant.IFU_KEY
+        }
         for ret_a in ret:
             error_info = Constant.AIC_ERROR_INFO_DICT.get(ret_a)
             err_type = error_info.split('_')[0].lower()
@@ -255,7 +299,7 @@ current pc   : %s
         return utils.get_01_from_hexstr(ret[0], 7, 0)
 
     def _analyse_ifu_errinfo(self: any) -> str:
-        regexp = self.ifu_key + r"=(\S+)"
+        regexp = Constant.IFU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No IFU_ERR_INFO found"
@@ -269,20 +313,18 @@ current pc   : %s
             info = Constant.SOC_ERR_INFO_DICT.get(code)
         else:
             info = "NA"
-        errinfo += "\n    ifu_err_type bit[50:48]=%s  meaning:%s" % (
-            code, info)
+        errinfo += f"\nifu_err_type bit[50:48]={code}  meaning:{info}"
 
         # ifu_err_addr
         code = utils.get_01_from_hexstr(ret[0], 47, 2)
         info = "IFU Error Address [47:2]"
         # 补2位0，猜测值
         approximate = hex(int(code + "00", 2))
-        errinfo += "\n    ifu_err_addr bit[47:2]=%s  meaning:%s  " \
-                   "approximate:%s" % (code, info, approximate)
+        errinfo += f"\nifu_err_addr bit[47:2]={code}  meaning:{info}  approximate:{approximate}"
         return errinfo
 
     def _analyse_mte_errinfo(self: any, err_bit: any) -> str:
-        regexp = self.mte_key + r"=(\S+)"
+        regexp = Constant.MTE_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No MTE_ERR_INFO found"
@@ -309,20 +351,18 @@ current pc   : %s
             info = mte_dict.get(code)
         else:
             info = "NA"
-        errinfo += "\n    mte_err_type bit[26:24]=%s  meaning:%s" % (
-            code, info)
+        errinfo += f"\nmte_err_type bit[26:24]={code}  meaning:{info}"
 
         # mte_err_addr
         code = utils.get_01_from_hexstr(ret[0], 22, 8)
         info = "MTE Error Address [19:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
-        errinfo += "\n    mte_err_addr bit[22:8]=%s  meaning:%s " \
-                   " approximate:%s" % (code, info, approximate)
+        errinfo += f"\nmte_err_addr bit[22:8]={code}  meaning:{info}  approximate:{approximate}"
         return errinfo
 
     def _analyse_biu_errinfo(self: any) -> str:
-        regexp = self.biu_key + r"=(\S+)"
+        regexp = Constant.BIU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No BIU_ERR_INFO found"
@@ -331,12 +371,11 @@ current pc   : %s
         # biu_err_addr
         code = utils.get_01_from_hexstr(ret[0], 24, 0)
         approximate = hex(int(code, 2))
-        errinfo += "\n    biu_err_addr bit[24:0]=%s  in hex:%s" % (
-            code, approximate)
+        errinfo += f"\nbiu_err_addr bit[24:0]={code}  in hex:{approximate}"
         return errinfo
 
     def _analyse_ccu_errinfo(self: any) -> str:
-        regexp = self.ccu_key + r"=(\S+)"
+        regexp = Constant.CCU_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No CCU_ERR_INFO found"
@@ -347,12 +386,11 @@ current pc   : %s
         info = "CCU Error Address [17:3]"
         # 补3位0，猜测值
         approximate = hex(int(code + "000", 2))
-        errinfo += "\n    ccu_err_addr bit[22:8]=%s  meaning:%s " \
-                   " approximate:%s" % (code, info, approximate)
+        errinfo += f"\nccu_err_addr bit[22:8]={code}  meaning:{info}  approximate:{approximate}"
         return errinfo
 
     def _analyse_cube_errinfo(self: any) -> str:
-        regexp = self.cube_key + r"=(\S+)"
+        regexp = Constant.CUBE_KEY + r"=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
         if len(ret) == 0:
             return "No CUBE_ERR_INFO found"
@@ -363,14 +401,13 @@ current pc   : %s
         info = "CUBE Error Address [17:9]"
         # 补9位0，猜测值
         approximate = hex(int(code + "000000000", 2))
-        errinfo += "\n    cube_err_addr bit[16:8]=%s  meaning:%s  " \
-                   "approximate:%s" % (code, info, approximate)
+        errinfo += f"\ncube_err_addr bit[16:8]={code}  meaning:{info}  approximate:{approximate}"
         return errinfo
 
     def _analyse_vec_errinfo(self: any) -> str:
-        regexp = self.vec_key + r"=(\S+)"
+        regexp = f"{Constant.VEC_KEY}=(\S+)"
         ret = re.findall(regexp, self.extra_info, re.M)
-        if len(ret) == 0:
+        if not ret:
             return "No VEC_ERR_INFO found"
 
         errinfo = ret[0]
@@ -379,13 +416,11 @@ current pc   : %s
         info = "VEC Error Address [17:5]"
         # 补5位0，猜测值
         approximate = hex(int(code + "00000", 2))
-        errinfo += "\n    vec_err_addr bit[28:16]=%s  meaning:%s  " \
-                   "approximate:%s" % (code, info, approximate)
+        errinfo += f"\nvec_err_addr bit[28:16]={code}  meaning:{info}  approximate:{approximate}"
 
         # vec_err_rcnt
         code = utils.get_01_from_hexstr(ret[0], 15, 8)
         info = "VEC Error repeat count [7:0]"
         repeats = str(int(code, 2))
-        errinfo += "\n    vec_err_rcnt bit[15:8]=%s  meaning:%s  " \
-                   "repeats:%s" % (code, info, repeats)
+        errinfo += f"\nvec_err_rcnt bit[15:8]={code}  meaning:{info}  repeats:{repeats}"
         return errinfo

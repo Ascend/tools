@@ -44,6 +44,10 @@ source /usr/local/Ascend/ascend-toolkit/set_env.sh
 source /opt/ascend/nnrt/set_env.sh
 ```
 
+6. 编译获取benchmark二进制工具
+
+根据 [benchmark推理](https://github.com/Ascend/cann-benchmark/tree/master/infer) 页面构建benchmark工具二进制。在测试目录创建work目录，并将benchmark二进制拷贝到work目录下。
+
 ## 运行
 
 1. 修改配置文件

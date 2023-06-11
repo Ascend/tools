@@ -18,7 +18,7 @@
 shape utils module
 """
 import functools
-
+from ms_interface.single_op_test_frame.common import dtype_trans
 
 def calc_shape_size(shape):
     """
@@ -29,3 +29,13 @@ def calc_shape_size(shape):
     if not shape:
         return 0
     return functools.reduce(lambda x, y: x * y, shape)
+  
+  
+def calc_op_param_size(shape_size, dtype):
+    """
+    calculate operator parameter size
+    """
+    if not isinstance(dtype, str) and dtype not in dtype_trans.get_all_str_dtypes():
+        raise TypeError("dtype must be str and in [%s]" % ",".join(dtype_trans.get_all_str_dtypes()))
+    dtype_size = dtype_trans.get_dtype_byte(dtype)
+    return shape_size * dtype_size

@@ -17,13 +17,13 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
                  config.device_id = get_device_id()
                  if not os.path.exists(config.output_path):
                      os.makedirs(config.output_path)
-+                 
++
 +                base_path = config.data_path
 +                if os.path.exists(os.path.join(base_path, "train")):
 +                    config.data_path = os.path.join(base_path, "train")
 +                if os.path.exists(os.path.join(base_path, "val")):
 +                    config.eval_dataset_path = os.path.join(os.path.join(base_path, "val"))
- 
+
                  if pre_process:
                      pre_process()
 diff -Nur origin/train.py code/train.py
@@ -34,13 +34,13 @@ diff -Nur origin/train.py code/train.py
  import os
  import numpy as np
 +import time
- 
+
  import mindspore as ms
  from mindspore import Tensor
 @@ -294,6 +295,17 @@
                                 metrics_name="acc")
          cb += [eval_cb]
- 
+
 +def run_eval_ckpt(target, model):
 +    eval_dataset = create_dataset(dataset_path=config.eval_dataset_path, do_train=False,
 +                                batch_size=config.batch_size, train_image_size=config.train_image_size,
@@ -52,13 +52,13 @@ diff -Nur origin/train.py code/train.py
 +    res = apply_eval(eval_param_dict)
 +    print("eval ckpt result:{}".format(res))
 +    return res
- 
+
  def set_save_ckpt_dir():
      """set save ckpt dir"""
 @@ -356,6 +368,8 @@
          config.run_eval = False
          logger.warning("Thor optimizer not support evaluation while training.")
- 
+
 +    model.build(dataset, None, sink_size=dataset.get_dataset_size(), epoch=config.epoch_size - config.pretrain_epoch_size)
 +
      # define callbacks
@@ -80,7 +80,7 @@ diff -Nur origin/train.py code/train.py
 +    import moxing as mox
 +    result_url = config.train_url
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
-+        result_url = os.path.join(config.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        result_url = os.path.join(config.train_url, os.getenv("VC_TASK_INDEX", "0"))
 +        mox.file.make_dirs(result_url)
 +    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
 +    mox.file.write(throughput_file, str(throughput_rate))
@@ -88,7 +88,7 @@ diff -Nur origin/train.py code/train.py
 +    best_res = run_eval_ckpt(target, model)
 +    if get_rank_id() == 0:
 +        import moxing as mox
-+        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        server_id = os.getenv("VC_TASK_INDEX", 0)
 +        accuracy_file = os.path.join(config.train_url, "accuracy_{}.json".format(server_id))
 +        mox.file.write(accuracy_file, str(best_res))
 +        accuracy_file1 = os.path.join(config.train_url, "accuracy.json")
@@ -97,10 +97,10 @@ diff -Nur origin/train.py code/train.py
 +        ranksize_file = os.path.join(config.train_url, "ranksize.json")
 +        if mox.file.exists(ranksize_file) == False:
 +            mox.file.write(ranksize_file, str(get_device_num()))
- 
+
      if config.run_eval and config.enable_cache:
          print("Remember to shut down the cache server via \"cache_admin --stop\"")
- 
+
 +import json
 +import time
 +import os
@@ -152,7 +152,7 @@ diff -Nur origin/train.py code/train.py
 +        generate_single_node_rank_table(rank_table, old_rank_id)
 +        FileOperator.create_empty_file(empty_file_path)
 +    return new_rank_id
- 
+
  if __name__ == '__main__':
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
 +        set_singleserver_mode()

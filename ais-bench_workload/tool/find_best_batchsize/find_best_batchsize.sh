@@ -1,14 +1,18 @@
 #!/bin/bash
+#add aoe mode (demo)
 CUR_PATH=$(dirname $(readlink -f "$0"))
 
 # 返回码
 declare -i ret_ok=0
 declare -i ret_run_failed=1
+AOE_OFF="0"
+AOE_ON="1"
+
 
 echo_help()
 {
-    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4"
-    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 120"
+    echo "./find_best_batch.sh --model_path /home/BERT_Base_SQuAD1_1_BatchSize_None.pb --input_shape_str \"input_ids:batchsize,384;input_mask:batchsize,384;segment_ids:batchsize,384\" --soc_version \"Ascend310\" --max_batch_num 4 --aoe_mode 0"
+    echo "./find_best_batch.sh --model_path /home/resnet50_official.onnx --input_shape_str \"actual_input_1:batchsize,3,224,224\" --soc_version \"Ascend310\" --max_batch_num 64 --aoe_mode 1 --job_type 1"
 }
 
 function check_command_exist()
@@ -52,6 +56,7 @@ check_args_valid()
     [[ $MAX_BATCH_NUM -gt 0 && $MAX_BATCH_NUM -le 100 ]] || { echo "max_batch_num:$MAX_BATCH_NUM not valid"; }
     [ "$INPUT_SHAPE_STR" != "" ] || { echo "input_shape_str:$INPUT_SHAPE_STR not valid"; return 1; }
     [[ "$SOC_VERSION" != "" ]] || { echo "soc_version:$SOC_VERSION not valid"; return 1; }
+    [[ "$JOB_TYPE" != "1" && "$JOB_TYPE" != "2" ]] && { echo "aoe job_type:$JOB_TYPE not valid"; return 1; }
     return 0
 }
 
@@ -62,8 +67,9 @@ check_env_valid()
     || { echo "aclruntime package not install"; return $ret_run_failed;}
 }
 
-convert_and_run_model()
-{
+convert_and_run_model_atc()
+{   
+    echo "using atc mode"
     for batchsize in `seq $MAX_BATCH_NUM`; do
         input_shape=${INPUT_SHAPE_STR//batchsize/$batchsize}
         om_path_pre="$CACHE_PATH/model_bs${batchsize}"
@@ -75,8 +81,29 @@ convert_and_run_model()
             $cmd || { echo "atc run $cmd failed"; return 1; }
         fi
 
-        cmd="$PYTHON_COMMAND $CUR_PATH/../ais_infer/ais_infer.py --model $om_path --loop $LOOP_COUNT --batchsize=$batchsize --output $CACHE_PATH/$batchsize --device_id=$DEVICE_ID"
+        cmd="$PYTHON_COMMAND $CUR_PATH/../ais_bench/ais_infer.py --model $om_path --loop $LOOP_COUNT --batchsize=$batchsize --output $CACHE_PATH/$batchsize --device=$DEVICE_ID"
         $cmd || { echo "inference run $cmd failed"; return 1; }
+    done
+}
+
+convert_and_run_model_aoe()
+{   
+    echo "using aoe mode"
+    batchsize=1
+    while [ $batchsize -le $MAX_BATCH_NUM ]; do
+        input_shape=${INPUT_SHAPE_STR//batchsize/$batchsize}
+        om_path_pre="$CACHE_PATH/model_bs${batchsize}"
+        mkdir -p $CACHE_PATH/$batchsize
+        om_path="$om_path_pre.om"
+        if [ ! -f $om_path ];then
+            cmd="aoe --model=$MODEL_PATH --output=$om_path_pre --framework=$FRAMEWORK --input_shape=$input_shape --job_type=$JOB_TYPE"
+            [ $FRAMEWORK == 0 ] && cmd="$cmd --weight=$WEIGHT_PATH"
+            $cmd || { echo "aoe run $cmd failed"; return 1; }
+        fi
+
+        cmd="$PYTHON_COMMAND $CUR_PATH/../ais_bench/ais_infer.py --model $om_path --loop $LOOP_COUNT --batchsize=$batchsize --output $CACHE_PATH/$batchsize --device=$DEVICE_ID"
+        $cmd || { echo "inference run $cmd failed"; return 1; }
+        batchsize=`expr $batchsize \* 2`
     done
 }
 
@@ -86,15 +113,30 @@ get_sumary_throughput()
     cat ${_sumaryfile} | $PYTHON_COMMAND -c 'import sys,json;print(json.load(sys.stdin)["throughput"])' 2>/dev/null
 }
 
-calc_throughput()
+calc_throughput_atc()
 {
     best_batchsize=0
     best_throughput=0
     for batchsize in `seq $MAX_BATCH_NUM`; do
-        sumary_file=`find $CACHE_PATH/$batchsize -name sumary.json`
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
         local _throughput=$(get_sumary_throughput ${sumary_file} )
         echo "batchsize:$batchsize throughput:$_throughput"
-        [[ `expr $_throughput \> $best_throughput` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
+        [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
+     done
+    echo "calc end best_batchsize:$best_batchsize best_throughput:$best_throughput"
+}
+
+calc_throughput_aoe()
+{
+    best_batchsize=0
+    best_throughput=0
+    batchsize=1
+    while [ $batchsize -le $MAX_BATCH_NUM ]; do
+        sumary_file=`find $CACHE_PATH/$batchsize -name *_summary.json`
+        local _throughput=$(get_sumary_throughput ${sumary_file} )
+        echo "batchsize:$batchsize throughput:$_throughput"
+        [[ `echo "$_throughput > $best_throughput" |bc` == 0 ]] || { best_throughput=$_throughput;best_batchsize=$batchsize; }
+        batchsize=`expr $batchsize \* 2`
      done
     echo "calc end best_batchsize:$best_batchsize best_throughput:$best_throughput"
 }
@@ -137,6 +179,14 @@ do
         DEVICE_ID=${2}
         shift
         ;;
+    -a|--aoe_mode)
+        AOE_MODE=$2
+        shift
+        ;;
+    -j|--job_type)
+        JOB_TYPE=$2
+        shift
+        ;;
     -h|--help)
         echo_help;
         exit
@@ -153,16 +203,27 @@ done
     [ "$MAX_BATCH_NUM" != "" ] || { MAX_BATCH_NUM="64";echo "set default max_batch_num:$MAX_BATCH_NUM"; }
     [ "$LOOP_COUNT" != "" ] || { LOOP_COUNT="1000";echo "set default loop_count:$LOOP_COUNT"; }
     [ "$DEVICE_ID" != "" ] || { DEVICE_ID="0";echo "set default device_id:$DEVICE_ID"; }
+    [ "$AOE_MODE" != "" ] || { AOE_MODE="1";echo "set default aoe_mode:$AOE_MODE"; }
+    [ "$JOB_TYPE" != "" ] || { JOB_TYPE="1";echo "set default job_type:$JOB_TYPE"; }
 
     CACHE_PATH=$CUR_PATH/cache
     [ ! -d $CACHE_PATH ] || rm -rf $CACHE_PATH
     mkdir -p $CACHE_PATH
-
+    
     check_args_valid || { echo "check args not valid return"; return $ret_run_failed; }
     check_env_valid || { echo "check env not valid return"; return $ret_run_failed; }
 
-    convert_and_run_model
-    calc_throughput
+    if [ $AOE_MODE == $AOE_OFF ]; then
+        convert_and_run_model_atc
+        calc_throughput_atc
+    elif [ $AOE_MODE == $AOE_ON ]; then
+        convert_and_run_model_aoe
+        calc_throughput_aoe
+    else
+        echo "aoe_mode $AOE_MODE is illegal, please check"
+        return $ret_run_failed
+    fi
+
     return $ret_ok
 }
 

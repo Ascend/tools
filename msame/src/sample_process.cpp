@@ -145,6 +145,8 @@ Result SampleProcess::Process(map<char, string>& params, vector<string>& input_f
         return FAILED;
     }
 
+    processModel.SetExceptionCallBack();
+
     if (params.count('y')) {
         ret = processModel.CheckDynamicBatchSize(g_dymbatch_size, g_is_dymbatch);
         if (ret != SUCCESS) {

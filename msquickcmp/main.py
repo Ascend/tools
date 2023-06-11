@@ -42,6 +42,8 @@ def _accuracy_compare_parser(parser):
     parser.add_argument("--output-nodes", dest="output_nodes", default="",
                         help="<Optional> Output nodes designated by user. Separate multiple nodes with semicolons(;)."
                              " E.g: node_name1:0;node_name2:1;node_name3:0")
+    parser.add_argument("--advisor", dest="advisor", action="store_true",
+                        help="<Optional> Enable advisor after compare.")
 
 
 def _generate_golden_data_model(args):
@@ -118,14 +120,15 @@ def main():
         net_compare = NetCompare(npu_dump_data_path, golden_dump_data_path, output_json_path, args)
         net_compare.accuracy_network_compare()
         # Check and correct the mapping of net output node name.
-        _check_output_node_name_mapping(expect_net_output_node, golden_net_output_info)
-        net_compare.net_output_compare(npu_net_output_data_path, golden_net_output_info)
+        if len(expect_net_output_node) == 1:
+            _check_output_node_name_mapping(expect_net_output_node, golden_net_output_info)
+            net_compare.net_output_compare(npu_net_output_data_path, golden_net_output_info)
         # print the name of the first operator whose cosine similarity is less than 0.9
         csv_object_item = net_compare.get_csv_object_by_cosine()
         if csv_object_item is not None:
             utils.print_info_log(
                 "{} of the first operator whose cosine similarity is less than 0.9".format(
-                    csv_object_item.get("LeftOp")))
+                    csv_object_item.get("NPUDump")))
         else:
             utils.print_info_log("No operator whose cosine value is less then 0.9 exists.")
     except utils.AccuracyCompareException as error:

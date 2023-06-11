@@ -31,7 +31,7 @@ class Constant:
         "float16": np.float16,
         "float32": np.float32,
         "float64": np.float64,
-        "bool": np.bool,
+        "bool": np.bool_,
         "int8": np.int8,
         "uint8": np.uint8,
         "int16": np.int16,
@@ -65,7 +65,7 @@ def np_dtype_to_str(dtype):
     """
     numpy dtype to str
     """
-    NP_DTYPE_ASCEND_TYPE_MAP = {
+    np_dtype_ascend_type_map = {
         np.float16.__name__: "float16",
         np.float32.__name__: "float32",
         np.float64.__name__: "float64",
@@ -81,14 +81,14 @@ def np_dtype_to_str(dtype):
     }
     if isinstance(dtype, str):
         return dtype
-    return NP_DTYPE_ASCEND_TYPE_MAP.get(dtype.type.__name__)
+    return np_dtype_ascend_type_map.get(dtype.type.__name__)
 
 
 def get_dtype_byte(dtype):
     """
     get dtype byte
     """
-    DTYPE_SIZE_MAP = {
+    dtype_size_map = {
         "bool": 1,
         "int8": 1,
         "uint8": 1,
@@ -102,4 +102,4 @@ def get_dtype_byte(dtype):
         "float32": 4,
         "float64": 8
     }
-    return DTYPE_SIZE_MAP.get(dtype)
+    return dtype_size_map.get(dtype)

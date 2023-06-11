@@ -20,7 +20,7 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +        v = v.item()
 +        import moxing as mox
 +        from src.model_utils.device_adapter import get_device_num
-+        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        server_id = os.getenv("VC_TASK_INDEX", 0)
 +        accuracy_file = os.path.join(cfg.train_url, "accuracy_{}.json".format(server_id))
 +        mox.file.write(accuracy_file, str(v))
 +        accuracy_file1 = os.path.join(cfg.train_url, "accuracy.json")
@@ -30,8 +30,8 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +        if mox.file.exists(ranksize_file) == False:
 +            mox.file.write(ranksize_file, str(get_device_num()))
      print("==============================================================")
- 
- 
+
+
 diff -Nur origin/run_pretrain.py code/run_pretrain.py
 --- origin/run_pretrain.py	2022-05-22 21:56:20.690000000 +0800
 +++ code/run_pretrain.py	2022-05-22 21:56:20.720000000 +0800
@@ -50,12 +50,12 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 -from src.model_utils.device_adapter import get_device_id, get_device_num
 +from src.model_utils.device_adapter import get_device_id, get_device_num, get_rank_id
  _current_dir = os.path.dirname(os.path.realpath(__file__))
- 
- 
+
+
 @@ -158,8 +159,19 @@
      cfg.data_dir = cfg.data_path
      cfg.save_checkpoint_path = os.path.join(cfg.output_path, cfg.save_checkpoint_path)
- 
+
 +def modelarts_post_process():
 +    def is_ckpt(name):
 +        if name.endswith('ckpt'):
@@ -66,8 +66,8 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        ckpts = list(filter(is_ckpt, os.listdir(ckpt_save_dir)))
 +        ckpts.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
 +        cfg.eval_ckpt = os.path.join(ckpt_save_dir, ckpts[-1])
-+        
- 
++
+
 -@moxing_wrapper(pre_process=modelarts_pre_process)
 +@moxing_wrapper(pre_process=modelarts_pre_process, post_process=modelarts_post_process)
  def run_pretrain():
@@ -75,7 +75,7 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
      context.set_context(mode=context.GRAPH_MODE, device_target=cfg.device_target, device_id=cfg.device_id)
 @@ -262,10 +274,86 @@
          callback.append(eval_callback)
- 
+
      model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
 +    model.build(ds, sink_size=cfg.data_sink_steps, epoch=new_repeat_count)
 +    start_time = time.time()
@@ -89,15 +89,15 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +    import moxing as mox
 +    result_url = cfg.train_url
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
-+        result_url = os.path.join(cfg.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        result_url = os.path.join(cfg.train_url, os.getenv("VC_TASK_INDEX", "0"))
 +        mox.file.make_dirs(result_url)
 +    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
 +    mox.file.write(throughput_file, str(throughput_rate))
- 
+
 +import json
 +import time
 +import os
-+ 
++
 +class FileOperator:
 +    @staticmethod
 +    def create_empty_file(file_path):
@@ -145,7 +145,7 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        generate_single_node_rank_table(rank_table, old_rank_id)
 +        FileOperator.create_empty_file(empty_file_path)
 +    return new_rank_id
- 
+
  if __name__ == '__main__':
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
 +        set_singleserver_mode()
@@ -166,7 +166,7 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
 @@ -100,6 +100,16 @@
                  if not os.path.exists(config.output_path):
                      os.makedirs(config.output_path)
- 
+
 +                # modelarts sdk fit
 +                config.schema_file = None
 +                base_path = config.data_path
@@ -176,7 +176,7 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
 +                    config.load_checkpoint_path = os.path.join(base_path, "ms_bert_large.ckpt")
 +                if os.path.exists(os.path.join(base_path, "val")):
 +                    config.eval_data_dir = os.path.join(base_path, "val")
-+ 
++
                  if pre_process:
                      pre_process()
- 
+

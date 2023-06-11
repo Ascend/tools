@@ -9,8 +9,8 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +    # for modelarts mode eval after traing, should set alone and no need set device_id
 +    #context.set_context(mode=context.GRAPH_MODE, device_target="Ascend", device_id=devid)
 +    from mindspore.context import ParallelMode
-+    context.set_auto_parallel_context(parallel_mode=ParallelMode.STAND_ALONE)    
-+    
++    context.set_auto_parallel_context(parallel_mode=ParallelMode.STAND_ALONE)
++
      dataset = create_eval_dataset(cfg.batch_size, 1, data_dir=cfg.eval_data_dir, dataset_format=cfg.dataset_format)
      net_for_pretraining = BertPretrainEval(bert_net_cfg)
      net_for_pretraining.set_train(False)
@@ -21,7 +21,7 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +        v = v.item()
 +        import moxing as mox
 +        from src.model_utils.device_adapter import get_device_num
-+        server_id = os.getenv("BATCH_TASK_INDEX", 0)
++        server_id = os.getenv("VC_TASK_INDEX", 0)
 +        accuracy_file = os.path.join(cfg.train_url, "accuracy_{}.json".format(server_id))
 +        mox.file.write(accuracy_file, str(v))
 +        accuracy_file1 = os.path.join(cfg.train_url, "accuracy.json")
@@ -31,8 +31,8 @@ diff -Nur origin/pretrain_eval.py code/pretrain_eval.py
 +        if mox.file.exists(ranksize_file) == False:
 +            mox.file.write(ranksize_file, str(get_device_num()))
      print("==============================================================")
- 
- 
+
+
 diff -Nur origin/run_pretrain.py code/run_pretrain.py
 --- origin/run_pretrain.py	2022-10-18 11:56:29.660000000 +0800
 +++ code/run_pretrain.py	2022-10-18 11:56:29.676000000 +0800
@@ -51,12 +51,12 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 -from src.model_utils.device_adapter import get_device_id, get_device_num
 +from src.model_utils.device_adapter import get_device_id, get_device_num, get_rank_id
  _current_dir = os.path.dirname(os.path.realpath(__file__))
- 
- 
+
+
 @@ -192,8 +193,18 @@
          net_with_grads = BertNetworkMatchBucket(net_with_grads, bert_net_cfg.seq_length, cfg.bucket_list)
      return net_with_grads
- 
+
 +def modelarts_post_process():
 +    def is_ckpt(name):
 +        if name.endswith('ckpt'):
@@ -67,7 +67,7 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        ckpts = list(filter(is_ckpt, os.listdir(ckpt_save_dir)))
 +        ckpts.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
 +        cfg.eval_ckpt = os.path.join(ckpt_save_dir, ckpts[-1])
- 
+
 -@moxing_wrapper(pre_process=modelarts_pre_process)
 +@moxing_wrapper(pre_process=modelarts_pre_process, post_process=modelarts_post_process)
  def run_pretrain():
@@ -75,10 +75,10 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
      context.set_context(mode=context.GRAPH_MODE, device_target=cfg.device_target, device_id=cfg.device_id)
 @@ -268,10 +279,86 @@
          callback.append(eval_callback)
- 
+
      model = ConvertModelUtils().convert_to_thor_model(model, network=net_with_grads, optimizer=optimizer)
 +    model.build(ds, sink_size=cfg.data_sink_steps, epoch=new_repeat_count)
-+    start_time = time.time()    
++    start_time = time.time()
      model.train(new_repeat_count, ds, callbacks=callback,
                  dataset_sink_mode=(cfg.enable_data_sink == "true"), sink_size=cfg.data_sink_steps)
 +    end_time = time.time()
@@ -89,12 +89,12 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +    import moxing as mox
 +    result_url = cfg.train_url
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
-+        result_url = os.path.join(cfg.train_url, os.getenv("BATCH_TASK_INDEX", "0"))
++        result_url = os.path.join(cfg.train_url, os.getenv("VC_TASK_INDEX", "0"))
 +        mox.file.make_dirs(result_url)
 +    throughput_file = os.path.join(result_url, "throughput_" + str(get_rank_id()) + ".json")
 +    mox.file.write(throughput_file, str(throughput_rate))
-+ 
- 
++
+
 +import json
 +import time
 +import os
@@ -146,14 +146,14 @@ diff -Nur origin/run_pretrain.py code/run_pretrain.py
 +        generate_single_node_rank_table(rank_table, old_rank_id)
 +        FileOperator.create_empty_file(empty_file_path)
 +    return new_rank_id
- 
+
  if __name__ == '__main__':
 +    if os.getenv("SINGLESERVER_MODE", "") == "True":
 +        set_singleserver_mode()
 +        print("singleserver_mode set OK")
 +    else:
 +        print("singleserver_mode not set")
-+    
++
      set_seed(0)
      run_pretrain()
 +
@@ -177,6 +177,6 @@ diff -Nur origin/src/model_utils/moxing_adapter.py code/src/model_utils/moxing_a
 +                if os.path.exists(os.path.join(base_path, "val")):
 +                    config.eval_data_dir = os.path.join(base_path, "val")
 +
- 
+
                  if pre_process:
                      pre_process()

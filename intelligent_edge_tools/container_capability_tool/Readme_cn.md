@@ -182,7 +182,7 @@ AtlasEdge软件安装路径/run.sh restart
 
 ### 端口映射
 **须知**：
-* 如果映射的容器端口取值为[0-1023], 容器需以root用户运行获取对应的能力，请参考本文中的"工具使用方法"章节配置useRunAsRoot能力项。
+* 如果映射的容器端口取值为[0-1023], 需开启useDefaultContainerCap、useRunAsRoot能力并且容器以root用户运行，请参考本文中的"工具使用方法"章节配置需开启useDefaultContainerCap、useRunAsRoot能力项。
 
 ### 容器日志收集
 FusionDirector容器日志收集约束：

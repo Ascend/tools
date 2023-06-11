@@ -6,6 +6,7 @@ This class is used to generate GUP dump data of the ONNX model.
 Copyright Information:
 Huawei Technologies Co., Ltd. All Rights Reserved © 2021
 """
+import sys
 
 import onnx
 import onnxruntime
@@ -39,6 +40,7 @@ NODE_TYPE_TO_DTYPE_MAP = {
     "tensor(complex64)": np.complex64,
     "tensor(complex128)": np.complex_
 }
+MAX_PROTOBUF = 2000000000
 
 
 class OnnxDumpData(DumpData):
@@ -75,7 +77,12 @@ class OnnxDumpData(DumpData):
         outputs_name = [name for name in enumerate_model_node_outputs(old_onnx_model)]
         new_onnx_model = select_model_inputs_outputs(old_onnx_model, outputs_name)
         new_onnx_model_path = os.path.join(model_dir, "new_" + os.path.basename(self.args.model_path))
-        save_onnx_model(new_onnx_model, new_onnx_model_path)
+        bytes_model = new_onnx_model.SerializeToString()
+        save_as_external_data_switch = sys.getsizeof(bytes_model) > MAX_PROTOBUF
+        onnx.save_model(new_onnx_model,
+                        new_onnx_model_path,
+                        save_as_external_data=save_as_external_data_switch,
+                        location=model_dir if save_as_external_data_switch else None)
         utils.print_info_log("modify model outputs success")
 
         return old_onnx_model, new_onnx_model_path

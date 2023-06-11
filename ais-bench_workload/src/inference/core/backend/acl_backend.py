@@ -86,12 +86,9 @@ class BackendAcl(BackendBase):
             cur_tensor = aclruntime.Tensor(array)
             cur_tensor.to_device(self.device_id)
             intensors.append(cur_tensor)
-        # outtensors = self.session.run(self.outputs, intensors)
-        self.session.run_setinputs(intensors)
         start = time.time()
-        self.session.run_execute()
+        outtensors = self.session.run(self.outputs, intensors)
         end = time.time()
-        outtensors = self.session.run_getoutputs(self.outputs)
 
         self.elapsedtime += (end - start)*1000
         self.infercount += self.batchsize

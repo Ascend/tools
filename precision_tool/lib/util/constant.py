@@ -2,7 +2,7 @@
 
 
 class Constant(object):
-    VERSION = "0.1.7"
+    VERSION = "0.1.11"
     NEW_LINE = "\n"
     TAB_LINE = "\t"
     DEFAULT_DEBUG_ID = "debug_0"
@@ -14,6 +14,7 @@ class Constant(object):
         JSON = '.json'
         CSV = '.csv'
         H5 = '.h5'
+        OM = '.om'
 
     class Pattern(object):
         GE_PROTO_GRAPH_PATTERN = r'^ge_proto_([0-9]+)_([A-Za-z0-9_-]+)\.txt$'

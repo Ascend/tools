@@ -1,3 +1,20 @@
+#Release 0.1.11
+## Update
+* 兼容csv mapping解析summary dump数据
+
+#Release 0.1.10
+## Update
+* 兼容新的opdebug dump格式
+
+
+#Release 0.1.9
+## Update
+* 兼容新的summary dump的csv格式
+
+#Release 0.1.8
+## Update
+* 兼容新的fusion_result格式
+
 #Release 0.1.7
 ## Update
 * 兼容新平台溢出检测数据解析

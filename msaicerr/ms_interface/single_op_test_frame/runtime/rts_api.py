@@ -22,6 +22,7 @@ import os
 import time
 import math
 import ctypes
+import secrets
 from typing import Union
 
 from ms_interface.single_op_test_frame.utils import file_util
@@ -475,13 +476,18 @@ class AscendRTSApi:
         if not isinstance(data, bytes):
             raise TypeError("Copy binary to hbm supports bytes only, reveviced %s" % str(type(data)))
 
+        real_mem_len = int(math.ceil(len(data) / 32) * 32 + 32)
+        pad_len = real_mem_len - len(data)
+        # dirty data
+        random_bytes = secrets.token_bytes(pad_len)
+        data = data + random_bytes
         try:
-            c_memory_p = self.malloc(int(math.ceil(len(data) / 32) * 32 + 32), "RT_MEMORY_HBM")
+            c_memory_p = self.malloc(real_mem_len, "RT_MEMORY_HBM")
         except BaseException as e:
-            logger.log_err("rtMalloc on HBM failed, HBM memory info:  %s"
-                           % str(self.get_memory_info_ex("RT_MEMORYINFO_HBM")))
+            logger.log_err("rtMalloc on HBM failed, HBM memory info:  %s" %
+                           str(self.get_memory_info_ex("RT_MEMORYINFO_HBM")))
             raise
-        self.memcpy(c_memory_p, int(math.ceil(len(data) / 32) * 32 + 32), data, len(data), "RT_MEMCPY_HOST_TO_DEVICE")
+        self.memcpy(c_memory_p, real_mem_len, data, len(data), "RT_MEMCPY_HOST_TO_DEVICE")
         return c_memory_p
 
     def get_data_from_hbm(self,
@@ -561,7 +567,7 @@ class AscendRTSApi:
                 time.sleep(1)
                 self.memcpy(c_memory_p, memory_size, data, data_size, memcpy_kind, retry_count)
             else:
-                raise RuntimeError("After three retrys,memcpy still fails")
+                raise RuntimeError("After three retrys,memcpy still fails") from err
 
     def memset(self,
                c_memory_p: ctypes.c_void_p, memory_size: int,
@@ -622,6 +628,8 @@ class AscendRTSApi:
                                         rts_info.RT_MEMORY_TYPE[memory_type]
                                         | rts_info.RT_MEMORY_POLICY[memory_policy])
         self.parse_error(rt_error, "rtMalloc", ", trying to allocate %d bytes" % memory_size)
+        # dirty data
+        self.memcpy(c_memory_p, memory_size, secrets.token_bytes(memory_size), memory_size, "RT_MEMCPY_HOST_TO_DEVICE")
         return c_memory_p
 
     def host_malloc(self, memory_size: int) -> ctypes.c_void_p:
@@ -735,8 +743,11 @@ class AscendRTSApi:
         if self.camodel:
             if error_code == 3:
                 return "CAMODEL_NULL_CONTEXT"
+            else:
+                return INVALID_VALUE
         if error_code >= len(rts_info.RT_ERROR_CODE_DICT[error_type]):
-            raise RuntimeError("Received invalid runtime error code: " + hex(0x07000000 + error_type + error_code))
+            logger.log_err("Received invalid runtime error code: " + hex(0x07000000 + error_type + error_code))
+            return INVALID_VALUE
         return rts_info.RT_ERROR_CODE_DICT[error_type][error_code]
 
     def parse_error(self, rt_error: ctypes.c_uint64, rt_api_name: str, extra_info: str = "") -> None:
@@ -756,13 +767,16 @@ class AscendRTSApi:
 
         rt_error_magic = rt_error & 0xFF000000
         if rt_error_magic != 0x07000000 and not self.camodel:
-            raise RuntimeError("Received invalid runtime error code:" + hex(rt_error) + extra_info)
+            logger.log_err("Received invalid runtime error code:" + hex(rt_error) + extra_info)
+            return
         rt_error_type = rt_error & 0x00FF0000
         if rt_error_type not in rts_info.RT_ERROR_CODE_DICT and not self.camodel:
-            raise RuntimeError("Received invalid runtime error type: " + hex(rt_error) + extra_info)
+            logger.log_err("Received invalid runtime error type: " + hex(rt_error) + extra_info)
+            return
         rt_error_code = rt_error & 0x0000FFFF
-        raise RuntimeError("Runtime API call " + "() failed:"
+        logger.log_err("Runtime API call " + "() failed:"
                            + self._parse_error_code(rt_error_type, rt_error_code) + extra_info)
+        return
 
     def get_memory_info_ex(self, memory_info_type: str):
         """
